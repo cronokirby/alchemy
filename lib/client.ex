@@ -7,19 +7,16 @@ defmodule Alchemy.Client do
   """
 
   @doc """
-  Starts up a Supervisor instance
-
-
+  Starts up a new Client with the given token.
   """
   def start(token), do: start_link(token)
   @doc false
   defp start_link(token) do
     Supervisor.start_link(__MODULE__, token)
   end
-  @doc """
-  This creates a `RateManager`, under the name `API` that will be available
-  for managing requests.
-  """
+
+  # This creates a `RateManager`, under the name `API` that will be available
+  # for managing requests.
   def init(token) do
     children = [
       worker(Alchemy.RateManager, [[token: token], [name: API]])
@@ -27,11 +24,10 @@ defmodule Alchemy.Client do
     supervise(children, strategy: :one_for_one)
   end
 
-  @doc """
-  A helper function for some of the later functions.
-  This wraps a syncronous `GenServer.call` into a new process, allowing
-  for concurrent http requests
-  """
+
+  # A helper function for some of the later functions.
+  # This wraps a syncronous RateManager call into a new process, allowing
+  # for concurrent http requests
   defp send(req), do: Task.async(GenServer, :call, [API, req])
 
   @doc """

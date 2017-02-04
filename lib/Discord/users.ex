@@ -24,8 +24,12 @@ defmodule Alchemy.Discord.Users do
 
     A bot usually doesn't have the authorization necessary to access these 2, so
     they're usually missing.
-    * `verified` - Whether the account is verified - *default: `:hidden`*
-    * `email` The user's email - *default: `:hidden`*
+    > **verified**
+
+      Whether the account is verified - *default: `:hidden`*
+    > **avatar**
+    
+      The user's email - *default: `:hidden`*
     """
     @derive [Poison.Encoder]
     defstruct [:id,
@@ -40,10 +44,11 @@ defmodule Alchemy.Discord.Users do
 
   @root_url "https://discordapp.com/api/users/"
   # Returns a User struct, passing :me gets info for the current Client instead
-  def get_user(:me, token) do
-   get_user("@me", token)
+  # Token is the first arg so that it can be prepended generically
+  def get_user(token, :me) do
+   get_user(token, "@me")
   end
-  def get_user(client_id, token) do
+  def get_user(token, client_id) do
     json = Api.get(@root_url <> client_id, token).body
     user = Poison.decode!(json, as: %User{})
     {:ok, user}
