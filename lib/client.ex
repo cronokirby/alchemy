@@ -45,4 +45,8 @@ defmodule Alchemy.Client do
     request = {Users, :get_user, [client_id]}
     send(request)
    end
+
+   def get_rates do
+     send(:rates)
+   end
 end

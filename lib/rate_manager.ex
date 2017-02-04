@@ -6,7 +6,7 @@ defmodule Alchemy.RateManager do
 
   defmodule State do
     @moduledoc false
-    defstruct [:token, count: 1]
+    defstruct [:token, rates: %{}]
   end
 
   # Starts up the RateManager. The Client token needs to be passed in.
@@ -14,11 +14,25 @@ defmodule Alchemy.RateManager do
     GenServer.start_link(__MODULE__, struct(State, state), opts)
   end
 
+  def handle_call(:rates, _from, state) do
+    {:reply, {:ok, state.rates}, state}
+  end
   # Takes a specific API request, and handles storing the ratelimits.
   # This will be called from inside a Task, to allow for concurrent API requests.
   def handle_call({module, method, args}, _from, state) do
-    {:ok, info} = apply(module, method, [state.token | args])
-    {:reply, {:ok, info}, state}
+    # Call the specific method requested
+    {:ok, info, rate_info} = apply(module, method, [state.token | args])
+    # Use the method name as the key, update the rates if they're not :none
+    new_rates = update_rates(state, method, rate_info)
+    {:reply, {:ok, info}, %{state | rates: new_rates}}
   end
-  
+
+  # Sets the new rate_info for a given bucket to the rates recieved from a request
+  # If the info is :none, the rates are not be modified
+  def update_rates(state, _bucket, :none) do
+    state.rates
+  end
+  def update_rates(state, bucket, rate_info) do
+    Map.put(state.rates, bucket, rate_info)
+  end
 end

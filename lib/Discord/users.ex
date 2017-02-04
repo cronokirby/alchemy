@@ -1,7 +1,7 @@
 defmodule Alchemy.Discord.Users do
-  require Logger
   require Poison
   alias Alchemy.Discord.Api
+  alias Alchemy.Discord.RateLimits
   @moduledoc false
   defmodule User do
     @moduledoc """
@@ -47,9 +47,11 @@ defmodule Alchemy.Discord.Users do
   # Returns a User struct, passing "@me" gets info for the current Client instead
   # Token is the first arg so that it can be prepended generically
   def get_user(token, client_id) do
-    json = Api.get(@root_url <> client_id, token)
-    Logger.info json
-    user = Poison.decode!(json.body, as: %User{})
-    {:ok, user}
+    response = Api.get(@root_url <> client_id, token)
+    IO.inspect response
+    rate_info = RateLimits.rate_info(response)
+    IO.inspect rate_info
+    user = Poison.decode!(response.body, as: %User{})
+    {:ok, user, rate_info}
   end
 end
