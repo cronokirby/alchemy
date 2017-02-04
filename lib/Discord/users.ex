@@ -1,23 +1,31 @@
 defmodule Alchemy.Discord.Users do
   require Poison
   alias Alchemy.Discord.Api
-  @moduledoc """
-  Used to access the /Users api
-  """
+  @moduledoc false
   defmodule User do
     @moduledoc """
     Represents a discord user. The default values exist to cover missing fields.
 
-    * **id** - represents a unique client id
-    * **username** - represents a client's current username
-    * **discriminator** - 4 digit tag to differenciate usernames
-    * **avatar** -  A string representing their avatar hash
-    * **bot** - Whether or not the user is a bot - *default: `false`*
+    > **id**
+
+      represents a unique client id
+    > **username**
+
+      represents a client's current username
+    > **discriminator**
+
+      4 digit tag to differenciate usernames
+    > **avatar**
+
+      A string representing their avatar hash
+    > **bot**
+
+      Whether or not the user is a bot - *default: `false`*
 
     A bot usually doesn't have the authorization necessary to access these 2, so
     they're usually missing.
-    * **verified** - Whether the account is verified - *default: `:hidden`*
-    * **email** The user's email - *default: `:hidden`*
+    * `verified` - Whether the account is verified - *default: `:hidden`*
+    * `email` The user's email - *default: `:hidden`*
     """
     @derive [Poison.Encoder]
     defstruct [:id,
@@ -31,10 +39,7 @@ defmodule Alchemy.Discord.Users do
   end
 
   @root_url "https://discordapp.com/api/users/"
-  @doc """
-  Returns a User struct, fetched by client_id. If `:me` is passed, the info
-  for the current Client will be performed instead.
-  """
+  # Returns a User struct, passing :me gets info for the current Client instead
   def get_user(:me, token) do
    get_user("@me", token)
   end

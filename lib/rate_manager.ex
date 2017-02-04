@@ -2,18 +2,25 @@ defmodule Alchemy.RateManager do
   use GenServer
   alias Alchemy.Discord.Users
   @moduledoc """
-  Used to keep track of rate limiting. All api requests are funneled
+  Used to keep track of rate limiting. All api requests are funneled from
+  the public Client interface into this server.
   """
   defmodule State do
     defstruct [:token, count: 1]
   end
 
-  def start_link(opts) do
-    GenServer.start_link(__MODULE__, struct(State, opts), name: __MODULE__)
+  @doc """
+  Starts up the RateManager. The Client token needs to be passed in.
+  """
+  def start_link(state, opts \\ []) do
+    GenServer.start_link(__MODULE__, struct(State, state), opts)
   end
-
-  def handle_call({:get_user, id}, _from, state) do
-    {:ok, info} = Users.get_user(id, state.token)
+  @doc """
+  Takes a specific API request, and handles storing the ratelimits.
+  This will be called from inside a Task, to allow for concurrent API requests.
+  """
+  def handle_call({module, method, args}, _from, state) do
+    {:ok, info} = apply(module, method, args)
     {:reply, {:ok, info}, state}
   end
   def handle_call(:add, _from, state) do
