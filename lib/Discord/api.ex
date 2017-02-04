@@ -11,7 +11,7 @@ defmodule Alchemy.Discord.Api do
   Returns a raw HTTPotion `response`.
   """
   def get(url, token) do
-    HTTPotion.get url, headers: [Authorization: "Bot #{token}"]
+    HTTPoison.get(url, ["Authorization": "Bot #{token}"])
   end
 
 end
