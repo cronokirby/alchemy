@@ -31,7 +31,7 @@ defmodule Alchemy.Client do
   defp send(req), do: Task.async(GenServer, :call, [API, req])
 
   @doc """
-  Gets a user by their client_id. `:me` can be passed to get the info
+  Gets a user by their client_id. `"@me"` can be passed to get the info
   relevant to the Client.
 
   ## Examples
