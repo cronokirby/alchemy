@@ -25,11 +25,23 @@ defmodule Alchemy.Client do
   end
 
 
+
   # A helper function for some of the later functions.
   # This wraps a syncronous RateManager call into a new process, allowing
   # for concurrent http requests
-  defp send(req), do: Task.async(GenServer, :call, [API, req])
+  defp send(req), do: Task.async(fn -> apply(req) end)
 
+  # Used to wait a certain amount of time if the rate_manager can't handle the load
+  defp apply(req) do
+    {module, method, args} = req
+    case GenServer.call(API, {:apply, method}) do
+      {:wait, n} ->
+        :timer.sleep(n)
+        apply(req)
+      :go ->
+        GenServer.call(API, req)
+    end
+  end
   @doc """
   Gets a user by their client_id. `"@me"` can be passed to get the info
   relevant to the Client.
@@ -47,6 +59,6 @@ defmodule Alchemy.Client do
    end
 
    def get_rates do
-     send(:rates)
+     Task.async(GenServer, :call, [:rates])
    end
 end
