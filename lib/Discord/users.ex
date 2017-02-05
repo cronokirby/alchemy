@@ -47,37 +47,25 @@ defmodule Alchemy.Discord.Users do
   # Returns a User struct, passing "@me" gets info for the current Client instead
   # Token is the first arg so that it can be prepended generically
   def get_user(token, client_id) do
-    response = Api.get(@root_url <> client_id, token)
-    rate_info = RateLimits.rate_info(response)
-    user = Poison.decode!(response.body, as: %User{})
-    {:ok, user, rate_info}
+    Api.handle_response(:get, [@root_url <> client_id, token], %User{})
   end
 
-  def modify_user(token, {:user_name, user_name}, {:avatar, url}) do
-    {:ok, avatar} = Api.fetch_avatar(url)
-    request = ~s/{"username": "#{user_name}", "avatar": "#{avatar}"}/
-    response = Api.patch(@root_url <> "@me", request, token)
-    rate_info = RateLimits.rate_info(response)
-    user = Poison.decode!(response.body, as: %User{})
-    {:ok, user, rate_info}
-  end
 
   def modify_user(token, {:user_name, user_name}) do
     request = ~s/{"username": "#{user_name}"}/
-    response = Api.patch(@root_url <> "@me", request, token)
-    rate_info = RateLimits.rate_info(response)
-    user = Poison.decode!(response.body, as: %User{})
-    {:ok, user, rate_info}
+    Api.handle_response(:patch, [@root_url <> "@me", request, token], %User{})
   end
-
   def modify_user(token, {:avatar, url}) do
     {:ok, avatar} = Api.fetch_avatar(url)
     request = ~s/{"avatar": "#{avatar}"}/
-    response = Api.patch(@root_url <> "@me", request, token)
-    rate_info = RateLimits.rate_info(response)
-    user = Poison.decode!(response.body, as: %User{})
-    {:ok, user, rate_info}
+    Api.handle_response(:patch, [@root_url <> "@me", request, token], %User{})
   end
+  def modify_user(token, {:user_name, user_name}, {:avatar, url}) do
+    {:ok, avatar} = Api.fetch_avatar(url)
+    request = ~s/{"username": "#{user_name}", "avatar": "#{avatar}"}/
+    Api.handle_response(:patch, [@root_url <> "@me", request, token], %User{})
+  end
+
   defmodule UserGuild do
     @moduledoc """
     A
@@ -93,9 +81,7 @@ defmodule Alchemy.Discord.Users do
 
   # Returns a list of %UserGuilds the current user is a member of.
   def get_current_guilds(token) do
-    response = Api.get(@root_url <> "@me" <> "/guilds", token)
-    rate_info = RateLimits.rate_info(response)
-    guilds = Poison.decode!(response.body, as: [%UserGuild{}])
-    {:ok, guilds, rate_info}
+    url = @root_url <> "@me" <> "/guilds"
+    Api.handle_response(:get, [url, token], [%UserGuild{}])
   end
 end

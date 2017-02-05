@@ -1,4 +1,5 @@
 defmodule Alchemy.Discord.Api do
+  alias Alchemy.Discord.RateLimits
   @moduledoc false
 
   # Performs a `get` request for a url, using the provided token as authorization.
@@ -22,5 +23,15 @@ defmodule Alchemy.Discord.Api do
   def fetch_avatar(url) do
     data = HTTPotion.get(url).body |> Base.encode64
     {:ok, "data:image/jpeg;base64,#{data}"}
+  end
+
+  # Performs an HTTP request, of `req_type`, with `req_args`, and then
+  # decodes the body using the given struct, and processes the rate_limit information
+  # This generic request is specified in later modules.
+  def handle_response(req_type, req_args, struct) do
+    response = apply(__MODULE__, req_type, req_args)
+    rate_info = RateLimits.rate_info(response)
+    struct = Poison.decode!(response.body, as: struct)
+    {:ok, struct, rate_info}
   end
 end
