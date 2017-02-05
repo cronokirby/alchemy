@@ -31,8 +31,8 @@ defmodule Alchemy.RateManager do
       {:wait, time} ->
         Logger.info "Timeout of #{time} under request #{method}"
         {:reply, {:wait, time}, state}
-      {:go, remaining} ->
-        reserved = %{rate_info | remaining: remaining}
+      {:go, new_rates} ->
+        reserved = Map.merge(rate_info, new_rates)
         new_state = %{state | rates:  Map.put(rates, method, reserved)}
         Logger.info "You may go!"
         {:reply, :go, new_state}
@@ -52,23 +52,24 @@ defmodule Alchemy.RateManager do
     state.rates
   end
   def update_rates(state, bucket, rate_info) do
-    IO.inspect(rate_info.reset_time - System.system_time(:second))
     Map.put(state.rates, bucket, rate_info)
   end
 
   def throttle(%RateInfo{remaining: remaining}) when remaining > 0 do
-      Logger.info "No throttle"
-      {:go, remaining - 1}
+      {:go, %{remaining: remaining - 1}}
   end
   def throttle(rate_info) do
     now = DateTime.utc_now |> DateTime.to_unix
-    wait_time = rate_info.reset_time - now
+    reset_time = rate_info.reset_time
+    wait_time = reset_time - now
     if wait_time > 0 do
       {:wait, wait_time * 1000}
     else
-      # Since we've passed the epoch time, the remaining reqs can be reset.
-      # We subtract one to reserve a slot for this request
-      {:go, rate_info.limit - 1}
+      # We've passed the limit, remaining can be reset to the limit.
+      # To ensure that we don't overreserve for this time slot, we set the next
+      # reset time to 2 seconds from now; This should be replaced with info
+      # coming from outgoing requests within that timeframe
+      {:go, %{remaining: rate_info.limit - 1, reset_time: now + 2}}
     end
   end
 

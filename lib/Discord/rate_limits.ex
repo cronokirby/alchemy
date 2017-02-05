@@ -27,6 +27,6 @@ defmodule Alchemy.Discord.RateLimits do
   def default_info do
     now = DateTime.utc_now |> DateTime.to_unix
     # 2 seconds should be enough to let the first one get a clean request
-    %RateInfo{limit: 1, remaining: 1, reset_time: now + 2}
+    %RateInfo{limit: 0, remaining: 1, reset_time: now + 2}
   end
 end
