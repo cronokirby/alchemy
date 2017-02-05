@@ -16,4 +16,11 @@ defmodule Alchemy.Discord.Api do
                                     "Content-Type": "application/json"],
                           body: data]
   end
+
+  # Fetches an image, encodes it base64, and then formats it in discord's
+  # preferred formatting. Returns {:ok, formatted}, or {:error, why}
+  def fetch_avatar(url) do
+    data = HTTPotion.get(url).body |> Base.encode64
+    {:ok, "data:image/jpeg;base64,#{data}"}
+  end
 end
