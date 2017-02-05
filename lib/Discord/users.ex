@@ -53,16 +53,26 @@ defmodule Alchemy.Discord.Users do
     {:ok, user, rate_info}
   end
 
-  def modify_user(token, user_name, :none) do
+  def modify_user(token, {:user_name, user_name}, {:avatar, url}) do
+    {:ok, avatar} = Api.fetch_avatar(url)
+    request = ~s/{"username": "#{user_name}", "avatar": "#{avatar}"}/
+    response = Api.patch(@root_url <> "@me", request, token)
+    rate_info = RateLimits.rate_info(response)
+    user = Poison.decode!(response.body, as: %User{})
+    {:ok, user, rate_info}
+  end
+
+  def modify_user(token, {:user_name, user_name}) do
     request = ~s/{"username": "#{user_name}"}/
     response = Api.patch(@root_url <> "@me", request, token)
     rate_info = RateLimits.rate_info(response)
     user = Poison.decode!(response.body, as: %User{})
     {:ok, user, rate_info}
   end
-  def modify_user(token, user_name, url) do
+
+  def modify_user(token, {:avatar, url}) do
     {:ok, avatar} = Api.fetch_avatar(url)
-    request = ~s/{"username": "#{user_name}", "avatar": "#{avatar}"}/
+    request = ~s/{"avatar": "#{avatar}"}/
     response = Api.patch(@root_url <> "@me", request, token)
     rate_info = RateLimits.rate_info(response)
     user = Poison.decode!(response.body, as: %User{})
