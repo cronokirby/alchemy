@@ -52,4 +52,24 @@ defmodule Alchemy.Discord.Users do
     user = Poison.decode!(response.body, as: %User{})
     {:ok, user, rate_info}
   end
+
+  defmodule UserGuild do
+    @moduledoc """
+    A
+    """
+    @derive [Poison.Encoder]
+    defstruct [:id,
+               :name,
+               :icon,
+               :owner,
+               :permissions
+               ]
+  end
+
+  def get_current_guilds(token) do
+    response = Api.get(@root_url <> "@me" <> "/guilds", token)
+    rate_info = RateLimits.rate_info(response)
+    guilds = Poison.decode!(response.body, as: [%UserGuild{}])
+    {:ok, guilds, rate_info}
+  end
 end

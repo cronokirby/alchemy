@@ -49,7 +49,7 @@ defmodule Alchemy.Client do
   ## Examples
 
   ```elixir
-  iex> {:ok, user} = Client.get_user('client_id') |> Task.await
+  iex> {:ok, user} = Task.await Client.get_user('client_id')
   {:ok, Alchemy.Discord.Users.User%{....
   ```
   """
@@ -58,7 +58,7 @@ defmodule Alchemy.Client do
     send(request)
    end
 
-   def get_rates do
-     Task.async(GenServer, :call, [:rates])
+   def current_servers do
+     send {Users, :get_current_guilds, []}
    end
 end

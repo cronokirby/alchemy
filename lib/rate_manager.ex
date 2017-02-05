@@ -17,12 +17,9 @@ defmodule Alchemy.RateManager do
     GenServer.start_link(__MODULE__, struct(State, state), opts)
   end
 
-  def handle_call(:rates, _from, state) do
-    {:reply, {:ok, state.rates}, state}
-  end
 
-  # Takes a specific API request, and handles storing the ratelimits.
-  # This will be called from inside a Task, to allow for concurrent API requests.
+  # A requester needs to request a slot from here. It will either be told to wait,
+  # or to go, in which case it calls the server again for an api call
   def handle_call({:apply, method}, _from, state) do
     rates = state.rates
     rate_info = Map.get(rates, method, default_info)
@@ -34,7 +31,6 @@ defmodule Alchemy.RateManager do
       {:go, new_rates} ->
         reserved = Map.merge(rate_info, new_rates)
         new_state = %{state | rates:  Map.put(rates, method, reserved)}
-        Logger.info "You may go!"
         {:reply, :go, new_state}
     end
   end
@@ -46,7 +42,7 @@ defmodule Alchemy.RateManager do
     {:reply, {:ok, info}, %{state | rates: new_rates}}
   end
 
-  # Sets the new rate_info for a given bucket to the rates recieved from a request
+  # Sets the new rate_info for a given bucket to the rates recieved from an api call
   # If the info is :none, the rates are not be modified
   def update_rates(state, _bucket, :none) do
     state.rates
@@ -55,6 +51,7 @@ defmodule Alchemy.RateManager do
     Map.put(state.rates, bucket, rate_info)
   end
 
+  # Assigns a slot to an incoming request,
   def throttle(%RateInfo{remaining: remaining}) when remaining > 0 do
       {:go, %{remaining: remaining - 1}}
   end

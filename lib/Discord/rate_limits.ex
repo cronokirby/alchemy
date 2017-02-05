@@ -4,7 +4,7 @@ defmodule Alchemy.Discord.RateLimits do
 
   defmodule RateInfo do
     @moduledoc false
-    defstruct [limit: 1, remaining: 1, reset_time: 0]
+    defstruct [:limit, :remaining, :reset_time]
   end
 
   def rate_info(%HTTPotion.Response{status_code: 200, headers: h}) do
