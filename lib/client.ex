@@ -58,6 +58,9 @@ defmodule Alchemy.Client do
     send(request)
    end
 
+   def edit_profile(user_name) do
+     send({Users, :modify_user, [user_name]})
+   end
    def current_servers do
      send {Users, :get_current_guilds, []}
    end

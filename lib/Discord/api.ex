@@ -6,7 +6,14 @@ defmodule Alchemy.Discord.Api do
   # This doesn't support user accounts atm.
   # Returns a raw HTTPotion `response`.
   def get(url, token) do
-    HTTPotion.get url, headers: [Authorization: "Bot #{token}"]
+    HTTPotion.get url, headers: ["Authorization": "Bot #{token}"]
   end
 
+  # Performs a `patch` request, returning an HTTPotion response.
+  # This isn't used too often
+  def patch(url, data, token) do
+    HTTPotion.patch url, [headers: ["Authorization": "Bot #{token}",
+                                    "Content-Type": "application/json"],
+                          body: data]
+  end
 end

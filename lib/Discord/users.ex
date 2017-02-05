@@ -53,6 +53,13 @@ defmodule Alchemy.Discord.Users do
     {:ok, user, rate_info}
   end
 
+  def modify_user(token, user_name) do
+    request = ~s/{"username": "#{user_name}"}/
+    response = Api.patch(@root_url <> "@me", request, token)
+    rate_info = RateLimits.rate_info(response)
+    user = Poison.decode!(response.body, as: %User{})
+    {:ok, user, rate_info}
+  end
   defmodule UserGuild do
     @moduledoc """
     A
@@ -66,6 +73,7 @@ defmodule Alchemy.Discord.Users do
                ]
   end
 
+  # Returns a list of %UserGuilds the current user is a member of.
   def get_current_guilds(token) do
     response = Api.get(@root_url <> "@me" <> "/guilds", token)
     rate_info = RateLimits.rate_info(response)
