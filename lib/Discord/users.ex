@@ -3,7 +3,6 @@ defmodule Alchemy.Discord.Users do
   alias Alchemy.User
   alias Alchemy.UserGuild
   alias Alchemy.Discord.Api
-  alias Alchemy.Discord.RateLimits
   @moduledoc false
   @root_url "https://discordapp.com/api/users/"
 
