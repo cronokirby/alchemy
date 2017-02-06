@@ -36,4 +36,11 @@ defmodule Alchemy.Discord.Users do
     url = @root_url <> "@me" <> "/guilds"
     Api.handle_response(:get, [url, token], [%UserGuild{}])
   end
+
+
+  # Removes a client from a guild
+  def leave_guild(token, guild_id) do
+    url = @root_url <> "@me/guilds/#{guild_id}"
+    Api.handle_response(:delete, [url, token])
+  end
 end

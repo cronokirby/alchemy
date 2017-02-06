@@ -31,6 +31,8 @@ defmodule Alchemy.Mixfile do
   defp deps do
     [{:httpotion, "~> 3.0.2"},
      {:earmark, "~> 0.1", only: :dev},
+     {:socket, "~> 0.3"},
+     {:websocket_client, git: "https://github.com/Kraigie/websocket_client.git"},
      {:ex_doc, "~> 0.11", only: :dev},
      {:poison, "~> 3.0"}]
   end

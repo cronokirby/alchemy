@@ -2,7 +2,7 @@ defmodule Alchemy.Client do
   alias Alchemy.Discord.Users
   alias Alchemy.UserGuild
   alias Alchemy.User
-
+  import Alchemy.RateManager, only: [send: 1]
   use Supervisor
   @moduledoc """
   Represents a Client connection to the Discord API. This is the main public
@@ -25,25 +25,6 @@ defmodule Alchemy.Client do
       worker(Alchemy.RateManager, [[token: token], [name: API]])
     ]
     supervise(children, strategy: :one_for_one)
-  end
-
-
-
-  # A helper function for some of the later functions.
-  # This wraps a syncronous RateManager call into a new process, allowing
-  # for concurrent http requests
-  defp send(req), do: Task.async(fn -> apply(req) end)
-
-  # Used to wait a certain amount of time if the rate_manager can't handle the load
-  defp apply(req) do
-    {module, method, args} = req
-    case GenServer.call(API, {:apply, method}) do
-      {:wait, n} ->
-        :timer.sleep(n)
-        apply(req)
-      :go ->
-        GenServer.call(API, req)
-    end
   end
   @doc """
   Gets a user by their client_id, returns `{:ok, %User{}}`
@@ -98,5 +79,18 @@ defmodule Alchemy.Client do
    @spec current_guilds() :: {:ok, UserGuild.t}
    def current_guilds do
      send {Users, :get_current_guilds, []}
+   end
+   @doc """
+   Makes the client leave a guild.
+
+   ## Examples
+
+   ```elixir
+   Client.leave_guild
+   ```
+   """
+   @spec leave_guild(String.t) :: {:ok, :none}
+   def leave_guild(guild_id) do
+    send {Users, :leave_guild, [guild_id]}
    end
 end

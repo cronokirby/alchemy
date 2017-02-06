@@ -18,6 +18,12 @@ defmodule Alchemy.Discord.Api do
                           body: data]
   end
 
+  # Performs a `delete` request, returning an HTTPotion response.
+  def delete(url, token) do
+    HTTPotion.delete url, headers: ["Authorization": "Bot #{token}"]
+  end
+
+
   # Fetches an image, encodes it base64, and then formats it in discord's
   # preferred formatting. Returns {:ok, formatted}, or {:error, why}
   def fetch_avatar(url) do
@@ -28,6 +34,11 @@ defmodule Alchemy.Discord.Api do
   # Performs an HTTP request, of `req_type`, with `req_args`, and then
   # decodes the body using the given struct, and processes the rate_limit information
   # This generic request is specified in later modules.
+  def handle_response(:delete, req_args) do
+    response = apply(__MODULE__, :delete, req_args)
+    rate_info = RateLimits.rate_info(response)
+    {:ok, :none, rate_info}
+  end
   def handle_response(req_type, req_args, struct) do
     response = apply(__MODULE__, req_type, req_args)
     rate_info = RateLimits.rate_info(response)
