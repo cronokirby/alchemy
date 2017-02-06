@@ -1,5 +1,8 @@
 defmodule Alchemy.Client do
   alias Alchemy.Discord.Users
+  alias Alchemy.UserGuild
+  alias Alchemy.User
+
   use Supervisor
   @moduledoc """
   Represents a Client connection to the Discord API. This is the main public
@@ -43,7 +46,9 @@ defmodule Alchemy.Client do
     end
   end
   @doc """
-  Gets a user by their client_id. `"@me"` can be passed to get the info
+  Gets a user by their client_id, returns `{:ok, %User{}}`
+
+  `"@me"` can be passed to get the info
   relevant to the Client.
 
   ## Examples
@@ -53,15 +58,45 @@ defmodule Alchemy.Client do
   {:ok, Alchemy.Discord.Users.User%{....
   ```
   """
+  @spec get_user(String.t) :: {:ok, User.t}
   def get_user(client_id) do
     request = {Users, :get_user, [client_id]}
     send(request)
    end
+   @doc """
+   Edits the client's user_name and/or avatar.
 
+   ## Options
+
+   - `user_name` - A string specifiying the new user_name for the client
+   - `avatar` - A link to an image for the client's avatar
+
+   ## Examples
+
+   ```elixir
+   # Will edit "behind the scenes"
+   Client.edit_profile(username: "NewGuy", avatar: "imgur.com/image.jpeg")
+   ```
+   ```elixir
+   iex> {:ok, user} = Task.await Client.edit_profile(username: "NewName")
+   {:ok, Alchemy.Discord.Users.User%{....
+   ```
+   """
+   @spec edit_profile(user_name: String.t, avatar: String.t) :: {:ok, User.t}
    def edit_profile(options) do
      send({Users, :modify_user, options})
    end
-   def current_servers do
+   @doc """
+   Get's a list of guilds the client is currently a part of.
+
+   ## Examples
+
+   ```elixir
+   {:ok, guilds} = Task.await Client.current_guilds
+   ```
+   """
+   @spec current_guilds() :: {:ok, UserGuild.t}
+   def current_guilds do
      send {Users, :get_current_guilds, []}
    end
 end
