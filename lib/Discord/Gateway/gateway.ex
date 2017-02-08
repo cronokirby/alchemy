@@ -1,11 +1,10 @@
 defmodule Alchemy.Discord.Gateway do
   @moduledoc false
   @behaviour :websocket_client
-  require Logger
   import Process
   import Alchemy.Discord.Payloads
   import Alchemy.Discord.Protocol
-
+  require Logger
 
   defmodule State do
     defstruct [:token, :trace, :session_id, :seq]

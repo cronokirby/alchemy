@@ -17,7 +17,14 @@ defmodule Alchemy.RateManager do
     GenServer.start_link(__MODULE__, struct(State, state), opts)
   end
 
-
+  # Wrapper around applying for an api slot
+  def apply(method) do
+    GenServer.call(API, {:apply, method})
+  end
+  # Wrapper around processing a request
+  def process(module, method, args) do
+    GenServer.call(API, {module, method, args})
+  end
   # A requester needs to request a slot from here. It will either be told to wait,
   # or to go, in which case it calls the server again for an api call
   def handle_call({:apply, method}, _from, state) do
@@ -74,17 +81,16 @@ defmodule Alchemy.RateManager do
   # A helper function for some of the later functions.
   # This wraps a syncronous RateManager call into a new process, allowing
   # for concurrent http requests
-  def send(req), do: Task.async(fn -> apply(req) end)
+  def send(req), do: Task.async(fn -> request(req) end)
 
   # Used to wait a certain amount of time if the rate_manager can't handle the load
-  defp apply(req) do
-    {module, method, args} = req
-    case GenServer.call(API, {:apply, method}) do
+  defp request({m, f, a} = req) do
+    case apply(f) do
       {:wait, n} ->
-        :timer.sleep(n)
+        Process.sleep(n)
         apply(req)
       :go ->
-        GenServer.call(API, req)
+        process(m, f, a)
     end
   end
 end

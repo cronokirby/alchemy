@@ -27,7 +27,6 @@ defmodule Alchemy.Discord.Protocol do
   # Disconnection warning
   def dispatch(%{"op" => 7}, state) do
     Logger.debug "Disconnected from the Gateway; restarting the Gateway"
-    Supervisor.restart_child(Client, Gateway)
   end
   # Invalid session_id. This is quite fatal.
   def dispatch(%{"op" => 9}, state) do
