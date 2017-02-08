@@ -1,24 +1,35 @@
 defmodule Alchemy.Discord.Protocol do
   require Logger
-  alias Alchemy.Discord.Gateway
   import Process
+  import Alchemy.Discord.Payloads
+  alias Alchemy.Discord.Gateway
   @moduledoc false
+
+
   def get_url do
     {:ok, json} = HTTPotion.get("https://discordapp.com/api/v6/gateway").body
                   |> Poison.Parser.parse
     json["url"] <> "?v=6&encoding=json"
   end
-  def dispatch(%{"op" => 0, "s" => seq, "d" => payload, "t" => "READY"}, state) do
+
+
+  # The READY event, part of the standard protocol
+  def dispatch(%{"s" => seq, "d" => payload, "t" => "READY"}, state) do
     Logger.debug "Recieved READY"
     {:ok, %{state | seq: seq,
                     session_id: payload["session_id"],
-                    trace: payload["_trace"],
-                    parse: false}}
+                    trace: payload["_trace"]}}
   end
+  # Immediate heartbeat request
+  def dispatch(%{"op" => 1}, state) do
+    {:reply, {:text, heartbeat(state.seq)}, state}
+  end
+  # Disconnection warning
   def dispatch(%{"op" => 7}, state) do
     Logger.debug "Disconnected from the Gateway; restarting the Gateway"
-    #Supervisor.restart_child(Client, Gateway)
+    Supervisor.restart_child(Client, Gateway)
   end
+  # Invalid session_id. This is quite fatal.
   def dispatch(%{"op" => 9}, state) do
     raise "Invalid session id! see logs for info."
   end
@@ -30,9 +41,11 @@ defmodule Alchemy.Discord.Protocol do
     send_after(self(), {:heartbeat, interval}, interval)
     {:ok, %{state | trace: payload["_trace"]}}
   end
+  # Heartbeat ACK, doesn't do anything noteworthy
   def dispatch(%{"op" => 11}, state) do
     {:ok, state}
   end
+  # Need to fill this in
   def dispatch(data, state) do
     {:ok, state}
   end

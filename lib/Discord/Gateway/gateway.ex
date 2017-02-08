@@ -1,14 +1,16 @@
 defmodule Alchemy.Discord.Gateway do
   @moduledoc false
+  @behaviour :websocket_client
+  require Logger
   import Process
   import Alchemy.Discord.Payloads
   import Alchemy.Discord.Protocol
-  require Logger
-  @behaviour :websocket_client
+
 
   defmodule State do
-    defstruct [:token, :trace, :session_id, :seq, parse: true]
+    defstruct [:token, :trace, :session_id, :seq]
   end
+  # Requests a gateway URL, before then connecting, and storing the token
   def start_link(token) do
      :crypto.start
      :ssl.start
@@ -18,10 +20,6 @@ defmodule Alchemy.Discord.Gateway do
 
   def init(state) do
     {:once, state}
-  end
-
-  def send(msg) do
-    send(self(), :start)
   end
 
   def onconnect(_ws_req, state) do
@@ -34,6 +32,7 @@ defmodule Alchemy.Discord.Gateway do
     {:reconnect, state}
   end
 
+  # Messages are either raw, or compressed JSON
   def websocket_handle({:binary, msg}, _conn_state, state) do
       msg |> :zlib.uncompress |> Poison.Parser.parse! |> dispatch(state)
   end
@@ -42,15 +41,18 @@ defmodule Alchemy.Discord.Gateway do
   end
 
 
+  # Heartbeats need to be sent every interval
   def websocket_info({:heartbeat, interval}, _conn_state, state) do
     send_after(self(), {:heartbeat, interval}, interval)
     {:reply, {:text, heartbeat(state.seq)}, state}
   end
 
+  # Send the identify package to discord, if this is our fist session
   def websocket_info(:identify, _, %State{session_id: nil} = state) do
     identify = identify_msg(state.token)
     {:reply, {:text, identify}, state}
   end
+  # We can resume if we already have a session_id (i.e. we disconnected)
   def websocket_info(:identify, _, state) do
      {:reply, {:text, resume_msg(state)}, state}
   end

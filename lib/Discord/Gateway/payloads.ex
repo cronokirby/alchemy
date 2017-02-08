@@ -1,5 +1,7 @@
 defmodule Alchemy.Discord.Payloads do
   @moduledoc false
+  # These contain functions that construct payloads.
+  # For deconstruction, see Alchemy.Discord.Events
 
   def opcode(op) do
      %{dispatch: 0,
@@ -22,7 +24,6 @@ defmodule Alchemy.Discord.Payloads do
     Poison.encode!(payload)
   end
 
-
   def properties(os) do
     %{"$os" => os,
       "$browser" => "alchemy",
@@ -30,6 +31,7 @@ defmodule Alchemy.Discord.Payloads do
       "$referrer" => "",
       "$referring_domain" => ""}
   end
+
 
   def identify_msg(token) do
     {os, _} = :os.type
@@ -41,12 +43,14 @@ defmodule Alchemy.Discord.Payloads do
     build_payload(:identify, identify)
   end
 
+
   def resume_msg(state) do
      resume = %{token: state.token,
                 session_id: state.session_id,
                 seq: state.seq}
     build_payload(:resume, resume)
   end
+
 
   def heartbeat(seq) do
      build_payload(:heartbeat, seq)
