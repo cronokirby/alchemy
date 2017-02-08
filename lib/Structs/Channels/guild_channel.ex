@@ -1,4 +1,6 @@
 defmodule Alchemy.Channel do
+  alias Alchemy.OverWrite
+  import Alchemy.Structs.Utility
   @moduledoc """
   Represents a standard channel in a Guild.
 
@@ -65,4 +67,11 @@ defmodule Alchemy.Channel do
              :last_message_id,
              :bitrate,
              :user_limit]
+
+  def from_map(map) do
+    channel = to_struct(Channel, map)
+    overwrites = Enum.map channel.permission_overwrites,
+                 &(to_struct(OverWrite, &1))
+    %{channel | permission_overwrites: overwrites}
+  end
 end
