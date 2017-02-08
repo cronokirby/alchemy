@@ -13,13 +13,6 @@ defmodule Alchemy.Discord.Protocol do
   end
 
 
-  # The READY event, part of the standard protocol
-  def dispatch(%{"s" => seq, "d" => payload, "t" => "READY"}, state) do
-    Logger.debug "Recieved READY"
-    {:ok, %{state | seq: seq,
-                    session_id: payload["session_id"],
-                    trace: payload["_trace"]}}
-  end
   # Immediate heartbeat request
   def dispatch(%{"op" => 1}, state) do
     {:reply, {:text, heartbeat(state.seq)}, state}
@@ -49,5 +42,12 @@ defmodule Alchemy.Discord.Protocol do
     {:ok, state}
   end
 
+  # The READY event, part of the standard protocol
+  def dispatch(%{"t" => "READY", "s" => seq, "d" => payload}, state) do
+    Logger.debug "Recieved READY"
+    {:ok, %{state | seq: seq,
+                    session_id: payload["session_id"],
+                    trace: payload["_trace"]}}
+  end
 
 end
