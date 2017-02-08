@@ -15,7 +15,7 @@ defmodule Alchemy.Client do
   def start(token), do: start_link(token)
   @doc false
   defp start_link(token) do
-    Supervisor.start_link(__MODULE__, token)
+    Supervisor.start_link(__MODULE__, token, name: Client)
   end
 
   # This creates a `RateManager`, under the name `API` that will be available
@@ -76,7 +76,7 @@ defmodule Alchemy.Client do
    {:ok, guilds} = Task.await Client.current_guilds
    ```
    """
-   @spec current_guilds() :: {:ok, UserGuild.t}
+   @spec current_guilds() :: {:ok, [UserGuild.t]}
    def current_guilds do
      send {Users, :get_current_guilds, []}
    end

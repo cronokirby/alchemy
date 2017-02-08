@@ -27,13 +27,15 @@ defmodule Alchemy.User do
 
     The user's email - *default: `:hidden`*
   """
-  @type t :: %Alchemy.User{id: String.t,
-                           username: String.t,
-                           discriminator: String.t,
-                           avatar: String.t,
-                           bot: Boolean,
-                           verified: :hidden | Boolean,
-                           email: :hidden | String.t}
+  @type t :: %__MODULE__{
+    id: String.t,
+    username: String.t,
+    discriminator: String.t,
+    avatar: String.t,
+    bot: Boolean,
+    verified: :hidden | Boolean,
+    email: :hidden | String.t
+  }
   @derive [Poison.Encoder]
   defstruct [:id,
              :username,
