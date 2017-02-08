@@ -2,6 +2,8 @@ defmodule Alchemy.Client do
   alias Alchemy.Discord.Users
   alias Alchemy.UserGuild
   alias Alchemy.User
+  alias Alchemy.RateManager
+  alias Alchemy.Discord.Gateway
   import Alchemy.RateManager, only: [send: 1]
   use Supervisor
   @moduledoc """
@@ -22,7 +24,8 @@ defmodule Alchemy.Client do
   # for managing requests.
   def init(token) do
     children = [
-      worker(Alchemy.RateManager, [[token: token], [name: API]])
+      worker(RateManager, [[token: token], [name: API]]),
+      worker(Gateway, [token])
     ]
     supervise(children, strategy: :one_for_one)
   end

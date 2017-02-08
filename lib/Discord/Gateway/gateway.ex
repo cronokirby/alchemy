@@ -25,7 +25,7 @@ defmodule Alchemy.Discord.Gateway do
   end
 
   def onconnect(_ws_req, state) do
-    Logger.debug "Connected"
+    Logger.debug "Connected to the gateway"
     {:ok, state}
   end
 
@@ -35,25 +35,14 @@ defmodule Alchemy.Discord.Gateway do
   end
 
   def websocket_handle({:binary, msg}, _conn_state, state) do
-      if true do
-        msg |> :zlib.uncompress |> Poison.Parser.parse! |> dispatch(state)
-      else
-        Logger.debug "ignoring"
-        {:ok, state}
-      end
+      msg |> :zlib.uncompress |> Poison.Parser.parse! |> dispatch(state)
   end
   def websocket_handle({:text, msg}, _conn_state, state) do
-    if true do
       msg |> Poison.Parser.parse! |> dispatch(state)
-    else
-      Logger.debug "ignoring"
-      {:ok, state}
-    end
   end
 
 
   def websocket_info({:heartbeat, interval}, _conn_state, state) do
-    Logger.debug "Sending a beat"
     send_after(self(), {:heartbeat, interval}, interval)
     {:reply, {:text, heartbeat(state.seq)}, state}
   end

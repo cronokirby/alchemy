@@ -31,7 +31,6 @@ defmodule Alchemy.Discord.Protocol do
     {:ok, %{state | trace: payload["_trace"]}}
   end
   def dispatch(%{"op" => 11}, state) do
-    Logger.debug "ACK response recieved."
     {:ok, state}
   end
   def dispatch(data, state) do
