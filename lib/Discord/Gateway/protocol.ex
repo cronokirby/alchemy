@@ -25,7 +25,6 @@ defmodule Alchemy.Discord.Protocol do
   # Invalid session_id. This is quite fatal.
   def dispatch(%{"op" => 9}, state) do
     Logger.debug "Invalid session id! see logs for info."
-    Process.sleep(5000)
     exit(self(), :invalid_session)
   end
   # Heartbeat payload, defining the interval to beat to

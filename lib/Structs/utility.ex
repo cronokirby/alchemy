@@ -3,7 +3,7 @@ defmodule Alchemy.Structs.Utility do
   # Contains useful functions for working on Structs
 
   # Converts a map into a struct, handling string to atom conversion
-  def to_struct(kind, attrs) do
+  def to_struct(attrs, kind) do
       struct = struct(kind)
       Enum.reduce Map.to_list(struct), struct, fn {k, _}, acc ->
         case Map.fetch(attrs, Atom.to_string(k)) do
@@ -11,5 +11,11 @@ defmodule Alchemy.Structs.Utility do
           :error -> acc
         end
       end
-    end
+  end
+
+  # Maps struct conversion over an enum
+  def map_struct(list, kind) do
+    Enum.map list, &(to_struct(&1, kind))
+  end
+
 end

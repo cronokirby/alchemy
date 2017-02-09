@@ -1,4 +1,5 @@
 defmodule Alchemy.Discord.StateManager do
+  alias Alchemy.Guild
   use GenServer
   @moduledoc false
   # A Genserver used to keep track of the State of the client.
@@ -54,13 +55,15 @@ defmodule Alchemy.Discord.StateManager do
 
   # Responsible for creating a global event if the guild is new
   def add_guild(guild) do
-    unless exists(:guilds, guild) do
-      GenEvent.notify(Events, {:join_guild, guild})
+    if exists(:guilds, guild) do
+      change_guild(:merge, guild)
+    else
+      GenEvent.notify(Events, {:join_guild, Guild.from_map(guild)})
       change_guild(:store, guild)
     end
-      change_guild(:merge, guild)
   end
 
+  def update_guild(guild), do: change_guild(:merge, guild)
 
 
   def start_link(opts \\ []) do

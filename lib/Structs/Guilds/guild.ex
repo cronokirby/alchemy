@@ -4,6 +4,8 @@ defmodule Alchemy.Guild do
   alias Alchemy.Channel
   alias ALchemy.GuildMember
   alias Alchemy.VoiceState
+  alias Alchemy.Presence
+  import Alchemy.Structs.Utility
   @moduledoc """
   """
   @type t :: %__MODULE__{
@@ -29,7 +31,7 @@ defmodule Alchemy.Guild do
     voice_states: [VoiceState.t],
     members: [GuildMember.t],
     channels: [Channel.t],
-    presences: String.t
+    presences: [Presence.t]
   }
   @derive Poison.Encoder
   defstruct [:id,
@@ -56,4 +58,15 @@ defmodule Alchemy.Guild do
              :channels,
              :presences
              ]
+
+  def from_map(map) do
+    map
+    |> Map.get_and_update("roles", &(map_struct &1, Role))
+    |> Map.get_and_update("emojis", &(map_struct &1, Emoji))
+    |> Map.get_and_update("voice_states", &(map_struct &1, VoiceState))
+    |> Map.get_and_update("members", &(map_struct &1, GuildMember))
+    |> Map.get_and_update("channels", &(map_struct &1, Channel))
+    |> Map.get_and_update("presences", &(map_struct &1, Presence))
+    |> to_struct(Guild)
+  end
 end

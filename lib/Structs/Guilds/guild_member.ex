@@ -11,6 +11,7 @@ defmodule Alchemy.GuildMember do
     deaf: Boolean,
     mute: Boolean
   }
+  @derive Poison.Encoder
   defstruct [:user,
              :nick,
              :roles,

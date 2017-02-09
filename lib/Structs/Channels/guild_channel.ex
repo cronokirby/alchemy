@@ -49,7 +49,7 @@ defmodule Alchemy.Channel do
     type: String.t,
     position: Integer,
     is_private: Boolean,
-    permission_overwrites: [%OverWrite{}],
+    permission_overwrites: [OverWrite.t],
     topic: String.t | nil,
     last_message_id: String.t | nil,
     bitrate: Integer | nil,
@@ -69,9 +69,8 @@ defmodule Alchemy.Channel do
              :user_limit]
 
   def from_map(map) do
-    channel = to_struct(Channel, map)
-    overwrites = Enum.map channel.permission_overwrites,
-                 &(to_struct(OverWrite, &1))
-    %{channel | permission_overwrites: overwrites}
+    map
+    |> Map.get_and_update("permission_overwrites", &(map_struct &1, OverWrite))
+    |> to_struct(Channel)
   end
 end
