@@ -24,9 +24,17 @@ defmodule Alchemy.Discord.StateManager do
     cast {:init, state}
   end
 
+  defp change_object(section, call, object) do
+    cast {call, object, section, object["id"]}
+  end
+
+  def exists(section, object) do
+    cast {:exists?, section, object["id"]}
+  end
+  ### Private Channels ###
 
   defp change_priv_channel(call, chan) do
-    cast {call, chan, :private_channels, chan["id"]}
+    change_object(:private_channels, call, chan)
   end
 
   def add_priv_channel(channel), do: change_priv_channel(:store, channel)
@@ -37,10 +45,34 @@ defmodule Alchemy.Discord.StateManager do
     cast {:remove, :private_channels, chan_id}
   end
 
+
+  ### Guilds ###
+
+  defp change_guild(call, guild) do
+    change_object(:guilds, call, guild)
+  end
+
+  # Responsible for creating a global event if the guild is new
+  def add_guild(guild) do
+    unless exists(:guilds, guild) do
+      GenEvent.notify(Events, {:join_guild, guild})
+      change_guild(:store, guild)
+    end
+      change_guild(:merge, guild)
+  end
+
+
+
   def start_link(opts \\ []) do
     GenServer.start_link(__MODULE__, %State{}, opts)
   end
 
+  # Checks if an object exists; used for events that mask both creating and updating
+  def handle_call({:exists?, section, key}, _from, state) do
+    {:reply,
+     Map.get(state, section) |> Map.has_key?(key),
+     state}
+  end
   def handle_call(_, _from, state) do
     {:reply, state, state}
   end

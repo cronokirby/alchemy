@@ -37,4 +37,10 @@ defmodule Alchemy.Discord.Events do
   def handle("CHANNEL_UPDATE", payload) do
     notify {:channel_delete, Channel.from_map(payload)}
   end
+
+  # The state manager is tasked of notifying, if, and only if this guild is new,
+  # and not in the unavailable guilds loaded before
+  def handle("GUILD_CREATE", payload) do
+
+  end
 end
