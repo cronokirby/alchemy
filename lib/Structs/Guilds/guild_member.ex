@@ -1,13 +1,14 @@
 defmodule Alchemy.GuildMember do
   alias Alchemy.User
   alias Alchemy.Role
+  import Alchemy.Structs.Utility
   @moduledoc """
   """
   @type t :: %__MODULE__{
     user: User.t,
     nick: String.t | nil,
     roles: [Role.t],
-    joined_at: String.t,
+    joined_at: String.t | nil,
     deaf: Boolean,
     mute: Boolean
   }
@@ -18,4 +19,10 @@ defmodule Alchemy.GuildMember do
              :joined_at,
              :deaf,
              :mute]
+
+  def from_map(map) do
+    map
+    |> Map.get_and_update("user", &(to_struct(&1, User)))
+    |> to_struct(GuildMember)
+  end
 end
