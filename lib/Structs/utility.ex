@@ -14,14 +14,23 @@ defmodule Alchemy.Structs.Utility do
   end
 
   # Maps struct conversion over an enum
+  def map_struct(nil, _), do: nil
   def map_struct(list, kind) do
-    Enum.map list, &(to_struct(&1, kind))
+    Enum.map list, &to_struct(&1, kind)
   end
 
+
   def field(map, key, kind) do
-     Map.get_and_update(map, key, &(to_struct(&1, kind)))
+    update_in(map, [key], &to_struct(&1, kind))
+  end
+  def field?(map, key, kind) do
+     case get_in(map, [key]) do
+       nil -> map
+        _  -> update_in(map, [key], &to_struct(&1, kind))
+     end
   end
   def field_map(map, key, func) do
-    Map.get_and_update(map, key, &(func.(&1)))
+    update_in(map, [key], &func.(&1))
   end
+
 end

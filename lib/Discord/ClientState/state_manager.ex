@@ -10,7 +10,7 @@ defmodule Alchemy.Discord.StateManager do
   defp cast(msg), do: GenServer.cast(ClientState, msg)
 
   def exists(section, object) do
-    cast {:exists?, section, object["id"]}
+    GenServer.call ClientState, {:exists?, section, object["id"]}
   end
 
   # Takes a list of maps, and returns a new map with the "id" of each map pointing
@@ -20,24 +20,21 @@ defmodule Alchemy.Discord.StateManager do
     Enum.into(map_list, %{}, &({get_in(&1, key), &1}))
   end
 
-  defp inner_index(list, inners, base_key \\ ["id"]) do
-     shift_keys = fn guild ->
-       List.foldr inners, guild, fn {field, path}, acc ->
-         update_in acc, field, &(index(&1, path))
-       end
-     end
-     Enum.into(list, %{}, fn base ->
-       {get_in(base, base_key), shift_keys.(base)}
-     end)
+  defp inner_index(base, inners, base_key \\ ["id"]) do
+    List.foldr inners, base, fn {field, path}, acc ->
+      update_in(acc, field, &index(&1, path))
+    end
   end
 
   # like index, but will also index the members
-  defp guild_index(guild_list) do
+  defp guild_index(guild) do
     inners = [
-      {"members", ["user", "id"]},
-      {"roles", ["id"]}
+      {["members"], ["user", "id"]},
+      {["roles"], ["id"]},
+      {["presences"], ["user", "id"]},
+      {["voice_states"], ["user_id"]}
     ]
-    inner_index(guild_list, inners)
+    inner_index(guild, inners)
   end
 
 
@@ -45,7 +42,7 @@ defmodule Alchemy.Discord.StateManager do
   def ready(user, priv_channels, guilds) do
     state = %{user: user,
               private_channels: index(priv_channels),
-              guilds: guild_index(guilds)}
+              guilds: index(guilds)}
     cast {:init, state}
   end
 
@@ -69,11 +66,11 @@ defmodule Alchemy.Discord.StateManager do
 
   # Responsible for creating a global event if the guild is new
   def add_guild(guild) do
-    if exists(:guilds, guild) do
+    if exists([:guilds], guild) do
       update_guild(guild)
     else
       notify {:join_guild, [Guild.from_map(guild)]}
-      cast {:store, [:guilds], guild, guild["id"]}
+      cast {:store, [:guilds], guild_index(guild), guild["id"]}
     end
   end
 
@@ -82,7 +79,8 @@ defmodule Alchemy.Discord.StateManager do
   end
 
   def update_guild(guild) do
-    cast {:merge, [:guilds, guild["id"]], guild}
+    indexed = guild_index(guild)
+    cast {:merge, [:guilds, guild["id"]], indexed}
   end
   # 2 cases: the guild is merely unavaliable, in which case you merge that info,
   # or the user was removed from the guild, in which case you send a notify,
@@ -103,7 +101,7 @@ defmodule Alchemy.Discord.StateManager do
   ### Members ###
 
   def update_member(guild_id, %{"user" => %{"id" => id}} = member) do
-    cast {:merge, [:guilds, guild_id, "members", id], member}
+    cast {:replace, [:guilds, guild_id, "members", id], member}
   end
 
   def remove_user(guild_id, %{"id" => id}) do
@@ -123,6 +121,20 @@ defmodule Alchemy.Discord.StateManager do
 
   def remove_role(guild_id, role_id) do
     cast {:remove, [:guilds, guild_id, "roles"], role_id}
+  end
+
+  ### Presences ###
+
+  def update_presence(presence) do
+    guild_id = presence["guild_id"]
+    pres_id = presence["user"]["id"]
+    cast {:merge, [:guilds, guild_id, "presences", pres_id], presence}
+  end
+
+  ### Voice States ###
+
+  def update_voice_state(%{"user_id" => id, "guild_id" => guild_id} = voice) do
+    cast {:merge, [:guilds, guild_id, "voice_states", id], voice}
   end
 
 
@@ -146,13 +158,13 @@ defmodule Alchemy.Discord.StateManager do
     {:noreply, state}
   end
   # Replaces a specific node with a new one
-  def handle_cast({:merge, new, section}, state) do
+  def handle_cast({:merge, section, new}, state) do
      {:noreply,
-      update_in(state, section, &(Map.merge(&1, new)))
+      update_in(state, section, &Map.merge(&1, new))
      }
   end
   # Replaces a leaf with a new value
-  def handle_cast({:replace, new, section}, state) do
+  def handle_cast({:replace, section, new}, state) do
     {:noreply,
      put_in(state, section, new)
     }
@@ -160,11 +172,11 @@ defmodule Alchemy.Discord.StateManager do
   # Removes a specific object from a node
   def handle_cast({:remove, section, key}, state) do
     {:noreply,
-     update_in(state, section, &(Map.pop(&1, key)))
+     update_in(state, section, &Map.delete(&1, key))
     }
   end
   # Indexes a new object in a certain section
-  def handle_cast({:store, object, section, key}, state) do
-    {:noreply, update_in(state, section, &(Map.put(&1, key, object)))}
+  def handle_cast({:store, section, object, key}, state) do
+    {:noreply, update_in(state, section, &Map.put(&1, key, object))}
   end
 end

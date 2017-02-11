@@ -22,7 +22,7 @@ defmodule Alchemy.GuildMember do
 
   def from_map(map) do
     map
-    |> Map.get_and_update("user", &(to_struct(&1, User)))
-    |> to_struct(GuildMember)
+    |> field("user", User)
+    |> to_struct(__MODULE__)
   end
 end

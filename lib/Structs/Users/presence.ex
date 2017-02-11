@@ -1,11 +1,12 @@
 defmodule Alchemy.Users.Presence do
+  import Alchemy.Structs.Utility
   alias Alchemy.User
   @moduledoc """
   """
   @type t :: %__MODULE__{
     user: User.t,
     roles: [String.t],
-    game: Map,
+    game: String.t | nil,
     guild_id: String.t,
     status: String.t
   }
@@ -15,5 +16,12 @@ defmodule Alchemy.Users.Presence do
              :game,
              :guild_id,
              :status]
+
+  def from_map(map) do
+    map
+    |> field("user", User)
+    |> field_map("game", &Map.get(&1, "name"))
+    |> to_struct(Presence)
+  end
 
 end

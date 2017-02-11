@@ -1,4 +1,4 @@
-defmodule VoiceState do
+defmodule Alchemy.VoiceState do
   @moduledoc """
   """
   @type t :: %__MODULE__{

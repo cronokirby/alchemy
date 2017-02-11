@@ -3,6 +3,7 @@ defmodule Alchemy.Discord.Protocol do
   import Process
   import Alchemy.Discord.Payloads
   alias Alchemy.Discord.Gateway
+  alias Alchemy.Discord.Events
   import Alchemy.Discord.StateManager
   @moduledoc false
 
@@ -42,8 +43,8 @@ defmodule Alchemy.Discord.Protocol do
 
   # The READY event, part of the standard protocol
   def dispatch(%{"t" => "READY", "s" => seq, "d" => payload}, state) do
-    Logger.debug "Recieved READY"
     ready(payload["user"], payload["private_channels"], payload["guilds"])
+    Logger.debug "Recieved READY"
     {:ok, %{state | seq: seq,
                     session_id: payload["session_id"],
                     trace: payload["_trace"]}}
@@ -53,7 +54,9 @@ defmodule Alchemy.Discord.Protocol do
     {:ok, %{state | trace: payload["_trace"]}}
   end
   # Need to fill this in
-  def dispatch(data, state) do
+  def dispatch(%{"t" => type, "d" => payload}, state) do
+    Logger.debug type
+    Events.handle(type, payload)
     {:ok, state}
   end
 end

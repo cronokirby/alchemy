@@ -1,6 +1,6 @@
 defmodule Alchemy.Discord.Events do
   alias Alchemy.{Channel, Emoji, DMChannel, Guild, OverWrite, User,
-                 GuildMember, Role}
+                 GuildMember, Role, Message, Users.Presence, VoiceState}
   alias Alchemy.Discord.StateManager, as: State
   import Alchemy.Structs.Utility
   import Alchemy.Discord.EventManager
@@ -79,8 +79,8 @@ defmodule Alchemy.Discord.Events do
 
   def handle("GUILD_MEMBER_UPDATE", %{"guild_id" => id} = data) do
     # This key would get popped implicitly later, but I'd rather do it clearly here
-    State.update_member(id, Map.pop(data, "guild_id"))
-    notify {:member_update, [GuildMember.from_mapdata, id]}
+    State.update_member(id, Map.delete(data, "guild_id"))
+    notify {:member_update, [GuildMember.from_map(data), id]}
   end
 
   def handle("GUILD_ROLE_CREATE", %{"guild_id" => id, "role" => role}) do
@@ -93,4 +93,44 @@ defmodule Alchemy.Discord.Events do
     notify {:role_delete, [id, guild_id]}
   end
 
+  def handle("MESSAGE_CREATE", message) do
+    notify {:message_create, [Message.from_map(message)]}
+  end
+
+  def handle("MESSAGE_DELETE", %{"id" => msg_id, "channel_id" => chan_id}) do
+    notify {:message_delete, [msg_id, chan_id]}
+  end
+
+  def handle("MESSAGE_DELETE_BULK", %{"ids" => ids, "channel_id" => chan_id}) do
+    notify {:message_delete_bulk, [ids, chan_id]}
+  end
+
+  def handle("PRESENCE_UPDATE", presence) do
+    State.update_presence(presence)
+    notify {:presence_update, [Presence.from_map(presence)]}
+  end
+
+  def handle("TYPING_START", data) do
+    chan_id = data["channel_id"]
+    user_id = data["user_id"]
+    timestamp = data["timestamp"]
+    notify {:typing_start, user_id, chan_id, timestamp}
+  end
+
+  def handle("USER_SETTINGS_UPDATE", %{"username" => name, "avatar" => avatar}) do
+    notify {:user_settings_update, [name, avatar]}
+  end
+
+  def handle("USER_UPDATE", user) do
+    notify {:user_update, to_struct(user, User)}
+  end
+
+  def handle("VOICE_STATE_UPDATE", voice) do
+    State.update_voice_state(voice)
+    notify {:voice_state_update, [to_struct(voice, Voice)]}
+  end
+
+  def handle(_, _) do
+    nil
+  end
 end

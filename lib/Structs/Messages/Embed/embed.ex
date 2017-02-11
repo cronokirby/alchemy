@@ -33,13 +33,14 @@ defmodule Alchemy.Embed do
              :fields]
 
   def from_map(map) do
+    IO.inspect map
     map
-    |> field("footer", Footer)
-    |> field("image", Image)
-    |> field("video", Video)
-    |> field("provider", Provider)
-    |> field("author", Author)
-    |> field("fields", Field)
-    |> to_struct(Embed)
+    |> field?("footer", Footer)
+    |> field?("image", Image)
+    |> field?("video", Video)
+    |> field?("provider", Provider)
+    |> field?("author", Author)
+    |> field_map("fields", &map_struct(&1, Field))
+    |> to_struct(__MODULE__)
   end
 end
