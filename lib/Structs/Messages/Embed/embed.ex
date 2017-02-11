@@ -1,4 +1,5 @@
 defmodule Alchemy.Embed do
+  import Alchemy.Structs.Utility
   alias Alchemy.Embed.{Footer, Image, Video, Provider, Author, Field}
   @moduledoc """
   """
@@ -30,4 +31,15 @@ defmodule Alchemy.Embed do
              :provider,
              :author,
              :fields]
+
+  def from_map(map) do
+    map
+    |> field("footer", Footer)
+    |> field("image", Image)
+    |> field("video", Video)
+    |> field("provider", Provider)
+    |> field("author", Author)
+    |> field("fields", Field)
+    |> to_struct(Embed)
+  end
 end

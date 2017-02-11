@@ -1,5 +1,7 @@
 defmodule Alchemy.Message do
-  alias Alchemy.User
+  import Alchemy.Structs.Utility
+  alias Alchemy.Structs.Utility
+  alias Alchemy.{User, Attachment, Embed, Reaction}
   @moduledoc """
   """
   @type t :: %__MODULE__{
@@ -13,9 +15,9 @@ defmodule Alchemy.Message do
     mention_everyone: Boolean,
     mentions: [User.t],
     mention_roles: [String.t],
-    attachments: String.t,
-    embeds: String.t,
-    reactions: String.t,
+    attachments: [Attachment.t],
+    embeds: [Embed.t],
+    reactions: [Reaction.t],
     nonce: String.t,
     pinned: Boolean,
     webhook_id: String.t
@@ -38,4 +40,14 @@ defmodule Alchemy.Message do
              :pinned,
              :webhook_id
              ]
+
+  def from_map(map) do
+    map
+    |> field("author", User)
+    |> field_map("mentions", &map_struct(&1, User))
+    |> field_map("attachements", &map_struct(&1, Attachment))
+    |> field_map("embed", &Enum.map(&1, fn x -> Embed.from_map(x) end))
+    |> field_map("reactions", &map_struct(&1, Reaction))
+    |> to_struct(Message)
+  end
 end

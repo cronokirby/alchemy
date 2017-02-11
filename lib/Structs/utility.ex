@@ -18,4 +18,10 @@ defmodule Alchemy.Structs.Utility do
     Enum.map list, &(to_struct(&1, kind))
   end
 
+  def field(map, key, kind) do
+     Map.get_and_update(map, key, &(to_struct(&1, kind)))
+  end
+  def field_map(map, key, func) do
+    Map.get_and_update(map, key, &(func.(&1)))
+  end
 end
