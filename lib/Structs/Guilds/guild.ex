@@ -61,12 +61,12 @@ defmodule Alchemy.Guild do
 
   def from_map(map) do
     map
-    |> Map.get_and_update("roles", &(map_struct &1, Role))
-    |> Map.get_and_update("emojis", &(map_struct &1, Emoji))
-    |> Map.get_and_update("voice_states", &(map_struct &1, VoiceState))
-    |> Map.get_and_update("members", &(map_struct &1, GuildMember))
-    |> Map.get_and_update("channels", &(map_struct &1, Channel))
-    |> Map.get_and_update("presences", &(map_struct &1, Presence))
+    |> field_map("roles", &(map_struct &1, Role))
+    |> field_map("emojis", &(map_struct &1, Emoji))
+    |> field_map("voice_states", &(map_struct &1, VoiceState))
+    |> field_map("members", &(map_struct &1, GuildMember))
+    |> field_map("channels", &(map_struct &1, Channel))
+    |> field_map("presences", &(map_struct &1, Presence))
     |> to_struct(Guild)
   end
 end
