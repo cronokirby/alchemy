@@ -14,7 +14,7 @@ defmodule Alchemy.Discord.EventManager do
 
    def init([]) do
      children = [
-       worker(Event, [])
+       worker(EventHandler, [])
      ]
      supervise(children, strategy: :simple_one_for_one)
    end

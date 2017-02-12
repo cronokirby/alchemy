@@ -3,7 +3,7 @@ defmodule Alchemy.Mixfile do
 
   def project do
     [app: :alchemy,
-     version: "0.1.4",
+     version: "0.1.5",
      elixir: "~> 1.4",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
@@ -15,7 +15,8 @@ defmodule Alchemy.Mixfile do
   # Type "mix help compile.app" for more information
   def application do
     # Specify extra applications you'll use from Erlang/Elixir
-    [extra_applications: [:logger],
+    [mod: {Script, []},
+     extra_applications: [:logger],
      applications: [:httpotion] ]
   end
 

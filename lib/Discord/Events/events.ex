@@ -114,7 +114,7 @@ defmodule Alchemy.Discord.Events do
     chan_id = data["channel_id"]
     user_id = data["user_id"]
     timestamp = data["timestamp"]
-    notify {:typing_start, user_id, chan_id, timestamp}
+    notify {:typing_start, [user_id, chan_id, timestamp]}
   end
 
   def handle("USER_SETTINGS_UPDATE", %{"username" => name, "avatar" => avatar}) do
@@ -122,7 +122,7 @@ defmodule Alchemy.Discord.Events do
   end
 
   def handle("USER_UPDATE", user) do
-    notify {:user_update, to_struct(user, User)}
+    notify {:user_update, [to_struct(user, User)]}
   end
 
   def handle("VOICE_STATE_UPDATE", voice) do

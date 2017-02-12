@@ -11,8 +11,10 @@ defmodule Alchemy.Discord.EventHandler do
   def handle_cast({event_type, args}, state) do
     ev = state.event_type
     case event_type do
-      ev -> apply(state.module, state.method, args)
+      ^ev ->
+        apply(state.module, state.method, args)
       _ -> nil
     end
+    {:noreply, state}
   end
 end
