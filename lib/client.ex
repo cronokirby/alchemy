@@ -1,4 +1,5 @@
 defmodule Alchemy.Client do
+  require Logger
   alias Alchemy.Discord.Users
   alias Alchemy.UserGuild
   alias Alchemy.User

@@ -20,7 +20,7 @@ defmodule Alchemy.Discord.EventManager do
    end
 
    # adds a new handle with a name, event_type, module, and method
-   def add_handle(args) do
+   def add_handler(args) do
      Supervisor.start_child(Events, args)
    end
 
