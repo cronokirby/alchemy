@@ -2,7 +2,6 @@ defmodule Alchemy.Discord.Users do
   require Poison
   alias Alchemy.{User, UserGuild}
   alias Alchemy.Discord.Api
-  alias Alchemy.Discord.Types, as: D
   @moduledoc false
 
   @root_url "https://discordapp.com/api/users/"

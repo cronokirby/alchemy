@@ -1,4 +1,4 @@
-defmodule Alchemy.Cache.StateManager do
+defmodule Alchemy.Cache.Manager do
   use GenServer
 
   alias Alchemy.Guild
