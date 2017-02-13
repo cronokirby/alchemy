@@ -31,9 +31,6 @@ defmodule Alchemy.Discord.Events do
     Cache.rem_priv_channel(dm_channel["id"])
     notify {:dm_channel_delete, [to_struct(DMChannel, dm_channel)]}
   end
-  def handle("CHANNEL_UPDATE", channel) do
-    notify {:channel_delete, [Channel.from_map(channel)]}
-  end
 
   # The Cache manager is tasked of notifying, if, and only if this guild is new,
   # and not in the unavailable guilds loaded before
