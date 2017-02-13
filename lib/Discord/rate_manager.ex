@@ -30,7 +30,6 @@ defmodule Alchemy.Discord.RateManager do
   def handle_call({:apply, method}, _from, state) do
     rates = state.rates
     rate_info = Map.get(rates, method, default_info)
-    IO.inspect rate_info
     case throttle(rate_info) do
       {:wait, time} ->
         Logger.info "Timeout of #{time} under request #{method}"
@@ -44,13 +43,13 @@ defmodule Alchemy.Discord.RateManager do
   def handle_call({module, method, args}, _from, state) do
     # Call the specific method requested
     result = apply(module, method, [state.token | args])
-    # Use the method name as the key, update the rates if they're not :none
-    {reply, newstate} =
-    with {:ok, info, rate_info} <- result do
-       new_rates = update_rates(state, method, rate_info)
-       {info, %{state | rates: new_rates}}
+    case result do
+      {:ok, info, rate_info} ->
+         new_rates = update_rates(state, method, rate_info)
+         {:reply, info, %{state | rates: new_rates}}
+      error ->
+        {:reply, error, state}
     end
-    {:reply, reply, newstate}
   end
 
   # Sets the new rate_info for a given bucket to the rates recieved from an api call
