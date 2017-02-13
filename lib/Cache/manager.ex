@@ -51,8 +51,8 @@ defmodule Alchemy.Cache.Manager do
      cast {:merge, [:private_channels, channel["id"]], channel}
   end
 
-  def rem_priv_channel(chan_id) do
-    cast {:remove, [:private_channels], chan_id}
+  def rem_priv_channel(channel_id) do
+    cast {:remove, [:private_channels], channel_id}
   end
 
 

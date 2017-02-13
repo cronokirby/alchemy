@@ -43,10 +43,14 @@ defmodule Alchemy.Discord.RateManager do
   end
   def handle_call({module, method, args}, _from, state) do
     # Call the specific method requested
-    {:ok, info, rate_info} = apply(module, method, [state.token | args])
+    result = apply(module, method, [state.token | args])
     # Use the method name as the key, update the rates if they're not :none
-    new_rates = update_rates(state, method, rate_info)
-    {:reply, {:ok, info}, %{state | rates: new_rates}}
+    {reply, newstate} =
+    with {:ok, info, rate_info} <- result do
+       new_rates = update_rates(state, method, rate_info)
+       {info, %{state | rates: new_rates}}
+    end
+    {:reply, reply, newstate}
   end
 
   # Sets the new rate_info for a given bucket to the rates recieved from an api call

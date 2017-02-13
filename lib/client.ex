@@ -5,7 +5,7 @@ defmodule Alchemy.Client do
   alias Alchemy.User
   alias Alchemy.Discord.RateManager
   alias Alchemy.Discord.Gateway
-  alias Alchemy.Cache.StateManager
+  alias Alchemy.Cache.Manager, as: CacheManager
   alias Alchemy.Cogs.EventHandler
   import Alchemy.Discord.RateManager, only: [send: 1]
   use Supervisor
@@ -29,7 +29,7 @@ defmodule Alchemy.Client do
     children = [
       worker(RateManager, [[token: token], [name: API]]),
       worker(EventHandler, []),
-      worker(StateManager, [[name: ClientState]])
+      worker(CacheManager, [[name: ClientState]])
     ]
     Gateway.start_link(token)
     supervise(children, strategy: :one_for_one)

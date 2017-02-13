@@ -34,15 +34,23 @@ defmodule Alchemy.Discord.Api do
   # Performs an HTTP request, of `req_type`, with `req_args`, and then
   # decodes the body using the given struct, and processes the rate_limit information
   # This generic request is specified in later modules.
-  def handle_response(:delete, req_args) do
-    response = apply(__MODULE__, :delete, req_args)
+  def handle_response(%HTTPotion.ErrorResponse{message: why}, _) do
+    {:error, why}
+  end
+  def handle_response(response, nil) do
     rate_info = RateLimits.rate_info(response)
     {:ok, :none, rate_info}
   end
-  def handle_response(req_type, req_args, struct) do
-    response = apply(__MODULE__, req_type, req_args)
+  def handle_response(response, struct) do
     rate_info = RateLimits.rate_info(response)
     struct = Poison.decode!(response.body, as: struct)
     {:ok, struct, rate_info}
   end
+
+
+  def request(req_type, req_args, struct \\ nil) do
+    apply(__MODULE__, req_type, req_args)
+    |> handle_response(struct)
+  end
+
 end

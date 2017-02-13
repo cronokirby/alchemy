@@ -1,7 +1,7 @@
 defmodule Alchemy.Discord.Events do
   alias Alchemy.{Channel, Emoji, DMChannel, Guild, OverWrite, User,
                  GuildMember, Role, Message, Users.Presence, VoiceState}
-  alias Alchemy.Cache.CacheManager, as: Cache
+  alias Alchemy.Cache.Manager, as: Cache
   import Alchemy.Structs.Utility
   import Alchemy.Cogs.EventHandler, only: [notify: 1]
   @moduledoc false
