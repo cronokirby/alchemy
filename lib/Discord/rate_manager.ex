@@ -1,4 +1,4 @@
-defmodule Alchemy.RateManager do
+defmodule Alchemy.Discord.RateManager do
   use GenServer
   require Logger
   import Alchemy.Discord.RateLimits

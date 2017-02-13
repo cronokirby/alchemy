@@ -1,9 +1,10 @@
 defmodule Alchemy.Discord.Users do
   require Poison
-  alias Alchemy.User
-  alias Alchemy.UserGuild
+  alias Alchemy.{User, UserGuild}
   alias Alchemy.Discord.Api
+  alias Alchemy.Discord.Types, as: D
   @moduledoc false
+
   @root_url "https://discordapp.com/api/users/"
 
   # Returns a User struct, passing "@me" gets info for the current Client instead
@@ -14,16 +15,16 @@ defmodule Alchemy.Discord.Users do
 
 
   # Modify the client's user account settings. Returns {:ok, %User{}, rate_info}
-  def modify_user(token, {:user_name, user_name}) do
+  def modify_user(token, user_name: user_name) do
     request = ~s/{"username": "#{user_name}"}/
     Api.handle_response(:patch, [@root_url <> "@me", request, token], %User{})
   end
-  def modify_user(token, {:avatar, url}) do
+  def modify_user(token, avatar: url) do
     {:ok, avatar} = Api.fetch_avatar(url)
     request = ~s/{"avatar": "#{avatar}"}/
     Api.handle_response(:patch, [@root_url <> "@me", request, token], %User{})
   end
-  def modify_user(token, {:user_name, user_name}, {:avatar, url}) do
+  def modify_user(token, user_name: user_name, avatar: url) do
     {:ok, avatar} = Api.fetch_avatar(url)
     request = ~s/{"username": "#{user_name}", "avatar": "#{avatar}"}/
     Api.handle_response(:patch, [@root_url <> "@me", request, token], %User{})

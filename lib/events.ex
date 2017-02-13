@@ -20,6 +20,7 @@ defmodule Alchemy.Events do
 
   defmodule Application do
     use Application
+    use Example
     alias Alchemy.Client
 
     def start(_type, _args) do
@@ -37,7 +38,7 @@ defmodule Alchemy.Events do
   # to the EventManager, using this info
   defmacro add_handle(type, atom) do
     quote do
-      @handles [[unquote(type), __MODULE__, unquote(atom)] | @handles]
+      @handles [{unquote(type), {__MODULE__, unquote(atom)}} | @handles]
     end
   end
 
@@ -83,7 +84,7 @@ defmodule Alchemy.Events do
       defmacro __using__(_opts) do
         for handle <- @handles do
           quote do
-            Alchemy.Discord.EventManager.add_handler(unquote(handle))
+            Alchemy.Cogs.EventHandler.add_handler(unquote(handle))
           end
         end
       end

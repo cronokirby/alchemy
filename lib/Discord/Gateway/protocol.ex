@@ -4,7 +4,7 @@ defmodule Alchemy.Discord.Protocol do
   import Alchemy.Discord.Payloads
   alias Alchemy.Discord.Gateway
   alias Alchemy.Discord.Events
-  import Alchemy.Discord.StateManager
+  alias Alchemy.Cache.StateManager, as: State
   @moduledoc false
 
 
@@ -43,7 +43,7 @@ defmodule Alchemy.Discord.Protocol do
 
   # The READY event, part of the standard protocol
   def dispatch(%{"t" => "READY", "s" => seq, "d" => payload}, state) do
-    ready(payload["user"], payload["private_channels"], payload["guilds"])
+    State.ready(payload["user"], payload["private_channels"], payload["guilds"])
     Logger.debug "Recieved READY"
     {:ok, %{state | seq: seq,
                     session_id: payload["session_id"],

@@ -1,9 +1,9 @@
 defmodule Alchemy.Discord.Events do
   alias Alchemy.{Channel, Emoji, DMChannel, Guild, OverWrite, User,
                  GuildMember, Role, Message, Users.Presence, VoiceState}
-  alias Alchemy.Discord.StateManager, as: State
+  alias Alchemy.Cache.StateManager, as: State
   import Alchemy.Structs.Utility
-  import Alchemy.Discord.EventManager
+  import Alchemy.Cogs.EventHandler
   @moduledoc false
   # Used to generate events, and notify the main EventManager
 

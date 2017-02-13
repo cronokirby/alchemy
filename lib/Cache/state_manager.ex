@@ -1,13 +1,17 @@
-defmodule Alchemy.Discord.StateManager do
-  alias Alchemy.Guild
-  import Alchemy.Discord.EventManager
+defmodule Alchemy.Cache.StateManager do
   use GenServer
+
+  alias Alchemy.Guild
+  alias Alchemy.Discord.Types, as: D
+  import Alchemy.Cogs.EventHandler, only: [notify: 1]
   @moduledoc false
   # A Genserver used to keep track of the State of the client.
   # The state_event handler will pipe info to this module, and the Client can
-  # Then access it.
+  # then access it.
+
 
   defp cast(msg), do: GenServer.cast(ClientState, msg)
+
 
   def exists(section, object) do
     GenServer.call ClientState, {:exists?, section, object["id"]}
@@ -20,25 +24,15 @@ defmodule Alchemy.Discord.StateManager do
     Enum.into(map_list, %{}, &({get_in(&1, key), &1}))
   end
 
-  defp inner_index(base, inners, base_key \\ ["id"]) do
+  # Used to apply `index` to multiple nested fields in a struct
+  defp inner_index(base, inners) do
     List.foldr inners, base, fn {field, path}, acc ->
       update_in(acc, field, &index(&1, path))
     end
   end
 
-  # like index, but will also index the members
-  defp guild_index(guild) do
-    inners = [
-      {["members"], ["user", "id"]},
-      {["roles"], ["id"]},
-      {["presences"], ["user", "id"]},
-      {["voice_states"], ["user_id"]}
-    ]
-    inner_index(guild, inners)
-  end
-
-
   # Used to respond to the ready event, and load a lot of data
+  # Acts as the "init" of the cache, in a sense
   def ready(user, priv_channels, guilds) do
     state = %{user: user,
               private_channels: index(priv_channels),
@@ -64,6 +58,17 @@ defmodule Alchemy.Discord.StateManager do
 
   ### Guilds ###
 
+  # like index, but will also index the members
+  defp guild_index(guild) do
+    inners = [
+      {["members"], ["user", "id"]},
+      {["roles"], ["id"]},
+      {["presences"], ["user", "id"]},
+      {["voice_states"], ["user_id"]}
+    ]
+    inner_index(guild, inners)
+  end
+
   # Responsible for creating a global event if the guild is new
   def add_guild(guild) do
     if exists([:guilds], guild) do
@@ -82,9 +87,9 @@ defmodule Alchemy.Discord.StateManager do
     indexed = guild_index(guild)
     cast {:merge, [:guilds, guild["id"]], indexed}
   end
-  # 2 cases: the guild is merely unavaliable, in which case you merge that info,
-  # or the user was removed from the guild, in which case you send a notify,
-  # and remove that object entirely
+
+  # "unavaliable" indicates an old guild going offline, in which case we don't
+  # want to remove that guild entirely.
   def delete(%{"unavailiable" => true} = guild) do
     update_guild(guild)
   end
@@ -123,6 +128,7 @@ defmodule Alchemy.Discord.StateManager do
     cast {:remove, [:guilds, guild_id, "roles"], role_id}
   end
 
+
   ### Presences ###
 
   def update_presence(presence) do
@@ -130,6 +136,7 @@ defmodule Alchemy.Discord.StateManager do
     pres_id = presence["user"]["id"]
     cast {:merge, [:guilds, guild_id, "presences", pres_id], presence}
   end
+
 
   ### Voice States ###
 
@@ -147,34 +154,35 @@ defmodule Alchemy.Discord.StateManager do
   # Checks if an object exists; used for events that mask both creating and updating
   def handle_call({:exists?, section, key}, _from, state) do
     {:reply,
-     get_in(state, section) |> Map.has_key?(key),
+     state |> get_in(section) |> Map.has_key?(key),
      state}
-  end
-  def handle_call(_, _from, state) do
-    {:reply, state, state}
   end
 
   def handle_cast({:init, state}, _) do
     {:noreply, state}
   end
+
   # Replaces a specific node with a new one
   def handle_cast({:merge, section, new}, state) do
      {:noreply,
       update_in(state, section, &Map.merge(&1, new))
      }
   end
+
   # Replaces a leaf with a new value
   def handle_cast({:replace, section, new}, state) do
     {:noreply,
      put_in(state, section, new)
     }
   end
+
   # Removes a specific object from a node
   def handle_cast({:remove, section, key}, state) do
     {:noreply,
      update_in(state, section, &Map.delete(&1, key))
     }
   end
+
   # Indexes a new object in a certain section
   def handle_cast({:store, section, object, key}, state) do
     {:noreply, update_in(state, section, &Map.put(&1, key, object))}

@@ -3,11 +3,11 @@ defmodule Alchemy.Client do
   alias Alchemy.Discord.Users
   alias Alchemy.UserGuild
   alias Alchemy.User
-  alias Alchemy.RateManager
+  alias Alchemy.Discord.RateManager
   alias Alchemy.Discord.Gateway
-  alias Alchemy.Discord.StateManager
-  alias Alchemy.Discord.EventManager
-  import Alchemy.RateManager, only: [send: 1]
+  alias Alchemy.Cache.StateManager
+  alias Alchemy.Cogs.EventHandler
+  import Alchemy.Discord.RateManager, only: [send: 1]
   use Supervisor
   @moduledoc """
   Represents a Client connection to the Discord API. This is the main public
@@ -28,7 +28,7 @@ defmodule Alchemy.Client do
   def init(token) do
     children = [
       worker(RateManager, [[token: token], [name: API]]),
-      supervisor(EventManager, [[name: Events]]),
+      worker(EventHandler, []),
       worker(StateManager, [[name: ClientState]])
     ]
     Gateway.start_link(token)
@@ -73,7 +73,7 @@ defmodule Alchemy.Client do
    """
    @spec edit_profile(user_name: String.t, avatar: String.t) :: {:ok, User.t}
    def edit_profile(options) do
-     send({Users, :modify_user, options})
+     send {Users, :modify_user, [options]}
    end
    @doc """
    Get's a list of guilds the client is currently a part of.
