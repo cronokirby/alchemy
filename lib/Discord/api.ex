@@ -37,6 +37,11 @@ defmodule Alchemy.Discord.Api do
   def handle_response(%HTTPotion.ErrorResponse{message: why}, _) do
     {:error, why}
   end
+
+  # Ratelimit status code
+  def handle_response(%{status_code: 429} = response) do
+    RateLimits.rate_info(response)
+  end
   def handle_response(response, nil) do
     rate_info = RateLimits.rate_info(response)
     {:ok, :none, rate_info}

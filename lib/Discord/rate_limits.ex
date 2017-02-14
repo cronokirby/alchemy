@@ -7,16 +7,25 @@ defmodule Alchemy.Discord.RateLimits do
     defstruct [:limit, :remaining, :reset_time]
   end
 
-  def rate_info(%HTTPotion.Response{status_code: 200, headers: h}) do
-    headers = h.hdrs
-    case headers["x-ratelimit-remaining"] do
-      nil -> # Catches a missing key, meaning no rate limit on that path
-        :none
-      remaining ->
-        {remaining, _} = Integer.parse remaining
-        {reset_time, _} = Integer.parse headers["x-ratelimit-reset"]
-        {limit, _} = Integer.parse headers["x-ratelimit-limit"]
-        %RateInfo{limit: limit, remaining: remaining, reset_time: reset_time}
+  # will catch a missing key, i.e. no ratelimit on an endpoint, returning nil.
+  defp parse_headers(headers) do
+     with {remaining, _} <- (Integer.parse headers["x-ratelimit-remaining"]),
+          {reset_time, _} <- (Integer.parse headers["x-ratelimit-reset"]),
+          {limit, _} <- (Integer.parse headers["x-ratelimit-limit"]),
+     do: %RateInfo{limit: limit, remaining: remaining, reset_time: reset_time}
+  end
+
+  def rate_info(%{status_code: 200, headers: h}) do
+    h.hdrs |> parse_headers
+  end
+
+  # Used in the case of a 429 error, expected to "decide" what response to give
+  def rate_info(%{headers: h, body: body}) do
+    {timeout, _} = Integer.parse body["retry_after"]
+    if body["global"] do
+      {:global, timeout}
+    else
+      {:local, timeout, parse_headers(h.hdrs)}
     end
   end
 
