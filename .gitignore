@@ -19,3 +19,5 @@ erl_crash.dump
 t.exs
 lib/script.ex
 doc/
+mix.lock
+ttb_last_config

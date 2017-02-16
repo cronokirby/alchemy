@@ -1,5 +1,27 @@
 defmodule Alchemy.Cogs do
+  @moduledoc """
+  This module provides quite a bit of sugar for registering commands.
 
+  To use the macros in this module, it must be `used`. This also defines abs
+  `__using__` macro for that module, which will then allow these commands
+  to be loaded in the main application via `use`
+
+  ### Example Usage
+
+  ```elixir
+  defmodule Example do
+    use Alchemy.Cogs
+
+    Cogs.def ping, do: IO.inspect "pong!"
+
+    Cogs.def echo("foo") do
+      IO.inspect "foo are you?"
+    end
+
+    Cogs.def echo(word) do
+      IO.inspect word
+    end
+  """
   defmacro def({name, ctx, args} = func, do: body) do
     args = case args do
       nil -> []
