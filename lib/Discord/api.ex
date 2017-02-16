@@ -2,25 +2,17 @@ defmodule Alchemy.Discord.Api do
   alias Alchemy.Discord.RateLimits
   @moduledoc false
 
-  # Performs a `get` request for a url, using the provided token as authorization.
-  # All discord requests need an authorization token. This info has to be given statically.
-  # This doesn't support user accounts atm.
-  # Returns a raw HTTPotion `response`.
-  def get(url, token) do
-    HTTPotion.get url, headers: ["Authorization": "Bot #{token}"]
+
+  def get(url, token, body_type) do
+    request(:_get, [url, token], body_type)
   end
 
-  # Performs a `patch` request, returning an HTTPotion response.
-  # This isn't used too often
-  def patch(url, data, token) do
-    HTTPotion.patch url, [headers: ["Authorization": "Bot #{token}",
-                                    "Content-Type": "application/json"],
-                          body: data]
+  def patch(url, data, token, body_type) do
+    request(:_patch, [url, data, token], body_type)
   end
 
-  # Performs a `delete` request, returning an HTTPotion response.
   def delete(url, token) do
-    HTTPotion.delete url, headers: ["Authorization": "Bot #{token}"]
+    request(:_delete, [url, token])
   end
 
 
@@ -31,31 +23,62 @@ defmodule Alchemy.Discord.Api do
     {:ok, "data:image/jpeg;base64,#{data}"}
   end
 
-  # Performs an HTTP request, of `req_type`, with `req_args`, and then
-  # decodes the body using the given struct, and processes the rate_limit information
-  # This generic request is specified in later modules.
-  def handle_response(%HTTPotion.ErrorResponse{message: why}, _) do
-    {:error, why}
+  ### Private ###
+
+  defp request(req_type, req_args) do
+    apply(__MODULE__, req_type, req_args)
+    |> handle_response
+  end
+  defp request(req_type, req_args, module) when is_atom(module) do
+    apply(__MODULE__, req_type, req_args)
+    |> handle_response(&apply(module, :from_map, [Poison.Parser.parse!(&1)]))
+  end
+  defp request(req_type, req_args, struct) do
+    apply(__MODULE__, req_type, req_args)
+    |> handle_response(&Poison.decode!(&1, as: struct))
   end
 
+
+  defp handle_response(%HTTPotion.ErrorResponse{message: why}) do
+    {:error, why}
+  end
+  defp handle_response(%HTTPotion.ErrorResponse{message: why}, _) do
+    {:error, why}
+  end
   # Ratelimit status code
-  def handle_response(%{status_code: 429} = response) do
+  defp handle_response(%{status_code: 429} = response) do
     RateLimits.rate_info(response)
   end
-  def handle_response(response, nil) do
+  defp handle_response(%{status_code: 429} = response, _) do
+    RateLimits.rate_info(response)
+  end
+  defp handle_response(response) do
     rate_info = RateLimits.rate_info(response)
     {:ok, nil, rate_info}
   end
-  def handle_response(response, struct) do
+  defp handle_response(response, decoder) do
     rate_info = RateLimits.rate_info(response)
-    struct = Poison.decode!(response.body, as: struct)
+    struct = decoder.(response.body)
     {:ok, struct, rate_info}
   end
 
 
-  def request(req_type, req_args, struct \\ nil) do
-    apply(__MODULE__, req_type, req_args)
-    |> handle_response(struct)
+  # Performs a `get` request for a url, using the provided token as authorization.
+  def _get(url, token) do
+    HTTPotion.get url, headers: ["Authorization": "Bot #{token}"]
+  end
+
+  # Performs a `patch` request, returning an HTTPotion response.
+  # This isn't used too often
+  def _patch(url, data, token) do
+    HTTPotion.patch url, [headers: ["Authorization": "Bot #{token}",
+                                    "Content-Type": "application/json"],
+                          body: data]
+  end
+
+  # Performs a `delete` request, returning an HTTPotion response.
+  def _delete(url, token) do
+    HTTPotion.delete url, headers: ["Authorization": "Bot #{token}"]
   end
 
 end
