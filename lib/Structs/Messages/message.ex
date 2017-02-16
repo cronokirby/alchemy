@@ -40,7 +40,7 @@ defmodule Alchemy.Message do
              :pinned,
              :webhook_id
              ]
-
+  @doc false
   def from_map(map) do
     map
     |> field("author", User)
