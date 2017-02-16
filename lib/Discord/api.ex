@@ -44,7 +44,7 @@ defmodule Alchemy.Discord.Api do
   end
   def handle_response(response, nil) do
     rate_info = RateLimits.rate_info(response)
-    {:ok, :none, rate_info}
+    {:ok, nil, rate_info}
   end
   def handle_response(response, struct) do
     rate_info = RateLimits.rate_info(response)

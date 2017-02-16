@@ -66,7 +66,7 @@ defmodule Alchemy.Events do
   @doc false
   # Requires and aliases this module, as well as adds a @handles attribute,
   # necessary to use the other macros
-  defmacro __using__(opts) do
+  defmacro __using__(_opts) do
     quote do
      alias Alchemy.Events
      require Events

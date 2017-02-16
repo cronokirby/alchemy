@@ -9,8 +9,6 @@ defmodule Alchemy.Discord.RateManager do
 
 
   # A helper function for some of the later functions.
-  # This wraps a syncronous RateManager call into a new process, allowing
-  # for concurrent http requests
   def send(req), do: Task.async(fn -> request(req) end)
 
   # Used to wait a certain amount of time if the rate_manager can't handle the load
@@ -45,6 +43,8 @@ defmodule Alchemy.Discord.RateManager do
     GenServer.call(API, {module, method, args})
   end
 
+
+  ### Server ###
 
   defmodule State do
     @moduledoc false
@@ -111,7 +111,7 @@ defmodule Alchemy.Discord.RateManager do
   def update_global_rates(state, time) do
     Task.start(fn ->
       Process.sleep(time)
-      GenServer.cast(:reset_globals)
+      GenServer.cast(API, :reset_globals)
     end)
     %{state | global: {:wait, time}}
   end

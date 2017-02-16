@@ -2,6 +2,7 @@ defmodule Alchemy.Discord.Events do
   alias Alchemy.{Channel, Emoji, DMChannel, Guild, OverWrite, User,
                  GuildMember, Role, Message, Users.Presence, VoiceState}
   alias Alchemy.Cache.Manager, as: Cache
+  alias Alchemy.Cogs.CommandHandler, as: Commands
   import Alchemy.Structs.Utility
   import Alchemy.Cogs.EventHandler, only: [notify: 1]
   @moduledoc false
@@ -91,7 +92,9 @@ defmodule Alchemy.Discord.Events do
   end
 
   def handle("MESSAGE_CREATE", message) do
-    notify {:message_create, [Message.from_map(message)]}
+    struct = Message.from_map(message)
+    Commands.dispatch(struct)
+    notify {:message_create, [struct]}
   end
 
   def handle("MESSAGE_DELETE", %{"id" => msg_id, "channel_id" => chan_id}) do

@@ -7,6 +7,7 @@ defmodule Alchemy.Client do
   alias Alchemy.Discord.Gateway
   alias Alchemy.Cache.Manager, as: CacheManager
   alias Alchemy.Cogs.EventHandler
+  alias Alchemy.Cogs.CommandHandler
   import Alchemy.Discord.RateManager, only: [send: 1]
   use Supervisor
   @moduledoc """
@@ -29,13 +30,18 @@ defmodule Alchemy.Client do
     children = [
       worker(RateManager, [[token: token], [name: API]]),
       worker(EventHandler, []),
+      worker(CommandHandler, []),
       worker(CacheManager, [[name: ClientState]])
     ]
     Gateway.start_link(token)
     supervise(children, strategy: :one_for_one)
   end
+
+
+  ### Public ###
+
   @doc """
-  Gets a user by their client_id, returns `{:ok, %User{}}`
+  Gets a user by their client_id.
 
   `"@me"` can be passed to get the info
   relevant to the Client.
@@ -47,7 +53,7 @@ defmodule Alchemy.Client do
   {:ok, Alchemy.Discord.Users.User%{....
   ```
   """
-  @spec get_user(String.t) :: {:ok, User.t}
+  @spec get_user(String.t) :: {:ok, User.t} | {:error, term}
   def get_user(client_id) do
     request = {Users, :get_user, [client_id]}
     send(request)
@@ -71,7 +77,8 @@ defmodule Alchemy.Client do
    {:ok, Alchemy.Discord.Users.User%{....
    ```
    """
-   @spec edit_profile(user_name: String.t, avatar: String.t) :: {:ok, User.t}
+   @spec edit_profile(user_name: String.t,
+                      avatar: String.t) :: {:ok, User.t} | {:error, term}
    def edit_profile(options) do
      send {Users, :modify_user, [options]}
    end
@@ -84,7 +91,7 @@ defmodule Alchemy.Client do
    {:ok, guilds} = Task.await Client.current_guilds
    ```
    """
-   @spec current_guilds() :: {:ok, [UserGuild.t]}
+   @spec current_guilds() :: {:ok, [UserGuild.t]} | {:error, term}
    def current_guilds do
      send {Users, :get_current_guilds, []}
    end
@@ -97,7 +104,7 @@ defmodule Alchemy.Client do
    Client.leave_guild
    ```
    """
-   @spec leave_guild(String.t) :: {:ok, :none}
+   @spec leave_guild(String.t) :: {:ok, nil} | {:error, term}
    def leave_guild(guild_id) do
     send {Users, :leave_guild, [guild_id]}
    end
