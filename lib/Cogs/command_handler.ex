@@ -3,13 +3,20 @@ defmodule Alchemy.Cogs.CommandHandler do
   use GenServer
   @moduledoc false
 
+
   def add_commands(commands) do
     GenServer.cast(Commands, {:add_commands, commands})
+  end
+
+  def set_prefix(new) do
+    GenServer.cast(Commands, {:set_prefix, new})
   end
 
   def dispatch(message) do
     GenServer.cast(Commands, {:dispatch, message})
   end
+
+
   ### Server ###
 
   def start_link do
