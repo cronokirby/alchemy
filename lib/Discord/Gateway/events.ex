@@ -10,9 +10,9 @@ defmodule Alchemy.Discord.Events do
 
 
   # A direct message was started with the bot
-  def handle("CHANNEL_CREATE", %{"is_private" => true} = channel) do
-    Cache.add_priv_channel(channel)
-    struct = to_struct(DMChannel, channel)
+  def handle("CHANNEL_CREATE", %{"is_private" => true} = dm_channel) do
+    Cache.add_priv_channel(dm_channel)
+    struct = to_struct(dm_channel, DMChannel)
     {:dm_channel_create, [struct]}
   end
   def handle("CHANNEL_CREATE", channel) do
@@ -22,7 +22,7 @@ defmodule Alchemy.Discord.Events do
 
   def handle("CHANNEL_UPDATE", %{"is_private" => true} = dm_channel) do
     Cache.update_priv_channel(dm_channel)
-    notify {:dm_channel_update, [to_struct(DMChannel, dm_channel)]}
+    notify {:dm_channel_update, [to_struct(dm_channel, DMChannel)]}
   end
   def handle("CHANNEL_UPDATE", channel) do
     notify {:channel_update, [Channel.from_map(channel)]}
@@ -30,7 +30,7 @@ defmodule Alchemy.Discord.Events do
 
   def handle("CHANNEL_DELETE", %{"is_private" => true} = dm_channel) do
     Cache.rem_priv_channel(dm_channel["id"])
-    notify {:dm_channel_delete, [to_struct(DMChannel, dm_channel)]}
+    notify {:dm_channel_delete, [to_struct(dm_channel, DMChannel)]}
   end
 
   # The Cache manager is tasked of notifying, if, and only if this guild is new,
@@ -50,11 +50,11 @@ defmodule Alchemy.Discord.Events do
   end
 
   def handle("GUILD_BAN_ADD", %{"guild_id" => id} = user) do
-    notify {:guild_ban, [to_struct(User, user), id]}
+    notify {:guild_ban, [to_struct(user, User), id]}
   end
 
   def handle("GUILD_BAN_REMOVE", %{"guild_id" => id} = user) do
-    notify {:guild_unban, [to_struct(User, user), id]}
+    notify {:guild_unban, [to_struct(user, User), id]}
   end
 
   def handle("GUILD_EMOJIS_UPDATE", data) do

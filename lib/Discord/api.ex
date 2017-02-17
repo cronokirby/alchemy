@@ -3,12 +3,12 @@ defmodule Alchemy.Discord.Api do
   @moduledoc false
 
 
-  def get(url, token, body_type) do
-    request(:_get, [url, token], body_type)
+  def get(url, token, body) do
+    request(:_get, [url, token], body)
   end
 
-  def patch(url, data, token, body_type) do
-    request(:_patch, [url, data, token], body_type)
+  def patch(url, token, body) do
+    request(:_patch, [url, token], body)
   end
 
   def delete(url, token) do
@@ -33,10 +33,15 @@ defmodule Alchemy.Discord.Api do
     apply(__MODULE__, req_type, req_args)
     |> handle_response(&apply(module, :from_map, [Poison.Parser.parse!(&1)]))
   end
+  defp request(req_type, req_args, parser) when is_function(parser) do
+    apply(__MODULE__, req_type, req_args)
+    |> handle_response(parser)
+  end
   defp request(req_type, req_args, struct) do
     apply(__MODULE__, req_type, req_args)
     |> handle_response(&Poison.decode!(&1, as: struct))
   end
+
 
 
   defp handle_response(%HTTPotion.ErrorResponse{message: why}) do
