@@ -77,10 +77,10 @@ defmodule Alchemy.Client do
    {:ok, Alchemy.Discord.Users.User%{....
    ```
    """
-   @spec edit_profile(user_name: String.t,
+   @spec edit_profile(username: String.t,
                       avatar: String.t) :: {:ok, User.t} | {:error, term}
    def edit_profile(options) do
-     send {Users, :modify_user, [options]}
+     send {Users, :modify_user, [[options]]}
    end
    @doc """
    Get's a list of guilds the client is currently a part of.
