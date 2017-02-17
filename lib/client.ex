@@ -1,14 +1,11 @@
 defmodule Alchemy.Client do
   require Logger
-  alias Alchemy.Discord.Users
-  alias Alchemy.UserGuild
-  alias Alchemy.User
-  alias Alchemy.Discord.RateManager
-  alias Alchemy.Discord.Gateway
+  alias Alchemy.Discord.{Users, Channel, RateManager, Gateway}
+  alias Alchemy.{User, UserGuild, Channel, DMChannel}
   alias Alchemy.Cache.Manager, as: CacheManager
-  alias Alchemy.Cogs.EventHandler
-  alias Alchemy.Cogs.CommandHandler
+  alias Alchemy.Cogs.{CommandHandler, EventHandler}
   import Alchemy.Discord.RateManager, only: [send: 1]
+  use Alchemy.Discord.Types
   use Supervisor
   @moduledoc """
   Represents a Client connection to the Discord API. This is the main public
@@ -49,11 +46,11 @@ defmodule Alchemy.Client do
   ## Examples
 
   ```elixir
-  iex> {:ok, user} = Task.await Client.get_user('client_id')
-  {:ok, Alchemy.Discord.Users.User%{....
+  iex> {:ok, user} = Task.await Client.get_user("client_id")
+  {:ok, Alchemy.User%{....
   ```
   """
-  @spec get_user(String.t) :: {:ok, User.t} | {:error, term}
+  @spec get_user(snowflake) :: {:ok, User.t} | {:error, term}
   def get_user(client_id) do
     request = {Users, :get_user, [client_id]}
     send(request)
@@ -74,11 +71,11 @@ defmodule Alchemy.Client do
    ```
    ```elixir
    iex> {:ok, user} = Task.await Client.edit_profile(username: "NewName")
-   {:ok, Alchemy.Discord.Users.User%{....
+   {:ok, Alchemy.User%{....
    ```
    """
    @spec edit_profile(username: String.t,
-                      avatar: String.t) :: {:ok, User.t} | {:error, term}
+                      avatar: url) :: {:ok, User.t} | {:error, term}
    def edit_profile(options) do
      send {Users, :modify_user, [[options]]}
    end
@@ -91,8 +88,8 @@ defmodule Alchemy.Client do
    {:ok, guilds} = Task.await Client.current_guilds
    ```
    """
-   @spec current_guilds() :: {:ok, [UserGuild.t]} | {:error, term}
-   def current_guilds do
+   @spec get_current_guilds() :: {:ok, [UserGuild.t]} | {:error, term}
+   def get_current_guilds do
      send {Users, :get_current_guilds, []}
    end
    @doc """
@@ -104,8 +101,56 @@ defmodule Alchemy.Client do
    Client.leave_guild
    ```
    """
-   @spec leave_guild(String.t) :: {:ok, nil} | {:error, term}
+   @spec leave_guild(snowflake) :: {:ok, nil} | {:error, term}
    def leave_guild(guild_id) do
     send {Users, :leave_guild, [guild_id]}
    end
+   @doc """
+   Gets a channel by its ID. Works on both private channels, and guild channels.
+
+   ## Examples
+   ```elixir
+   {:ok, channel} = Task.await Client.get_channel("id")
+   ```
+   """
+   @spec get_channel(snowflake) :: {:ok, Channel.t}
+                                 | {:ok, DMChannel.t}
+                                 | {:error, term}
+   def get_channel(channel_id) do
+     send {Channel, :get_channel, [channel_id]}
+   end
+   @doc """
+   Edits a channel in a guild, referenced by id.
+
+   All the paramaters are optional. Some are mutually exclusive. I.E.
+   you can't use voice only and text only parameters in the same request.
+
+   ## Options
+   - `name` The name for the channel
+   - `position` The position in the left hand listing
+   - `topic` ~ *text only* ~ The topic of the channel
+   - `bitrate` ~ *voice only* ~ The bitrate, in bits, from `8000` to `96000`, for
+   the voice channel to take
+   - `user_limit` ~ *voice only* ~ The max amount of users allowed in this channel.
+   From `1` to `99`, or `0` for no limit.
+
+   ## Examples
+   ```elixir
+   Client.edit_channel(id, name: "the best channel", position: 1)
+   ```
+   ```elixir
+   {:ok, new_voice_channel} = Task.await Client.edit_channel(id, bitrate: 8000)
+   ```
+   """
+   @spec edit_channel(snowflake,
+                        name: String.t,
+                        position: Integer,
+                        topic: String.t,
+                        bitrate: Integer,
+                        user_limit: Integer) :: {:ok, Channel.t} | {:error, term}
+   def edit_channel(channel_id, options) do
+     send {Channel, :modify_channel, [channel_id, [options]]}
+   end
+
+
 end
