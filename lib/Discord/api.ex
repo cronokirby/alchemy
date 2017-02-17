@@ -3,6 +3,16 @@ defmodule Alchemy.Discord.Api do
   @moduledoc false
 
 
+  ### Utility ###
+
+  # Converts a keyword list into json
+  def encode(options) do
+    options |> Enum.into(%{}) |> Poison.encode!
+  end
+
+
+  ### Request API ###
+
   def get(url, token, body) do
     request(:_get, [url, token], body)
   end
@@ -13,6 +23,9 @@ defmodule Alchemy.Discord.Api do
 
   def delete(url, token) do
     request(:_delete, [url, token])
+  end
+  def delete(url, token, body) do
+    request(:_delete, [url, token], body)
   end
 
 
@@ -28,7 +41,7 @@ defmodule Alchemy.Discord.Api do
 
   defp request(req_type, req_args) do
     apply(__MODULE__, req_type, req_args)
-    |> handle_response
+    |> handle_response(nil)
   end
   defp request(req_type, req_args, module) when is_atom(module) do
     apply(__MODULE__, req_type, req_args)
@@ -44,29 +57,33 @@ defmodule Alchemy.Discord.Api do
   end
 
 
-
-  defp handle_response(%HTTPotion.ErrorResponse{message: why}) do
-    {:error, why}
+  defmacrop is_ok(%{status_code: code}) do
+    quote do
+      div(unquote(code), 100) == 2
+    end
   end
+
+
   defp handle_response(%HTTPotion.ErrorResponse{message: why}, _) do
     {:error, why}
   end
   # Ratelimit status code
-  defp handle_response(%{status_code: 429} = response) do
-    RateLimits.rate_info(response)
-  end
   defp handle_response(%{status_code: 429} = response, _) do
     RateLimits.rate_info(response)
   end
-  defp handle_response(response) do
+  defp handle_response(response, nil) when is_ok(response) do
     rate_info = RateLimits.rate_info(response)
     {:ok, nil, rate_info}
   end
-  defp handle_response(response, decoder) do
+  defp handle_response(response, decoder) when is_ok(response) do
     rate_info = RateLimits.rate_info(response)
     struct = decoder.(response.body)
     {:ok, struct, rate_info}
   end
+  defp handle_response(response, _) do
+    {:error, response.body}
+  end
+
 
 
   # Performs a `get` request for a url, using the provided token as authorization.
