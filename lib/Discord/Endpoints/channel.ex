@@ -20,4 +20,8 @@ defmodule Alchemy.Discord.Channel do
   end
 
 
+  def modify_channel(token, channel_id, options) do
+    json = options |> Enum.into(%{}) |> Poison.encode!
+    Api.patch(@root <> channel_id, token, json, Channel)
+  end
 end
