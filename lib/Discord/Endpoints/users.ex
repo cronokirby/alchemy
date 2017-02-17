@@ -14,8 +14,7 @@ defmodule Alchemy.Discord.Users do
 
   # Modify the client's user account settings. Returns {:ok, %User{}, rate_info}
   def modify_user(token, options) do
-    request = options |> Enum.into(%{}) |> Poison.encode!
-    Api.patch(@root <> "@me", request, token, %User{})
+    Api.patch(@root <> "@me", Api.encode(options), token, %User{})
   end
 
 
