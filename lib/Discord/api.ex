@@ -7,7 +7,7 @@ defmodule Alchemy.Discord.Api do
     request(:_get, [url, token], body)
   end
 
-  def patch(url, token, body) do
+  def patch(url, token, data, body) do
     request(:_patch, [url, token], body)
   end
 
@@ -22,6 +22,7 @@ defmodule Alchemy.Discord.Api do
     data = HTTPotion.get(url).body |> Base.encode64
     {:ok, "data:image/jpeg;base64,#{data}"}
   end
+
 
   ### Private ###
 

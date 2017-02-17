@@ -3,7 +3,7 @@ defmodule Alchemy.Cogs.CommandHandler do
   use GenServer
   @moduledoc false
 
-
+  
   def add_commands(commands) do
     GenServer.cast(Commands, {:add_commands, commands})
   end

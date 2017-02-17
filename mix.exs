@@ -30,7 +30,8 @@ defmodule Alchemy.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:httpotion, "~> 3.0.2"},
+    [{:credo, "~> 0.5", only: [:dev, :test]},
+     {:httpotion, "~> 3.0.2"},
      {:earmark, "~> 0.1", only: :dev},
      {:socket, "~> 0.3"},
      {:websocket_client, git: "https://github.com/Kraigie/websocket_client.git"},
