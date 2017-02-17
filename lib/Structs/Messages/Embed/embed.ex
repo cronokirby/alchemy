@@ -33,7 +33,6 @@ defmodule Alchemy.Embed do
              :fields]
 
   def from_map(map) do
-    IO.inspect map
     map
     |> field?("footer", Footer)
     |> field?("image", Image)
