@@ -18,11 +18,13 @@ defmodule Alchemy.UserGuild do
 
     bitwise of the user's enabled/disabled permission
   """
-  @type t :: %Alchemy.UserGuild{id: String.t,
-                                name: String.t,
-                                icon: String.t,
-                                owner: Boolean,
-                                permissions: Integer}
+  @type t :: %__MODULE__{
+    id: String.t,
+    name: String.t,
+    icon: String.t,
+    owner: Boolean,
+    permissions: Integer
+  }
   @derive [Poison.Encoder]
   defstruct [:id,
              :name,

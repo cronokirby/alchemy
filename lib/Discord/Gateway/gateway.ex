@@ -1,14 +1,16 @@
 defmodule Alchemy.Discord.Gateway do
   @moduledoc false
   @behaviour :websocket_client
-  import Process
   import Alchemy.Discord.Payloads
   import Alchemy.Discord.Protocol
   require Logger
 
+
   defmodule State do
     defstruct [:token, :trace, :session_id, :seq]
   end
+
+
   # Requests a gateway URL, before then connecting, and storing the token
   def start_link(token) do
      :crypto.start
@@ -17,19 +19,23 @@ defmodule Alchemy.Discord.Gateway do
      :websocket_client.start_link(url, __MODULE__, %State{token: token})
   end
 
+
   def init(state) do
     {:once, state}
   end
+
 
   def onconnect(_ws_req, state) do
     Logger.debug "Connected to the gateway"
     {:ok, state}
   end
 
+
   def ondisconnect(reason, state) do
     Logger.debug "Disconnected, #{reason}, state: #{IO.inspect state}"
     {:reconnect, state}
   end
+
 
   # Messages are either raw, or compressed JSON
   def websocket_handle({:binary, msg}, _conn_state, state) do
@@ -42,7 +48,7 @@ defmodule Alchemy.Discord.Gateway do
 
   # Heartbeats need to be sent every interval
   def websocket_info({:heartbeat, interval}, _conn_state, state) do
-    send_after(self(), {:heartbeat, interval}, interval)
+    Process.send_after(self(), {:heartbeat, interval}, interval)
     {:reply, {:text, heartbeat(state.seq)}, state}
   end
 
@@ -56,9 +62,11 @@ defmodule Alchemy.Discord.Gateway do
      {:reply, {:text, resume_msg(state)}, state}
   end
 
+
   def websocket_terminate(why, _conn_state, state) do
     Logger.info "Websocket terminated, reason: #{IO.inspect why}"
     IO.inspect state
     :ok
   end
+
 end

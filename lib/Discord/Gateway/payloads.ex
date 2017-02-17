@@ -3,6 +3,7 @@ defmodule Alchemy.Discord.Payloads do
   # These contain functions that construct payloads.
   # For deconstruction, see Alchemy.Discord.Events
 
+
   def opcode(op) do
      %{dispatch: 0,
        heartbeat: 1,
@@ -55,6 +56,5 @@ defmodule Alchemy.Discord.Payloads do
   def heartbeat(seq) do
      build_payload(:heartbeat, seq)
   end
-
 
 end
