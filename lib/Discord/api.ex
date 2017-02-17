@@ -10,6 +10,11 @@ defmodule Alchemy.Discord.Api do
     options |> Enum.into(%{}) |> Poison.encode!
   end
 
+  def query(options) do
+    "?" <> Enum.map_join(options, "&", fn {opt, val} ->
+      "#{opt}=#{val}"
+    end)
+  end
 
   ### Request API ###
 
@@ -19,6 +24,13 @@ defmodule Alchemy.Discord.Api do
 
   def patch(url, token, data, body) do
     request(:_patch, [url, token], body)
+  end
+
+  def post(url, token, data, body) do
+    request(:_post, [url, token], body)
+  end
+  def post(url, token, data) do
+    request(:_post, [url, token])
   end
 
   def delete(url, token) do
@@ -57,7 +69,7 @@ defmodule Alchemy.Discord.Api do
   end
 
 
-  defmacrop is_ok(%{status_code: code}) do
+  defmacrop is_ok(code) do
     quote do
       div(unquote(code), 100) == 2
     end
@@ -71,15 +83,19 @@ defmodule Alchemy.Discord.Api do
   defp handle_response(%{status_code: 429} = response, _) do
     RateLimits.rate_info(response)
   end
-  defp handle_response(response, nil) when is_ok(response) do
+
+  defp handle_response(%{status_code: code} = response, nil)
+  when is_ok(code) do
     rate_info = RateLimits.rate_info(response)
     {:ok, nil, rate_info}
   end
-  defp handle_response(response, decoder) when is_ok(response) do
+  defp handle_response(%{status_code: code} = response, decoder)
+  when is_ok(code) do
     rate_info = RateLimits.rate_info(response)
     struct = decoder.(response.body)
     {:ok, struct, rate_info}
   end
+
   defp handle_response(response, _) do
     {:error, response.body}
   end
@@ -95,6 +111,12 @@ defmodule Alchemy.Discord.Api do
   # This isn't used too often
   def _patch(url, data, token) do
     HTTPotion.patch url, [headers: ["Authorization": "Bot #{token}",
+                                    "Content-Type": "application/json"],
+                          body: data]
+  end
+
+  def _post(url, data, token) do
+    HTTPotion.post url, [headers: ["Authorization": "Bot #{token}",
                                     "Content-Type": "application/json"],
                           body: data]
   end
