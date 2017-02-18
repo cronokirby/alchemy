@@ -97,6 +97,9 @@ defmodule Alchemy.Discord.Events do
     notify {:message_create, [struct]}
   end
 
+  def handle("MESSAGE_UPDATE", message) do
+    notify {:message_update, [Message.from_map(message)]}
+  end
   def handle("MESSAGE_DELETE", %{"id" => msg_id, "channel_id" => chan_id}) do
     notify {:message_delete, [msg_id, chan_id]}
   end
