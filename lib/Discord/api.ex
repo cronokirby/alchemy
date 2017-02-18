@@ -23,14 +23,14 @@ defmodule Alchemy.Discord.Api do
   end
 
   def patch(url, token, data, body) do
-    request(:_patch, [url, token], body)
+    request(:_patch, [url, data, token], body)
   end
 
   def post(url, token, data, body) do
-    request(:_post, [url, token], body)
+    request(:_post, [url, data, token], body)
   end
   def post(url, token, data) do
-    request(:_post, [url, token])
+    request(:_post, [url, data, token])
   end
 
   def delete(url, token) do

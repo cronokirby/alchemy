@@ -37,7 +37,23 @@ defmodule Alchemy.Cogs do
     CommandHandler.set_prefix(prefix)
   end
 
+  @doc """
+  Sends a message to the same channel as the message triggering a command.
 
+  This must be used in a command defined with `Cogs.def`
+
+  ## Examples
+  ```elixir
+  Cogs.def ping, do: Cogs.say("pong!")
+  ```
+  """
+  defmacro say(content, options \\ []) do
+    quote do
+      Alchemy.Client.send_message(var!(message).channel_id,
+                                  unquote(content),
+                                  unquote(options))
+    end
+  end
   @doc """
   Registers a new command, under the name of the function.
 

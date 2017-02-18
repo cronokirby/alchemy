@@ -3,7 +3,7 @@ defmodule Alchemy.Cogs.CommandHandler do
   use GenServer
   @moduledoc false
 
-  
+
   def add_commands(commands) do
     GenServer.cast(Commands, {:add_commands, commands})
   end
@@ -42,23 +42,26 @@ defmodule Alchemy.Cogs.CommandHandler do
   end
 
 
+  defp take_string([]), do: ""
+  defp take_string([head | tail]), do: [head | take_string(tail)]
   defp dispatch(message, state) do
      prefix = state.prefix
-     content = message.content
-     Logger.debug(content)
-     [_|[command |rest]] = String.split(content, [prefix, " "], parts: 3)
-     rest = Enum.join(rest)
+     [command |[rest|_]] = message.content
+                      |> String.split([prefix, " "], parts: 3)
+                      |> Enum.concat(["", ""])
+                      |> Enum.drop(1)
      command = String.to_atom(command)
      case state[command] do
        {mod, arity} ->
          run_command(mod, command, arity, &String.split(&1), message, rest)
        {mod, arity, parser} ->
          run_command(mod, command, arity, parser, message, rest)
+         _ -> nil
      end
   end
 
   defp run_command(mod, method, arity, parser, message, content) do
     args = Enum.take(parser.(content), arity)
-    apply(mod, method, [message])
+    apply(mod, method, [message | args])
   end
 end
