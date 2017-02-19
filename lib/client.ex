@@ -201,6 +201,15 @@ defmodule Alchemy.Client do
      send {Channels, :channel_messages, [channel_id, [options]]}
    end
    @doc """
+   Sends a message to a particular channel
+
+   ## Options
+   - `tts` used to set whether or not a message should be text to speech
+   - `embed` used to send an `Embed` object along with the message
+   ## Examples
+   ```elixir
+   {:ok, message} = Task.await Client.send_message(chan_id, "pong!")
+   ```
    """
    def send_message(channel_id, content, options \\ []) do
      options = Keyword.put(options, :content, content)

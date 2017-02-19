@@ -40,7 +40,7 @@ defmodule Alchemy.Cogs do
   @doc """
   Sends a message to the same channel as the message triggering a command.
 
-  This must be used in a command defined with `Cogs.def`
+  This can only be used in a command defined with `Cogs.def`
 
   ## Examples
   ```elixir
@@ -90,15 +90,32 @@ defmodule Alchemy.Cogs do
     new_func = {:def, ctx, [{name, ctx, injected}, [do: body]]}
     quote do
       arity = unquote(arity)
-      {_, new} = Map.get_and_update(@commands, unquote(name), fn val ->
-        case val do
-          nil -> {nil, {__MODULE__, arity}}
-          {mod, x} when x < arity -> {val, {mod, arity}}
-          val -> {val, val}
-        end
+      @commands update_in(@commands, [unquote(name)], fn
+        nil ->
+          {__MODULE__, arity}
+        {mod, x} when x < arity ->
+          {mod, arity}
+        {mod, x, parser} when x < arity ->
+          {mod, arity, parser}
+        val ->
+          val
       end)
-      @commands new
       unquote(new_func)
+    end
+  end
+
+
+
+  defmacro set_parser(name, parser) do
+    quote do
+      @commands update_in(@commands, [unquote(name)], fn
+        nil ->
+          {__MODULE__, 0, unquote(parser)}
+        {mod, x} ->
+          {mod, x, unquote(parser)}
+        full ->
+          full
+      end)
     end
   end
 
