@@ -57,7 +57,7 @@ defmodule Alchemy.Discord.Protocol do
   end
   # Need to fill this in
   def dispatch(%{"t" => type, "d" => payload}, state) do
-    Events.handle(type, payload)
+    Task.start(fn -> Events.handle(type, payload) end)
     {:ok, state}
   end
 end
