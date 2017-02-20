@@ -16,17 +16,9 @@ defmodule Alchemy.Discord.Gateway do
   def start_link(token, shard) do
      :crypto.start
      :ssl.start
-     url = Manager.request_url() |> handle_response
+     # request_url will return a protocol to execute
+     url = Manager.request_url().()
      :websocket_client.start_link(url, __MODULE__, %State{token: token, shard: shard})
-  end
-
-
-  def handle_response({:wait, n}) do
-     Process.sleep(n)
-     Manager.request_url() |> handle_response
-  end
-  def handle_response(url) do
-    url
   end
 
 

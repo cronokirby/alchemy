@@ -61,9 +61,12 @@ defmodule Alchemy.Discord.Gateway.Manager do
     wait_time = state.url_reset - now
     response = cond do
       wait_time <= 0 ->
-        state.url
+        fn -> state.url end
       true ->
-        {:wait, wait_time}
+        fn ->
+          Process.sleep(wait_time)
+          request_url()
+        end
     end
     {:reply, response, %{state | url_reset: now + 5}}
   end
