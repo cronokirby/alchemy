@@ -11,27 +11,35 @@ defmodule Alchemy.Discord.RateManager do
   # A helper function for some of the later functions.
   def send(req), do: Task.async(fn -> request(req) end)
 
-  # Used to wait a certain amount of time if the rate_manager can't handle the load
-  defp request({m, f, a} = req) do
-    case apply(f) do
-      {:wait, n} ->
-        Process.sleep(n)
-        apply(req)
-      :go ->
-        process_req(req)
-    end
+
+  # protocol responses
+  defp wait(time), do: fn req ->
+    Process.sleep(time)
+    apply(req)
   end
 
+  defp process, do: fn {m, f, a} ->
+    process(m, f, a)
+  end
+
+  # apply(f) will return one of 2 processes to execute, wait, or process
+  defp request({m, f, a} = req) do
+    apply(f).(req)
+  end
+
+
+  defp retry(time), do: fn {m, f, a} = req ->
+    Logger.debug "local rate limit encountered for endpoint #{f}\
+                 \n retrying in #{time} milliseconds"
+    Process.sleep(time)
+    apply(req)
+  end
+
+  defp done(info), do: fn _req -> info end
+
+  # process will return either, retry, or done
   defp process_req({m, f, a} = req) do
-    case process(m, f, a) do
-      {:retry, time} ->
-        Logger.debug "local rate limit encountered for endpoint #{f}\
-                     \n retrying in #{time} milliseconds"
-        Process.sleep(time)
-        apply(req)
-      done ->
-        done
-    end
+    process(m, f, a).(req)
   end
 
   # Wrapper around applying for an api slot
@@ -42,6 +50,8 @@ defmodule Alchemy.Discord.RateManager do
   def process(module, method, args) do
     GenServer.call(API, {module, method, args})
   end
+
+
 
 
   ### Server ###
@@ -67,11 +77,11 @@ defmodule Alchemy.Discord.RateManager do
     case throttle(rate_info) do
       {:wait, time} ->
         Logger.info "Timeout of #{time} under request #{method}"
-        {:reply, {:wait, time}, state}
+        {:reply, wait(time), state}
       {:go, new_rates} ->
         reserved = Map.merge(rate_info, new_rates)
         new_state = %{state | rates:  Map.put(rates, method, reserved)}
-        {:reply, :go, new_state}
+        {:reply, process(), new_state}
     end
   end
 
@@ -82,15 +92,15 @@ defmodule Alchemy.Discord.RateManager do
     case result do
       {:ok, info, rate_info} ->
          new_rates = update_rates(state, method, rate_info)
-         {:reply, info, %{state | rates: new_rates}}
+         {:reply, done(info), %{state | rates: new_rates}}
       {:local, timeout, rate_info} ->
         new_rates = update_rates(state, method, rate_info)
-        {:reply, {:retry, timeout}, %{state | rates: new_rates}}
+        {:reply, retry(timeout), %{state | rates: new_rates}}
       {:global, timeout} ->
         new_state = update_global_rates(state, timeout)
-        {:reply, {:retry, timeout}, new_state}
+        {:reply, retry(timeout), new_state}
       error ->
-        {:reply, error, state}
+        {:reply, done(error), state}
     end
   end
 
