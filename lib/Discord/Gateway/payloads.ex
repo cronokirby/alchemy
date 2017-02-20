@@ -34,13 +34,13 @@ defmodule Alchemy.Discord.Payloads do
   end
 
 
-  def identify_msg(token) do
+  def identify_msg(token, shard) do
     {os, _} = :os.type
     identify = %{token: token,
                  properties: properties(os),
                  compress: true,
                  large_threshold: 250,
-                 shard: [0, 1]}
+                 shard: shard}
     build_payload(:identify, identify)
   end
 

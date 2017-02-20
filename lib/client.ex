@@ -1,6 +1,7 @@
 defmodule Alchemy.Client do
   require Logger
-  alias Alchemy.Discord.{Users, Channels, RateManager, Gateway}
+  alias Alchemy.Discord.{Users, Channels, RateManager}
+  alias Alchemy.Discord.Gateway.Manager, as: GatewayManager
   alias Alchemy.{User, UserGuild, Channel, DMChannel}
   alias Alchemy.Cache.Manager, as: CacheManager
   alias Alchemy.Cogs.{CommandHandler, EventHandler}
@@ -28,9 +29,9 @@ defmodule Alchemy.Client do
       worker(RateManager, [[token: token], [name: API]]),
       worker(EventHandler, []),
       worker(CommandHandler, []),
-      worker(CacheManager, [[name: ClientState]])
+      worker(CacheManager, [[name: ClientState]]),
+      worker(GatewayManager, [token])
     ]
-    Gateway.start_link(token)
     supervise(children, strategy: :one_for_one)
   end
 

@@ -29,6 +29,14 @@ defmodule Alchemy.Structs.Utility do
         _  -> update_in(map, [key], &to_struct(&1, kind))
      end
   end
+
+
+  def field_map?(map, key, func) do
+    case get_in(map, [key]) do
+      nil -> map
+      _   -> update_in(map, [key], &func.(&1))
+    end
+  end
   def field_map(map, key, func) do
     update_in(map, [key], &func.(&1))
   end

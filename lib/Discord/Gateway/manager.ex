@@ -1,6 +1,8 @@
 defmodule Alchemy.Discord.Gateway.Manager do
   use GenServer
+  require Logger
   alias Alchemy.Discord.Gateway
+  alias Alchemy.Discord.Api
   import Supervisor.Spec
   @moduledoc false
   # Serves as a gatekeeper of sorts, deciding when to let the supervisor spawn new
@@ -8,13 +10,22 @@ defmodule Alchemy.Discord.Gateway.Manager do
   # This module is in control of the supervisors child spawning.
 
 
+  ### Public ###
 
-defp get_url do
-  {:ok, json} = HTTPotion.get("https://discordapp.com/api/v6/gateway/bot").body
-                |> Poison.Parser.parse
-  {json["url"] <> "?v=6&encoding=json",
-   json["shards"]}
-end
+  def request_url do
+    Logger.debug "requesting url"
+    GenServer.call(GatewayManager, :url_req)
+  end
+
+
+  ### Private Utility ###
+
+  defp get_url(token) do
+    {:ok, json} = Api._get("https://discordapp.com/api/v6/gateway/bot", token).body
+                  |> Poison.Parser.parse
+    {json["url"] <> "?v=6&encoding=json",
+     json["shards"]}
+  end
 
 
   defp now, do: DateTime.utc_now |> DateTime.to_unix
@@ -29,10 +40,9 @@ end
   end
 
 
-
-
   def start_link(token) do
-    {url, shards} = get_url()
+    {url, shards} = get_url(token)
+    Logger.debug "Starting up #{shards} shards"
     {:ok, sup} = start_supervisor()
     state = %{url: url,
               url_reset: now(),
@@ -40,23 +50,22 @@ end
               started: [],
               token: token,
               supervisor: sup}
-    run = GenServer.start_link(__MODULE__, state, GatewayManager)
-    GenServer.cast(GatewayManager, :start_sharding)
+    run = GenServer.start_link(__MODULE__, state, name: GatewayManager)
+    GenServer.cast(GatewayManager, {:start_shard, 0})
     run
   end
 
 
   def handle_call(:url_req, _from, state) do
+    now = now()
     wait_time = state.url_reset - now
-    cond do
+    response = cond do
       wait_time <= 0 ->
-        fn -> state.url end
+        state.url
       true ->
-        fn ->
-          Process.sleep(wait_time)
-          __MODULE__.request_url()
-        end
+        {:wait, wait_time}
     end
+    {:reply, response, %{state | url_reset: now + 5}}
   end
 
 
@@ -65,6 +74,15 @@ end
     {:noreply, state}
   end
   def handle_cast({:start_shard, num}, state) do
+    args = [state.token, [num, state.shards]]
+    Task.start(fn -> Supervisor.start_child(state.supervisor, args) end)
+    Logger.debug "starting shard #{num}..."
+    {:noreply, state}
+  end
 
+
+  def handle_info({:next_shard, [shard|_]}, state) do
+    GenServer.cast(GatewayManager, {:start_shard, shard + 1})
+    {:noreply, state}
   end
 end
