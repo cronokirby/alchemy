@@ -1,6 +1,7 @@
 defmodule Alchemy.Client do
   require Logger
-  alias Alchemy.Discord.{Users, Channels, RateManager, Gateway}
+  alias Alchemy.Discord.{Users, Channels, RateManager}
+  alias Alchemy.Discord.Gateway.Manager, as: GatewayManager
   alias Alchemy.{User, UserGuild, Channel, DMChannel}
   alias Alchemy.Cache.Manager, as: CacheManager
   alias Alchemy.Cogs.{CommandHandler, EventHandler}
@@ -28,9 +29,9 @@ defmodule Alchemy.Client do
       worker(RateManager, [[token: token], [name: API]]),
       worker(EventHandler, []),
       worker(CommandHandler, []),
-      worker(CacheManager, [[name: ClientState]])
+      worker(CacheManager, [[name: ClientState]]),
+      worker(GatewayManager, [token])
     ]
-    Gateway.start_link(token)
     supervise(children, strategy: :one_for_one)
   end
 
@@ -201,6 +202,15 @@ defmodule Alchemy.Client do
      send {Channels, :channel_messages, [channel_id, [options]]}
    end
    @doc """
+   Sends a message to a particular channel
+
+   ## Options
+   - `tts` used to set whether or not a message should be text to speech
+   - `embed` used to send an `Embed` object along with the message
+   ## Examples
+   ```elixir
+   {:ok, message} = Task.await Client.send_message(chan_id, "pong!")
+   ```
    """
    def send_message(channel_id, content, options \\ []) do
      options = Keyword.put(options, :content, content)

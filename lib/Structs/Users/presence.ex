@@ -20,7 +20,7 @@ defmodule Alchemy.Users.Presence do
   def from_map(map) do
     map
     |> field("user", User)
-    |> field_map("game", &Map.get(&1, "name"))
+    |> field_map?("game", &Map.get(&1, "name"))
     |> to_struct(Presence)
   end
 

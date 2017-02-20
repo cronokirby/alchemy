@@ -1,22 +1,32 @@
 defmodule Alchemy.Discord.Gateway do
   @moduledoc false
   @behaviour :websocket_client
+  alias Alchemy.Discord.Gateway.Manager
   import Alchemy.Discord.Payloads
   import Alchemy.Discord.Protocol
   require Logger
 
 
   defmodule State do
-    defstruct [:token, :trace, :session_id, :seq]
+    defstruct [:token, :shard, :trace, :session_id, :seq]
   end
 
 
   # Requests a gateway URL, before then connecting, and storing the token
-  def start_link(token) do
+  def start_link(token, shard) do
      :crypto.start
      :ssl.start
-     url = get_url
-     :websocket_client.start_link(url, __MODULE__, %State{token: token})
+     url = Manager.request_url() |> handle_response
+     :websocket_client.start_link(url, __MODULE__, %State{token: token, shard: shard})
+  end
+
+
+  def handle_response({:wait, n}) do
+     Process.sleep(n)
+     Manager.request_url() |> handle_response
+  end
+  def handle_response(url) do
+    url
   end
 
 
@@ -26,7 +36,7 @@ defmodule Alchemy.Discord.Gateway do
 
 
   def onconnect(_ws_req, state) do
-    Logger.debug "Connected to the gateway"
+    Logger.debug "Shard #{IO.inspect state.shard} Connected to the gateway"
     {:ok, state}
   end
 
@@ -54,7 +64,9 @@ defmodule Alchemy.Discord.Gateway do
 
   # Send the identify package to discord, if this is our fist session
   def websocket_info(:identify, _, %State{session_id: nil} = state) do
-    identify = identify_msg(state.token)
+    this_shard = state.shard
+    identify = identify_msg(state.token, this_shard)
+    Process.send_after(GatewayManager, {:next_shard, this_shard}, 5000)
     {:reply, {:text, identify}, state}
   end
   # We can resume if we already have a session_id (i.e. we disconnected)

@@ -158,8 +158,16 @@ defmodule Alchemy.Cache.Manager do
      state}
   end
 
-  def handle_cast({:init, state}, _) do
+  def handle_cast({:init, state}, %{}) do
     {:noreply, state}
+  end
+  def handle_cast({:init, new}, old) do
+    private_channels = new.private_channels
+    guilds = new.guilds
+    {:noreply,
+     old
+     |> update_in([:guilds], &Map.merge(&1, guilds))
+     |> update_in([:private_channels], &Map.merge(&1, private_channels))}
   end
 
   # Replaces a specific node with a new one
