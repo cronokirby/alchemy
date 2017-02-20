@@ -103,9 +103,23 @@ defmodule Alchemy.Cogs do
       unquote(new_func)
     end
   end
+  @doc """
+  Allows you to register a custom message parser for a command.
 
+  The parser will be applied to part of the message not used for command matching.
+  ```elixir
+  prefix <> command <> " " <> rest
+  ```
 
-
+  ## Examples
+  ```elixir
+  Cogs.set_parser(:echo, &List.wrap/1)
+  Cogs.def echo(rest) do
+    Cogs.say(rest)
+  end
+  ```
+  """
+  @type parser :: (String.t -> Enum.t)
   defmacro set_parser(name, parser) do
     quote do
       @commands update_in(@commands, [unquote(name)], fn

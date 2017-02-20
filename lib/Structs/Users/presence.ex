@@ -21,7 +21,7 @@ defmodule Alchemy.Users.Presence do
     map
     |> field("user", User)
     |> field_map?("game", &Map.get(&1, "name"))
-    |> to_struct(Presence)
+    |> to_struct(__MODULE__)
   end
 
 end

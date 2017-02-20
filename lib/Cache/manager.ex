@@ -158,6 +158,9 @@ defmodule Alchemy.Cache.Manager do
      state}
   end
 
+  def handle_call(_, _from, state) do
+    {:reply, state, state}
+  end
   def handle_cast({:init, state}, %{}) do
     {:noreply, state}
   end
@@ -170,29 +173,48 @@ defmodule Alchemy.Cache.Manager do
      |> update_in([:private_channels], &Map.merge(&1, private_channels))}
   end
 
+  defmacrop safe_access(normal) do
+    quote do
+      case get_in(var!(state), var!(section)) do
+        nil ->
+          {:noreply, var!(state)}
+        _ ->
+          unquote(normal)
+      end
+    end
+  end
+
   # Replaces a specific node with a new one
   def handle_cast({:merge, section, new}, state) do
-     {:noreply,
-      update_in(state, section, &Map.merge(&1, new))
-     }
+    safe_access(
+    {:noreply,
+     update_in(state, section, &Map.merge(&1, new))
+    })
   end
 
   # Replaces a leaf with a new value
   def handle_cast({:replace, section, new}, state) do
+    safe_access(
     {:noreply,
      put_in(state, section, new)
     }
+    )
+
   end
 
   # Removes a specific object from a node
   def handle_cast({:remove, section, key}, state) do
+    safe_access(
     {:noreply,
      update_in(state, section, &Map.delete(&1, key))
-    }
+    })
   end
 
   # Indexes a new object in a certain section
   def handle_cast({:store, section, object, key}, state) do
-    {:noreply, update_in(state, section, &Map.put(&1, key, object))}
+    safe_access(
+      {:noreply, update_in(state, section, &Map.put(&1, key, object))}
+    )
+
   end
 end
