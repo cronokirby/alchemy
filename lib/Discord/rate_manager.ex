@@ -82,7 +82,7 @@ defmodule Alchemy.Discord.RateManager do
     case result do
       {:ok, info, rate_info} ->
          new_rates = update_rates(state, method, rate_info)
-         {:reply, info, %{state | rates: new_rates}}
+         {:reply, {:ok, info}, %{state | rates: new_rates}}
       {:local, timeout, rate_info} ->
         new_rates = update_rates(state, method, rate_info)
         {:reply, {:retry, timeout}, %{state | rates: new_rates}}
