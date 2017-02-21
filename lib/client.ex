@@ -192,14 +192,26 @@ defmodule Alchemy.Client do
    ```
    """
    @spec get_messages(snowflake,
-                          around: snowflake,
-                          before: snowflake,
-                          after: snowflake,
-                          limit: Integer) :: {:ok, [Message.t]}
-                                           | {:error, term}
+                      around: snowflake,
+                      before: snowflake,
+                      after: snowflake,
+                      limit: Integer) :: {:ok, [Message.t]}
+                                       | {:error, term}
    def get_messages(channel_id, options) do
      options = Keyword.put_new(options, :limit, 100)
      send {Channels, :channel_messages, [channel_id, [options]]}
+   end
+   @doc """
+   Gets a message by channel, and message_id
+
+   Use `get_messages` for a bulk request instead.
+   ## Examples
+   ```elixir
+   {:ok, message} = Task.await Client.get_message(channel, id)
+   """
+   @spec get_message(snowflake, snowflake) :: {:ok, Message.t} | {:error, term}
+   def get_message(channel_id, message_id) do
+     send {Channels, :channel_message, [channel_id, message_id]}
    end
    @doc """
    Sends a message to a particular channel
@@ -212,6 +224,10 @@ defmodule Alchemy.Client do
    {:ok, message} = Task.await Client.send_message(chan_id, "pong!")
    ```
    """
+   @spec send_message(String.t,
+                      tts: Boolean,
+                      embed: Embed.t) :: {:ok, Message.t}
+                                       | {:error, term}
    def send_message(channel_id, content, options \\ []) do
      options = Keyword.put(options, :content, content)
      send {Channels, :create_message, [channel_id, options]}

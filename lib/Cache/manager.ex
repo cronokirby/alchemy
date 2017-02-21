@@ -36,7 +36,8 @@ defmodule Alchemy.Cache.Manager do
   def ready(user, priv_channels, guilds) do
     state = %{user: user,
               private_channels: index(priv_channels),
-              guilds: index(guilds)}
+              guilds: index(guilds),
+              channels: %{}}
     cast {:init, state}
   end
 
@@ -76,6 +77,7 @@ defmodule Alchemy.Cache.Manager do
     else
       notify {:join_guild, [Guild.from_map(guild)]}
       cast {:store, [:guilds], guild_index(guild), guild["id"]}
+      cast {:merge, [:channels], index(guild["channels"])}
     end
   end
 
@@ -86,6 +88,7 @@ defmodule Alchemy.Cache.Manager do
   def update_guild(guild) do
     indexed = guild_index(guild)
     cast {:merge, [:guilds, guild["id"]], indexed}
+    cast {:merge, [:channels], index(guild["channels"])}
   end
 
   # "unavaliable" indicates an old guild going offline, in which case we don't
