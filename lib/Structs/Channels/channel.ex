@@ -70,7 +70,7 @@ defmodule Alchemy.Channel do
 
   def from_map(map) do
     map
-    |> Map.get_and_update("permission_overwrites", &(map_struct &1, OverWrite))
-    |> to_struct(Channel)
+    |> update_in(["permission_overwrites"], &(map_struct &1, OverWrite))
+    |> to_struct(__MODULE__)
   end
 end
