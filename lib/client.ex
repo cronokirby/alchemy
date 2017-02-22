@@ -61,8 +61,8 @@ defmodule Alchemy.Client do
 
    ## Options
 
-   - `user_name` - A string specifiying the new user_name for the client
-   - `avatar` - A link to an image for the client's avatar
+   - `user_name` A string specifiying the new user_name for the client
+   - `avatar` A link to an image for the client's avatar
 
    ## Examples
 
@@ -78,7 +78,7 @@ defmodule Alchemy.Client do
    @spec edit_profile(username: String.t,
                       avatar: url) :: {:ok, User.t} | {:error, term}
    def edit_profile(options) do
-     send {Users, :modify_user, [[options]]}
+     send {Users, :modify_user, [options]}
    end
    @doc """
    Gets a list of guilds the client is currently a part of.
@@ -151,7 +151,7 @@ defmodule Alchemy.Client do
                       user_limit: Integer) :: {:ok, Channel.t}
                                             | {:error, term}
    def edit_channel(channel_id, options) do
-     send {Channels, :modify_channel, [channel_id, [options]]}
+     send {Channels, :modify_channel, [channel_id, options]}
    end
    @doc """
    Deletes a channel from a guild.
@@ -199,7 +199,7 @@ defmodule Alchemy.Client do
                                        | {:error, term}
    def get_messages(channel_id, options) do
      options = Keyword.put_new(options, :limit, 100)
-     send {Channels, :channel_messages, [channel_id, [options]]}
+     send {Channels, :channel_messages, [channel_id, options]}
    end
    @doc """
    Gets a message by channel, and message_id

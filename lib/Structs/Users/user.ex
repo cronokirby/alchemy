@@ -2,28 +2,29 @@ defmodule Alchemy.User do
   @moduledoc """
   Represents a discord user. The default values exist to cover missing fields.
 
-  > **id**
+  - `id`
 
     represents a unique client id
-  > **username**
+  - `username`
 
     represents a client's current username
-  > **discriminator**
+  - `discriminator`
 
     4 digit tag to differenciate usernames
-  > **avatar**
+  - `avatar`
 
-    A string representing their avatar hash
-  > **bot**
+    A string representing their avatar hash. Use `avatar_url` to
+    get the corresponding url from a `User` object
+  - `bot`
 
     Whether or not the user is a bot - *default: `false`*
 
   A bot usually doesn't have the authorization necessary to access these 2, so
   they're usually missing.
-  > **verified**
+  - `verified`
 
     Whether the account is verified - *default: `:hidden`*
-  > **email**
+  - `email`
 
     The user's email - *default: `:hidden`*
   """
@@ -45,4 +46,16 @@ defmodule Alchemy.User do
              verified: :hidden,
              email: :hidden
              ]
+
+
+  defimpl String.Chars, for: __MODULE__ do
+    def to_string(user), do: user.username <> "#" <> user.discriminator
+  end
+  @doc """
+  Used to get the url for a user's avatar
+
+  ## Options
+
+  """
+  def avatar_url(user, options), do: :foo
 end
