@@ -1,4 +1,5 @@
 defmodule Alchemy.Discord.Api do
+  require Logger
   alias Alchemy.Discord.RateLimits
   @moduledoc false
 
@@ -110,6 +111,8 @@ defmodule Alchemy.Discord.Api do
   # Performs a `patch` request, returning an HTTPotion response.
   # This isn't used too often
   def _patch(url, data, token) do
+    Logger.debug url
+    Logger.debug data
     HTTPotion.patch url, [headers: ["Authorization": "Bot #{token}",
                                     "Content-Type": "application/json"],
                           body: data]

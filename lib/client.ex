@@ -238,9 +238,11 @@ defmodule Alchemy.Client do
    in the `Message` struct
 
    ## Examples
+   ```elixir
    {:ok, message} = Task.await Client.send_message(channel, "ping!")
    Process.sleep(1000)
    Client.edit_message(message, "not ping anymore!")
+   ```
    """
    @spec edit_message(Message.t, String.t) :: {:ok, Message.t}
                                              | {:error, term}
@@ -254,12 +256,16 @@ defmodule Alchemy.Client do
    where a `channel_id` and a `message_id` are acquired sans the message in question.
 
    ## Examples
+   ```elixir
    {:ok, message} = Task.await Client.send_message(channel, "ping!")Process.sleep(1000)
    Client.edit_message(message.channel_id, message.id, "not ping anymore!")
+   ```
    """
    @spec edit_message(snowflake, snowflake, String.t) :: {:ok, Message.t}
                                                        | {:error, term}
    def edit_message(channel_id, message_id, content) do
      send {Channels, :edit_message, [channel_id, message_id, content]}
    end
+
+
 end

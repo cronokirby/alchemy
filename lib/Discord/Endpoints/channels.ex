@@ -57,14 +57,14 @@ defmodule Alchemy.Discord.Channels do
 
 
   def edit_message(token, channel_id, message_id, content) do
-    url = @root <> channel_id <> "/messages" <> message_id
-    json = ~s/{"content": #{content}}/
+    url = @root <> channel_id <> "/messages/" <> message_id
+    json = ~s/{"content": "#{content}"}/
     Api.patch(url, token, json, Message)
   end
 
 
   def delete_message(token, channel_id, message_id) do
-    url = @root <> channel_id <> "/messages" <> message_id
+    url = @root <> channel_id <> "/messages/" <> message_id
     Api.delete(url, token)
   end
 
