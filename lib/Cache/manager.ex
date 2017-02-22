@@ -70,14 +70,20 @@ defmodule Alchemy.Cache.Manager do
     inner_index(guild, inners)
   end
 
+  # Creates a new map with every channel pointing to its guild
+  defp channel_index(channels, guild_id) do
+    Enum.into(channels, %{}, &({get_in(&1, ["id"]), guild_id}))
+  end
+
   # Responsible for creating a global event if the guild is new
   def add_guild(guild) do
     if exists([:guilds], guild) do
       update_guild(guild)
     else
       notify {:join_guild, [Guild.from_map(guild)]}
-      cast {:store, [:guilds], guild_index(guild), guild["id"]}
-      cast {:merge, [:channels], index(guild["channels"])}
+      guild_id = guild["id"]
+      cast {:store, [:guilds], guild_index(guild), guild_id}
+      cast {:merge, [:channels], channel_index(guild["channels"], guild_id)}
     end
   end
 
@@ -87,8 +93,9 @@ defmodule Alchemy.Cache.Manager do
 
   def update_guild(guild) do
     indexed = guild_index(guild)
-    cast {:merge, [:guilds, guild["id"]], indexed}
-    cast {:merge, [:channels], index(guild["channels"])}
+    guild_id = guild["id"]
+    cast {:merge, [:guilds, guild_id], indexed}
+    cast {:merge, [:channels], channel_index(guild["channels"], guild_id)}
   end
 
   # "unavaliable" indicates an old guild going offline, in which case we don't
