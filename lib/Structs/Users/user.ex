@@ -1,4 +1,5 @@
 defmodule Alchemy.User do
+  use Alchemy.Discord.Types
   @moduledoc """
   Represents a discord user. The default values exist to cover missing fields.
 
@@ -51,11 +52,36 @@ defmodule Alchemy.User do
   defimpl String.Chars, for: __MODULE__ do
     def to_string(user), do: user.username <> "#" <> user.discriminator
   end
+
+
+  defmacrop is_valid_img(type, size) do
+    quote do
+      unquote(type) in ["png", "webp", "jpg", "gif"] and
+      unquote(size) in [128, 256, 512, 1024, 2048]
+    end
+  end
   @doc """
   Used to get the url for a user's avatar
 
-  ## Options
+  `type` must be one of `"png"`, `"webp"`, `"jpg"`, `"gif"`
 
+  `size` must be one of `128`, `256`, `512`, `1024`, `2048`
+
+  ## Examples
+  ```elixir
+  > User.avatar_url(user)
+  https://cdn.discordapp.com/avatars/...
+  ```
   """
-  def avatar_url(user, options), do: :foo
+  @spec avatar_url(__MODULE__.t, String.t, Integer) :: url
+  def avatar_url(user) do
+     avatar_url(user, "jpg", 128)
+  end
+  def avatar_url(user, type, size) when is_valid_img(type, size) do
+     base = "https://cdn.discordapp.com/avatars/#{user.id}/#{user.avatar}."
+     base <> "#{type}?size=#{size}"
+  end
+  def avatar_url(user, type, size \\ 0) do
+    raise ArgumentError, message: "invalid image type and/or size"
+  end
 end
