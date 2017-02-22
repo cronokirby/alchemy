@@ -2,7 +2,7 @@ defmodule Alchemy.Client do
   require Logger
   alias Alchemy.Discord.{Users, Channels, RateManager}
   alias Alchemy.Discord.Gateway.Manager, as: GatewayManager
-  alias Alchemy.{User, UserGuild, Channel, DMChannel}
+  alias Alchemy.{Channel, DMChannel, Message, User, UserGuild}
   alias Alchemy.Cache.Manager, as: CacheManager
   alias Alchemy.Cogs.{CommandHandler, EventHandler}
   import Alchemy.Discord.RateManager, only: [send: 1]
@@ -34,7 +34,6 @@ defmodule Alchemy.Client do
     ]
     supervise(children, strategy: :one_for_one)
   end
-
 
   ### Public ###
 
@@ -231,5 +230,36 @@ defmodule Alchemy.Client do
    def send_message(channel_id, content, options \\ []) do
      options = Keyword.put(options, :content, content)
      send {Channels, :create_message, [channel_id, options]}
+   end
+   @doc """
+   Edits a message's contents.
+
+   This version automatically gets the `channel_id` and `id` from the fields
+   in the `Message` struct
+
+   ## Examples
+   {:ok, message} = Task.await Client.send_message(channel, "ping!")
+   Process.sleep(1000)
+   Client.edit_message(message, "not ping anymore!")
+   """
+   @spec edit_message(Message.t, String.t) :: {:ok, Message.t}
+                                             | {:error, term}
+   def edit_message(%Message{channel_id: channel_id, id: id}, content) do
+     send {Channels, :edit_message, [channel_id, id, content]}
+   end
+   @doc """
+   Edits a message specified by `channel_id`, and `message_id`.
+
+   `edit_message/2` should usually be preferred over this, but there may be cases
+   where a `channel_id` and a `message_id` are acquired sans the message in question.
+
+   ## Examples
+   {:ok, message} = Task.await Client.send_message(channel, "ping!")Process.sleep(1000)
+   Client.edit_message(message.channel_id, message.id, "not ping anymore!")
+   """
+   @spec edit_message(snowflake, snowflake, String.t) :: {:ok, Message.t}
+                                                       | {:error, term}
+   def edit_message(channel_id, message_id, content) do
+     send {Channels, :edit_message, [channel_id, message_id, content]}
    end
 end

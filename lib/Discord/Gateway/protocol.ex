@@ -51,11 +51,13 @@ defmodule Alchemy.Discord.Protocol do
                     session_id: payload["session_id"],
                     trace: payload["_trace"]}}
   end
+
   # Sent after resuming to the gateway
   def dispatch(%{"t" => "RESUMED", "d" => payload}, state) do
     {:ok, %{state | trace: payload["_trace"]}}
   end
-  # Need to fill this in
+
+  # Generic events are handled unlinked, to prevent potential crashes
   def dispatch(%{"t" => type, "d" => payload}, state) do
     Task.start(fn -> Events.handle(type, payload) end)
     {:ok, state}

@@ -82,6 +82,6 @@ defmodule Alchemy.User do
      base <> "#{type}?size=#{size}"
   end
   def avatar_url(user, type, size \\ 0) do
-    raise ArgumentError, message: "invalid image type and/or size"
+    raise ArgumentError, message: "invalid type and/or size"
   end
 end
