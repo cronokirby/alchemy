@@ -16,7 +16,7 @@ defmodule Alchemy.Discord.RateManager do
     case apply(f) do
       {:wait, n} ->
         Process.sleep(n)
-        apply(req)
+        request(req)
       :go ->
         process_req(req)
     end
@@ -25,7 +25,7 @@ defmodule Alchemy.Discord.RateManager do
   defp process_req({m, f, a} = req) do
     case process(m, f, a) do
       {:retry, time} ->
-        Logger.debug "local rate limit encountered for endpoint #{f}\
+        Logger.info "local rate limit encountered for endpoint #{f}\
                      \n retrying in #{time} milliseconds"
         Process.sleep(time)
         apply(req)
@@ -66,7 +66,7 @@ defmodule Alchemy.Discord.RateManager do
     rate_info = Map.get(rates, method, default_info)
     case throttle(rate_info) do
       {:wait, time} ->
-        Logger.info "Timeout of #{time} under request #{method}"
+        Logger.debug "Timeout of #{time} under request #{method}"
         {:reply, {:wait, time}, state}
       {:go, new_rates} ->
         reserved = Map.merge(rate_info, new_rates)
