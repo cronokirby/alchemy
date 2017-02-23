@@ -266,6 +266,31 @@ defmodule Alchemy.Client do
    def edit_message(channel_id, message_id, content) do
      send {Channels, :edit_message, [channel_id, message_id, content]}
    end
+   @doc """
+   Deletes a message.
+
+   This version automatically gets the `message_id` and `channel_id` from
+   the fields in the struct.
+   ## Examples
+   ```elixir
+   content = "self destructing in 1s!!!"
+   {:ok, message} = Task.await Client.send_message(channel_id, content)
+   Process.sleep(1000)
+   Client.delete_message(message)
+   ```
+   """
+   def delete_message(%Message{channel_id: channel_id, id: id}) do
+     send {Channels, :delete_message, [channel_id, id]}
+   end
+   @doc """
+   Deletes a message, specified by `channel_id` and `message_id`.
+
+   `delete_message/1` should be preferred over this, though there are potential
+   uses for this version.
+   """
+   def delete_message(channel_id, message_id) do
+     send {Channels, :delete_message, [channel_id, message_id]}
+   end
 
 
 end

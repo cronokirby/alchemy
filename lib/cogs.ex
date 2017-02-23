@@ -13,16 +13,16 @@ defmodule Alchemy.Cogs do
   defmodule Example do
     use Alchemy.Cogs
 
-    Cogs.def ping, do: IO.inspect "pong!"
+    Cogs.def ping, do: Cogs.say "pong!"
 
     Cogs.def echo do
-      IO.inspect "please give me a word to echo"
+      Cogs.say "please give me a word to echo"
     end
     Cogs.def echo("foo") do
-      IO.inspect "foo are you?"
+      Cogs.say "foo are you?"
     end
     Cogs.def echo(word) do
-      IO.inspect word
+      Cogs.say word
     end
 
   end
@@ -63,7 +63,7 @@ defmodule Alchemy.Cogs do
   ## Examples
   ```elixir
   Cogs.def ping do
-    IO.inspect "pong"
+    Cogs.say "pong"
   end
   ```
 
@@ -71,8 +71,8 @@ defmodule Alchemy.Cogs do
   with `set_prefix/1`
 
   ```elixir
-  Cogs.def mimic, do: IO.inspect "Please send a word for me to echo"
-  Cogs.def mimic(word), do: IO.inspect word
+  Cogs.def mimic, do: Cogs.say "Please send a word for me to echo"
+  Cogs.def mimic(word), do: Cogs.say word
   ```
 
   Messages will be parsed, and arguments will be extracted, however,
