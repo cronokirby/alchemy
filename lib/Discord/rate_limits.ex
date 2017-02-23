@@ -1,4 +1,5 @@
 defmodule Alchemy.Discord.RateLimits do
+  require Logger
   @moduledoc false
   # Used for parsing ratelimits out of headers
 
@@ -19,13 +20,19 @@ defmodule Alchemy.Discord.RateLimits do
     nil
   end
 
+  # status code empty
+  def rate_info(%{status_code: 204}) do
+    nil
+  end
 
   def rate_info(%{status_code: 200, headers: h}) do
     h.hdrs |> parse_headers
   end
 
   # Used in the case of a 429 error, expected to "decide" what response to give
-  def rate_info(%{headers: h, body: body}) do
+  def rate_info(%{status_code: 429, headers: h, body: body}) do
+    Logger.debug (IO.inspect h)
+    Logger.debug (IO.inspect body)
     {timeout, _} = Integer.parse body["retry_after"]
     if body["global"] do
       {:global, timeout}
