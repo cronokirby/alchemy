@@ -2,9 +2,9 @@ defmodule Alchemy.Guild do
   alias Alchemy.Role
   alias Alchemy.Emoji
   alias Alchemy.Channel
-  alias ALchemy.GuildMember
+  alias Alchemy.GuildMember
   alias Alchemy.VoiceState
-  alias Alchemy.Presence
+  alias Alchemy.Users.Presence
   import Alchemy.Structs.Utility
   @moduledoc """
   """
@@ -67,6 +67,6 @@ defmodule Alchemy.Guild do
     |> field_map("members", &(map_struct &1, GuildMember))
     |> field_map("channels", &(map_struct &1, Channel))
     |> field_map("presences", &(map_struct &1, Presence))
-    |> to_struct(Guild)
+    |> to_struct(__MODULE__)
   end
 end
