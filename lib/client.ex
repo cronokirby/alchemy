@@ -407,10 +407,10 @@ defmodule Alchemy.Client do
       Client.delete_reactions(message)
     end
     """
-    def delete_reactions(%Message{channel_id: channel_id, id: id}) do
+    def remove_reactions(%Message{channel_id: channel_id, id: id}) do
       send {Channels, :delete_reactions, [channel_id, id]}
     end
-    def delete_reactions({channel_id, message_id} = message) do
+    def remove_reactions({channel_id, message_id} = message) do
       send {Channels, :delete_reactions, [channel_id, message_id]}
     end
 end
