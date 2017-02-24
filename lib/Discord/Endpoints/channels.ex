@@ -1,7 +1,7 @@
 defmodule Alchemy.Discord.Channels do
   alias Poison.Parser
   alias Alchemy.Discord.Api
-  alias Alchemy.{Channel, DMChannel, Message}
+  alias Alchemy.{Channel, DMChannel, Message, Reaction.Emoji}
   import Alchemy.Structs.Utility
   @moduledoc false
 
@@ -68,9 +68,19 @@ defmodule Alchemy.Discord.Channels do
     Api.delete(url, token)
   end
 
+
   def delete_messages(token, channel_id, messages) do
     json = Poison.encode!(%{messages: messages})
     url = @root <> channel_id <> "/messages/bulk-delete"
     Api.post(url, token, json)
+  end
+
+
+  def create_reaction(token, channel_id, message_id, %Emoji{id: nil, name: name}) do
+    IO.inspect name
+    url = (@root <> channel_id <> "/messages/" <> message_id
+           <> "/reactions/" <> name <> "/@me")
+        |> URI.encode
+    Api.put(url, token)
   end
 end

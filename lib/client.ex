@@ -2,7 +2,7 @@ defmodule Alchemy.Client do
   require Logger
   alias Alchemy.Discord.{Users, Channels, RateManager}
   alias Alchemy.Discord.Gateway.Manager, as: GatewayManager
-  alias Alchemy.{Channel, DMChannel, Message, User, UserGuild}
+  alias Alchemy.{Channel, DMChannel, Reaction.Emoji, Message, User, UserGuild}
   alias Alchemy.Cache.Manager, as: CacheManager
   alias Alchemy.Cogs.{CommandHandler, EventHandler}
   import Alchemy.Discord.RateManager, only: [send: 1]
@@ -37,6 +37,7 @@ defmodule Alchemy.Client do
 
   ### Public ###
 
+  @type unicode :: String.t
   @doc """
   Gets a user by their client_id.
 
@@ -279,6 +280,7 @@ defmodule Alchemy.Client do
    Client.delete_message(message)
    ```
    """
+   @spec delete_message(Message.t) :: {:ok, nil} | {:error, term}
    def delete_message(%Message{channel_id: channel_id, id: id}) do
      send {Channels, :delete_message, [channel_id, id]}
    end
@@ -288,15 +290,72 @@ defmodule Alchemy.Client do
    `delete_message/1` should be preferred over this, though there are potential
    uses for this version.
    """
+   @spec delete_message(snowflake, snowflake) :: {:ok, nil} | {:error, term}
    def delete_message(channel_id, message_id) do
      send {Channels, :delete_message, [channel_id, message_id]}
    end
+   @doc """
+   Deletes a list of messages.
 
+   Can only delete messages up to 2 weeks old.
+
+   ```elixir
+    Cogs.def countdown do
+      {:ok, m1} = Task.await Cogs.say "3..."
+      Process.sleep(1000)
+      {:ok, m2} = Task.await Cogs.say "2..."
+      Process.sleep(1000)
+      {:ok, m3} = Task.await Cogs.say "1..."
+      Process.sleep(1000)
+      Client.delete_messages(message.channel, [m1, m2, m3])
+    end
+   """
+   @spec delete_messages(snowflake, [Message.t | snowflake]) :: {:ok, nil}
+                                                              | {:error, term}
    def delete_messages(channel_id, messages) do
      messages = Enum.map(messages, fn
        %{id: id} -> id
        id -> id
      end)
      send {Channels, :delete_messages, [channel_id, messages]}
+   end
+   @doc """
+   Adds a reaction to a message.
+
+   This supports sending either a custom emoji object, or a unicode literal.
+   While sending raw unicode is technically possible, you'll usually run
+   into url encoding issues due to hidden characters if you try to send something like
+   "❤️️"; use `\\u2764` instead.
+
+   ## Examples
+   ```elixir
+   Cogs.def heart do
+     Client.add_reaction(message, "️\\u2764")
+   end
+   ```
+   """
+   @spec add_reaction(Message.t, unicode | Emoji.t) :: {:ok, nil}
+                                                     | {:error, term}
+   def add_reaction(%Message{channel_id: channel_id, id: id},
+                    %Emoji{} = emoji) do
+     send {Channels, :create_reaction, [channel_id, id, emoji]}
+   end
+   def add_reaction(%Message{channel_id: channel_id, id: id}, unicode) do
+     emoji = %Emoji{name: unicode}
+     send {Channels, :create_reaction, [channel_id, id, emoji]}
+   end
+   @doc """
+   Adds a reaction to a message, specified by `channel_id`, and `message_id`.
+
+   See `add_reaction/2`
+   """
+   @spec add_reaction(snowflake, snowflake, unicode | Emoji.t) :: {:ok, nil}
+                                                                | {:error, term}
+   def add_reaction(message_id, channel_id, %Emoji{} = emoji) do
+     send {Channels, :create_reaction, [channel_id, message_id, emoji]}
+   end
+   def add_reaction(message_id, channel_id, unicode) do
+     emoji = %Emoji{name: unicode}
+     send {Channels, :create_reaction, [channel_id, message_id, emoji]}
    end
 end

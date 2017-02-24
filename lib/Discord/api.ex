@@ -34,6 +34,13 @@ defmodule Alchemy.Discord.Api do
     request(:_post, [url, data, token])
   end
 
+  def put(url, token) do
+    request(:_put, [url, token])
+  end
+  def put(url, token, body) do
+    request(:_put, [url, token], body)
+  end
+
   def delete(url, token) do
     request(:_delete, [url, token])
   end
@@ -122,6 +129,9 @@ defmodule Alchemy.Discord.Api do
                           body: data]
   end
 
+  def _put(url, token) do
+    HTTPotion.put url, headers: ["Authorization": "Bot #{token}"]
+  end
   # Performs a `delete` request, returning an HTTPotion response.
   def _delete(url, token) do
     HTTPotion.delete url, headers: ["Authorization": "Bot #{token}"]

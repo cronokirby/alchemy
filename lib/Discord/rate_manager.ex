@@ -126,8 +126,6 @@ defmodule Alchemy.Discord.RateManager do
     cond do
       wait_time > 0 ->
         {:wait, wait_time * 1000}
-      wait_time = 0 ->
-        {:wait, 500}
       true ->
         {:go, %{remaining: rate_info.limit - 1, reset_time: now + 2}}
     end
