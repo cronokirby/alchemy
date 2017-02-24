@@ -1,6 +1,7 @@
 defmodule Alchemy.Channel.Invite do
   alias Alchemy.User
   alias Alchemy.Channel.Invite.{InviteChannel, InviteGuild}
+  import Alchemy.Structs.Utility
   @moduledoc """
   Represents an Invite object along with the metadata.
 
@@ -59,4 +60,13 @@ defmodule Alchemy.Channel.Invite do
              :temporary,
              :created_at,
              :revoked]
+
+
+  def from_map(map) do
+    map
+    |> field("guild", InviteGuild)
+    |> field("channel", InviteChannel)
+    |> to_struct(__MODULE__)
+  end
+
 end

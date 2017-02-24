@@ -2,7 +2,8 @@ defmodule Alchemy.Client do
   require Logger
   alias Alchemy.Discord.{Users, Channels, RateManager}
   alias Alchemy.Discord.Gateway.Manager, as: GatewayManager
-  alias Alchemy.{Channel, DMChannel, Reaction.Emoji, Message, User, UserGuild}
+  alias Alchemy.{Channel, Channel.Invite, DMChannel, Reaction.Emoji,
+                 Message, User, UserGuild}
   alias Alchemy.Cache.Manager, as: CacheManager
   alias Alchemy.Cogs.{CommandHandler, EventHandler}
   import Alchemy.Discord.RateManager, only: [send: 1]
@@ -416,5 +417,21 @@ defmodule Alchemy.Client do
     end
     def remove_reactions({channel_id, message_id} = message) do
       send {Channels, :delete_reactions, [channel_id, message_id]}
+    end
+    @doc """
+    Gets a list of invites for a channel.
+
+    Only usable for guild channels.
+    ## Examples
+    ```elixir
+    Cogs.def count_invites do
+      {:ok, invites} = Client.get_channel_invites(message.channel_id)
+                     |> Task.await
+      Cogs.say("there are #\{length(invites)\} invites active in this channel")
+    end
+    """
+    @spec get_invites(snowflake) :: {:ok, [Invite.t]} | {:error, term}
+    def get_invites(channel_id) do
+      send {Channels, :get_channel_invites, [channel_id]}
     end
 end

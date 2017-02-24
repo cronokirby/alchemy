@@ -1,7 +1,7 @@
 defmodule Alchemy.Discord.Channels do
   alias Poison.Parser
   alias Alchemy.Discord.Api
-  alias Alchemy.{Channel, DMChannel, Message, User, Reaction.Emoji}
+  alias Alchemy.{Channel, Channel.Invite, DMChannel, Message, User, Reaction.Emoji}
   import Alchemy.Structs.Utility
   @moduledoc false
 
@@ -125,5 +125,16 @@ defmodule Alchemy.Discord.Channels do
   def delete_reactions(token, channel_id, message_id) do
     @root <> channel_id <> "/messages/" <> message_id <> "/reactions"
     |> Api.delete(token)
+  end
+
+
+  def get_channel_invites(token, channel_id) do
+    parser = fn json ->
+      json
+      |> Parser.parse!
+      |> Enum.map(&Invite.from_map/1)
+    end
+    @root <> channel_id <> "/invites"
+    |>  Api.get(token, parser)
   end
 end
