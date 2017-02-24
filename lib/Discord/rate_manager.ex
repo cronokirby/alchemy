@@ -64,10 +64,7 @@ defmodule Alchemy.Discord.RateManager do
   def handle_call({:apply, method}, _from, state) do
     rates = state.rates
     rate_info = Map.get(rates, method, default_info)
-    IO.inspect rate_info
-    res = throttle(rate_info)
-    IO.inspect res
-    case res do
+    case throttle(rate_info) do
       {:wait, time} ->
         Logger.debug "Timeout of #{time} under request #{method}"
         {:reply, {:wait, time}, state}
@@ -125,15 +122,14 @@ defmodule Alchemy.Discord.RateManager do
   def throttle(rate_info) do
     now = DateTime.utc_now |> DateTime.to_unix
     reset_time = rate_info.reset_time
-    Logger.debug now
     wait_time = reset_time - now
-    Logger.debug wait_time
-    cond do
-      wait_time > 0 ->
-        {:wait, wait_time * 1000}
-      wait_time == 0 ->
-        {:wait, 500}
-      true ->
+    if wait_time > 0 do
+      {:wait, wait_time * 1000}
+    else
+      # We've passed the limit, remaining can be reset to the limit.
+      # To ensure that we don't overreserve for this time slot, we set the next
+      # reset time to 2 seconds from now; This should be replaced with info
+      # coming from outgoing requests within that timeframe
       {:go, %{remaining: rate_info.limit - 1, reset_time: now + 2}}
     end
   end
