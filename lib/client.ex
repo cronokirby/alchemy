@@ -292,5 +292,11 @@ defmodule Alchemy.Client do
      send {Channels, :delete_message, [channel_id, message_id]}
    end
 
-
+   def delete_messages(channel_id, messages) do
+     messages = Enum.map(messages, fn
+       %{id: id} -> id
+       id -> id
+     end)
+     send {Channels, :delete_messages, [channel_id, messages]}
+   end
 end
