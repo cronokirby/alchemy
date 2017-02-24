@@ -34,7 +34,6 @@ defmodule Alchemy.Discord.Gateway do
 
 
   def ondisconnect(reason, state) do
-    Logger.debug "Disconnected, #{reason}, state: #{IO.inspect state}"
     {:reconnect, state}
   end
 

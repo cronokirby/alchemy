@@ -125,8 +125,8 @@ defmodule Alchemy.Discord.Api do
 
   def _post(url, data, token) do
     HTTPotion.post url, [headers: ["Authorization": "Bot #{token}",
-                                    "Content-Type": "application/json"],
-                          body: data]
+                                   "Content-Type": "application/json"],
+                         body: data]
   end
 
   def _put(url, token) do

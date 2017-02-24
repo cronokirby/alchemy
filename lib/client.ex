@@ -434,4 +434,40 @@ defmodule Alchemy.Client do
     def get_invites(channel_id) do
       send {Channels, :get_channel_invites, [channel_id]}
     end
+    @doc """
+    Creates a new invite for a channel.
+
+    Requires the `CREATE_INSTANT_INVITE` permission.
+
+    ## Options
+    - `max_age`
+
+      The duration (seconds) of the invite. `0` for never.
+    - `max_uses`
+
+      The max number of uses. `0` for unlimited.
+    - `temporary`
+
+      Whether this invite grants temporary membership.
+    - `unique`
+
+      When set, a similar invite won't try to be used.
+      Useful for creating unique one time use invites.
+
+    ## Examples
+    ```elixir
+    Cogs.def invite do
+      {:ok, invite} = Task.await Client.create_invite(message.channel_id, max_age: 0)
+      Cogs.say("Here you go:\\nhttps://discord.gg/#\{invite.code\}")
+    end
+    ```
+    """
+    @spec create_invite(snowflake,
+                        max_age: Integer,
+                        max_uses: Integer,
+                        temporary: Boolean,
+                        unique: True) :: {:ok, Invite.t} | {:error, term}
+    def create_invite(channel_id, options \\ []) do
+      send {Channels, :create_channel_invite, [channel_id, options]}
+    end
 end

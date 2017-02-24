@@ -137,4 +137,10 @@ defmodule Alchemy.Discord.Channels do
     @root <> channel_id <> "/invites"
     |>  Api.get(token, parser)
   end
+
+
+  def create_channel_invite(token, channel_id, options) do
+    @root <> channel_id <> "/invites"
+    |> Api.post(Api.encode(options), token, Invite)
+  end
 end
