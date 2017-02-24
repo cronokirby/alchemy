@@ -38,6 +38,8 @@ defmodule Alchemy.Client do
   ### Public ###
 
   @type unicode :: String.t
+  @type channel_id :: snowflake
+  @type message_id :: snowflake
   @doc """
   Gets a user by their client_id.
 
@@ -235,9 +237,6 @@ defmodule Alchemy.Client do
    @doc """
    Edits a message's contents.
 
-   This version automatically gets the `channel_id` and `id` from the fields
-   in the `Message` struct
-
    ## Examples
    ```elixir
    {:ok, message} = Task.await Client.send_message(channel, "ping!")
@@ -245,33 +244,19 @@ defmodule Alchemy.Client do
    Client.edit_message(message, "not ping anymore!")
    ```
    """
-   @spec edit_message(Message.t, String.t) :: {:ok, Message.t}
-                                             | {:error, term}
-   def edit_message(%Message{channel_id: channel_id, id: id}, content) do
+   @spec edit_message(Message.t | {channel_id, message_id},
+                      String.t) :: {:ok, Message.t}
+                                 | {:error, term}
+   def edit_message(%Message{channel_id: channel_id, id: id} = message, content) do
      send {Channels, :edit_message, [channel_id, id, content]}
    end
-   @doc """
-   Edits a message specified by `channel_id`, and `message_id`.
-
-   `edit_message/2` should usually be preferred over this, but there may be cases
-   where a `channel_id` and a `message_id` are acquired sans the message in question.
-
-   ## Examples
-   ```elixir
-   {:ok, message} = Task.await Client.send_message(channel, "ping!")Process.sleep(1000)
-   Client.edit_message(message.channel_id, message.id, "not ping anymore!")
-   ```
-   """
-   @spec edit_message(snowflake, snowflake, String.t) :: {:ok, Message.t}
-                                                       | {:error, term}
-   def edit_message(channel_id, message_id, content) do
+   def edit_message({channel_id, message_id}, content) do
      send {Channels, :edit_message, [channel_id, message_id, content]}
    end
    @doc """
    Deletes a message.
 
-   This version automatically gets the `message_id` and `channel_id` from
-   the fields in the struct.
+   Requires the `MANAGE_MESSAGES` permission for messages not sent by the user.
    ## Examples
    ```elixir
    content = "self destructing in 1s!!!"
@@ -280,23 +265,18 @@ defmodule Alchemy.Client do
    Client.delete_message(message)
    ```
    """
-   @spec delete_message(Message.t) :: {:ok, nil} | {:error, term}
-   def delete_message(%Message{channel_id: channel_id, id: id}) do
+   @spec delete_message(Message.t | {channel_id, message_id}) ::
+                       {:ok, nil} | {:error, term}
+   def delete_message(%Message{channel_id: channel_id, id: id} = message) do
      send {Channels, :delete_message, [channel_id, id]}
    end
-   @doc """
-   Deletes a message, specified by `channel_id` and `message_id`.
-
-   `delete_message/1` should be preferred over this, though there are potential
-   uses for this version.
-   """
-   @spec delete_message(snowflake, snowflake) :: {:ok, nil} | {:error, term}
-   def delete_message(channel_id, message_id) do
+   def delete_message({channel_id, message_id}) do
      send {Channels, :delete_message, [channel_id, message_id]}
    end
    @doc """
    Deletes a list of messages.
 
+   Requires the `MANAGE_MESSAGES` permission for messages not posted by this user.
    Can only delete messages up to 2 weeks old.
 
    ```elixir
@@ -334,28 +314,86 @@ defmodule Alchemy.Client do
    end
    ```
    """
-   @spec add_reaction(Message.t, unicode | Emoji.t) :: {:ok, nil}
-                                                     | {:error, term}
-   def add_reaction(%Message{channel_id: channel_id, id: id},
-                    %Emoji{} = emoji) do
+   @spec add_reaction(Message.t | {channel_id, message_id},
+                      unicode | Emoji.t) :: {:ok, nil} | {:error, term}
+   def add_reaction(%Message{channel_id: channel_id, id: id} = message, emoji) do
+     emoji = Emoji.resolve(emoji)
      send {Channels, :create_reaction, [channel_id, id, emoji]}
    end
-   def add_reaction(%Message{channel_id: channel_id, id: id}, unicode) do
-     emoji = %Emoji{name: unicode}
-     send {Channels, :create_reaction, [channel_id, id, emoji]}
+   def add_reaction({channel_id, message_id}, emoji) do
+     emoji = Emoji.resolve(emoji)
+     send {Channels, :create_reaction, [channel_id, message_id, emoji]}
    end
    @doc """
-   Adds a reaction to a message, specified by `channel_id`, and `message_id`.
+   Removes a reaction on a message, posted by this user.
 
-   See `add_reaction/2`
+   This doesn't require the `MANAGE_MESSAGES` permission, unlike
+   `delete_reaction`.
+
+   ## Example
+   ```elixir
+   Cogs.def indecisive do
+   Client.add_reaction(message, "\u2764")
+   Process.sleep(3000)
+   Client.remove_reaction(message, "\u2764")
+   end
+   ```
    """
-   @spec add_reaction(snowflake, snowflake, unicode | Emoji.t) :: {:ok, nil}
-                                                                | {:error, term}
-   def add_reaction(message_id, channel_id, %Emoji{} = emoji) do
-     send {Channels, :create_reaction, [channel_id, message_id, emoji]}
+   @spec remove_reaction(Message.t | {channel_id, message_id},
+                         unicode | Emoji.t) :: {:ok, nil} | {:error, term}
+   def remove_reaction(%Message{channel_id: channel_id, id: id} = message, emoji) do
+     emoji = Emoji.resolve(emoji)
+     send {Channels, :delete_own_reaction, [channel_id, id, emoji]}
    end
-   def add_reaction(message_id, channel_id, unicode) do
-     emoji = %Emoji{name: unicode}
-     send {Channels, :create_reaction, [channel_id, message_id, emoji]}
-   end
+    def remove_reaction({channel_id, message_id}, emoji) do
+      emoji = Emoji.resolve(emoji)
+      send {Channels, :delete_own_reaction, [channel_id, message_id, emoji]}
+    end
+    @doc """
+    Deletes a reaction added by another user.
+
+    Requires the `MANAGE_MESSAGES` permission.
+    """
+    @spec delete_reaction(Message.t | {channel_id, message_id},
+                          unicode | Emoji.t, snowflake | User.t) :: {:ok, nil}
+                                                                  | {:error, term}
+    def delete_reaction(%Message{channel_id: channel_id, id: id} = message,
+                        emoji, user) do
+      emoji = Emoji.resolve(emoji)
+      user = case user do
+        %User{id: id} -> id
+        id -> id
+      end
+      send {Channels, :delete_reaction, [channel_id, id, emoji, user]}
+    end
+    def delete_reaction({channel_id, message_id}, emoji, user) do
+      emoji = Emoji.resolve(emoji)
+      user = case user do
+        %User{id: id} -> id
+        id -> id
+      end
+      send {Channels, :delete_reaction, [channel_id, message_id, emoji, user]}
+    end
+    @doc """
+    Gets a list of users who reacted to message with a particular emoji.
+
+    ## Examples
+    Cogs.def react do
+      {:ok, message} = Task.await Cogs.say("react to this!")
+      Process.sleep(10000)
+      {:ok, users} = Task.await Client.get_reactions(message, "\u2764")
+      Cogs.say("#\{length(users)\} users reacted with a \u2764!")
+    end
+    """
+    @spec get_reactions(Message.t | {channel_id, message_id},
+                        unicode | Emoji.t) :: {:ok, [User.t]} | {:error, term}
+    def get_reactions(%Message{channel_id: channel_id, id: id}, emoji) do
+      emoji = Emoji.resolve(emoji)
+      send {Channels, :get_reactions, [channel_id, id, emoji]}
+    end
+    def get_reactions({channel_id, message_id}, emoji) do
+      emoji = Emoji.resolve(emoji)
+      send {Channels, :get_reactions, [channel_id, message_id, emoji]}
+    end
+
 end

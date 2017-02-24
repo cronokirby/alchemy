@@ -1,7 +1,7 @@
 defmodule Alchemy.Discord.Channels do
   alias Poison.Parser
   alias Alchemy.Discord.Api
-  alias Alchemy.{Channel, DMChannel, Message, Reaction.Emoji}
+  alias Alchemy.{Channel, DMChannel, Message, User, Reaction.Emoji}
   import Alchemy.Structs.Utility
   @moduledoc false
 
@@ -39,20 +39,20 @@ defmodule Alchemy.Discord.Channels do
        |> Parser.parse!
        |> Enum.map(&Message.from_map/1)
      end
-     url = @root <> channel_id <> "/messages"
-     Api.get(url <> Api.query(options), token, parser)
+     @root <> channel_id <> "/messages" <> Api.query(options)
+     |> Api.get(token, parser)
   end
 
 
   def channel_message(token, channel_id, message_id) do
-    url = @root <> channel_id <> "/messages" <> message_id
-    Api.get(url, token, Message)
+    @root <> channel_id <> "/messages" <> message_id
+    |> Api.get(token, Message)
   end
 
 
   def create_message(token, channel_id, options) do
-    url = @root <> channel_id <> "/messages"
-    Api.post(url, token, Api.encode(options), Message)
+    @root <> channel_id <> "/messages"
+    |> Api.post(token, Api.encode(options), Message)
   end
 
 
@@ -76,11 +76,54 @@ defmodule Alchemy.Discord.Channels do
   end
 
 
-  def create_reaction(token, channel_id, message_id, %Emoji{id: nil, name: name}) do
-    IO.inspect name
-    url = (@root <> channel_id <> "/messages/" <> message_id
-           <> "/reactions/" <> name <> "/@me")
-        |> URI.encode
-    Api.put(url, token)
+  defp modify_reaction(token, channel_id, message_id,
+                       %Emoji{id: nil, name: name}, stub, request) do
+      @root <> channel_id <> "/messages/" <> message_id
+            <> "/reactions/" <> name <> stub
+      |> URI.encode
+      |> request.(token)
+  end
+  defp modify_reaction(token, channel_id, message_id,
+                       %Emoji{id: id, name: name}, stub, request) do
+      @root <> channel_id <> "/messages/" <> message_id
+            <> "/reactions/" <> "#{name}:#{id}" <> stub
+      |> URI.encode
+      |> request.(token)
+  end
+
+
+  def create_reaction(token, channel_id, message_id, emoji) do
+    modify_reaction(token, channel_id, message_id, emoji, "/@me", &Api.put/2)
+  end
+
+
+  def delete_own_reaction(token, channel_id, message_id, emoji) do
+    modify_reaction(token, channel_id, message_id, emoji, "/@me", &Api.delete/2)
+  end
+
+
+  def delete_reaction(token, channel_id, message_id, emoji, user_id) do
+    stub = "/#{user_id}"
+    modify_reaction(token, channel_id, message_id, emoji, stub, &Api.delete/2)
+  end
+
+
+  def get_reactions(token, channel_id, message_id, %Emoji{id: nil, name: name}) do
+    @root <> channel_id <> "/messages/" <> message_id <> "/reactions/"
+          <> name
+    |> URI.encode
+    |> Api.get(token, [%User{}])
+  end
+  def get_reactions(token, channel_id, message_id, %Emoji{id: id, name: name}) do
+    @root <> channel_id <> "/messages/" <> message_id <> "/reactions/"
+          <> "#{name}:#{id}"
+    |> URI.encode
+    |> Api.get(token, [%User{}])
+  end
+
+
+  def delete_reactions(token, channel_id, message_id) do
+    @root <> channel_id <> "/messages/" <> message_id <> "/reactions"
+    |> Api.delete(token)
   end
 end
