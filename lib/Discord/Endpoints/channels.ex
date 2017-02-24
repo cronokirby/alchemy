@@ -86,7 +86,7 @@ defmodule Alchemy.Discord.Channels do
   defp modify_reaction(token, channel_id, message_id,
                        %Emoji{id: id, name: name}, stub, request) do
       @root <> channel_id <> "/messages/" <> message_id
-            <> "/reactions/" <> "#{name}:#{id}" <> stub
+            <> "/reactions/" <> ":#{name}:#{id}" <> stub
       |> URI.encode
       |> request.(token)
   end
@@ -116,7 +116,7 @@ defmodule Alchemy.Discord.Channels do
   end
   def get_reactions(token, channel_id, message_id, %Emoji{id: id, name: name}) do
     @root <> channel_id <> "/messages/" <> message_id <> "/reactions/"
-          <> "#{name}:#{id}"
+          <> ":#{name}:#{id}"
     |> URI.encode
     |> Api.get(token, [%User{}])
   end

@@ -17,11 +17,11 @@ defmodule Alchemy.Channel.Invite.InviteChannel do
   @type t :: %__MODULE__{
     id: snowflake,
     name: String.t,
-    type: "text" | "voice"
+    type: String.t
   }
   @derive Poison.Encoder
   defstruct [:id,
              :name,
-             :splash,
-             :icon]
+             :type
+            ]
 end
