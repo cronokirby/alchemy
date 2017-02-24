@@ -247,10 +247,10 @@ defmodule Alchemy.Client do
    @spec edit_message(Message.t | {channel_id, message_id},
                       String.t) :: {:ok, Message.t}
                                  | {:error, term}
-   def edit_message(%Message{channel_id: channel_id, id: id} = message, content) do
+   def edit_message(%Message{channel_id: channel_id, id: id}, content) do
      send {Channels, :edit_message, [channel_id, id, content]}
    end
-   def edit_message({channel_id, message_id}, content) do
+   def edit_message({channel_id, message_id} = message, content) do
      send {Channels, :edit_message, [channel_id, message_id, content]}
    end
    @doc """
@@ -267,10 +267,10 @@ defmodule Alchemy.Client do
    """
    @spec delete_message(Message.t | {channel_id, message_id}) ::
                        {:ok, nil} | {:error, term}
-   def delete_message(%Message{channel_id: channel_id, id: id} = message) do
+   def delete_message(%Message{channel_id: channel_id, id: id}) do
      send {Channels, :delete_message, [channel_id, id]}
    end
-   def delete_message({channel_id, message_id}) do
+   def delete_message({channel_id, message_id} = message) do
      send {Channels, :delete_message, [channel_id, message_id]}
    end
    @doc """
@@ -316,11 +316,11 @@ defmodule Alchemy.Client do
    """
    @spec add_reaction(Message.t | {channel_id, message_id},
                       unicode | Emoji.t) :: {:ok, nil} | {:error, term}
-   def add_reaction(%Message{channel_id: channel_id, id: id} = message, emoji) do
+   def add_reaction(%Message{channel_id: channel_id, id: id}, emoji) do
      emoji = Emoji.resolve(emoji)
      send {Channels, :create_reaction, [channel_id, id, emoji]}
    end
-   def add_reaction({channel_id, message_id}, emoji) do
+   def add_reaction({channel_id, message_id} = message, emoji) do
      emoji = Emoji.resolve(emoji)
      send {Channels, :create_reaction, [channel_id, message_id, emoji]}
    end
@@ -341,11 +341,11 @@ defmodule Alchemy.Client do
    """
    @spec remove_reaction(Message.t | {channel_id, message_id},
                          unicode | Emoji.t) :: {:ok, nil} | {:error, term}
-   def remove_reaction(%Message{channel_id: channel_id, id: id} = message, emoji) do
+   def remove_reaction(%Message{channel_id: channel_id, id: id}, emoji) do
      emoji = Emoji.resolve(emoji)
      send {Channels, :delete_own_reaction, [channel_id, id, emoji]}
    end
-    def remove_reaction({channel_id, message_id}, emoji) do
+    def remove_reaction({channel_id, message_id} = message, emoji) do
       emoji = Emoji.resolve(emoji)
       send {Channels, :delete_own_reaction, [channel_id, message_id, emoji]}
     end
@@ -395,5 +395,22 @@ defmodule Alchemy.Client do
       emoji = Emoji.resolve(emoji)
       send {Channels, :get_reactions, [channel_id, message_id, emoji]}
     end
+    @doc """
+    Removes all reactions from a message.
 
+    Requires the `MANAGE_MESSAGES` permission.
+
+    ## Examples
+    Cogs.def psyche do
+      {:ok, message} = Task.await Cogs.say("react to this")
+      Process.sleep(10000)
+      Client.delete_reactions(message)
+    end
+    """
+    def delete_reactions(%Message{channel_id: channel_id, id: id}) do
+      send {Channels, :delete_reactions, [channel_id, id]}
+    end
+    def delete_reactions({channel_id, message_id} = message) do
+      send {Channels, :delete_reactions, [channel_id, message_id]}
+    end
 end
