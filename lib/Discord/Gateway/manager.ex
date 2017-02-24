@@ -30,6 +30,7 @@ defmodule Alchemy.Discord.Gateway.Manager do
 
   defp now, do: DateTime.utc_now |> DateTime.to_unix
 
+
   ### Server ###
 
   def start_supervisor do

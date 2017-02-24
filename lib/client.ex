@@ -401,12 +401,16 @@ defmodule Alchemy.Client do
     Requires the `MANAGE_MESSAGES` permission.
 
     ## Examples
+    ```elixir
     Cogs.def psyche do
       {:ok, message} = Task.await Cogs.say("react to this")
       Process.sleep(10000)
       Client.delete_reactions(message)
     end
+    ```
     """
+    @spec remove_reactions(Message.t | {channel_id, message_id}) ::
+                           {:ok, nil} | {:error, term}
     def remove_reactions(%Message{channel_id: channel_id, id: id}) do
       send {Channels, :delete_reactions, [channel_id, id]}
     end

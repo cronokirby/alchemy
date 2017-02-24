@@ -44,10 +44,10 @@ defmodule Alchemy.Cogs.CommandHandler do
 
   defp dispatch(message, state) do
      prefix = state.prefix
-     [command |[rest|_]] = message.content
-                           |> String.split([prefix, " "], parts: 3)
-                           |> Stream.concat(["", ""])
-                           |> Enum.drop(1)
+
+     destructure([_, command, rest], message.content
+                                     |> String.split([prefix, " "], parts: 3)
+                                     |> Enum.concat(["", ""]))
      command = String.to_atom(command)
      case state[command] do
        {mod, arity} ->
