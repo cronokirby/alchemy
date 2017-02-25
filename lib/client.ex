@@ -3,7 +3,7 @@ defmodule Alchemy.Client do
   alias Alchemy.Discord.{Users, Channels, RateManager}
   alias Alchemy.Discord.Gateway.Manager, as: GatewayManager
   alias Alchemy.{Channel, Channel.Invite, DMChannel, Reaction.Emoji,
-                 Message, User, UserGuild}
+                 Embed, Message, User, UserGuild}
   alias Alchemy.Cache.Manager, as: CacheManager
   alias Alchemy.Cogs.{CommandHandler, EventHandler}
   import Alchemy.Discord.RateManager, only: [send: 1]
@@ -232,7 +232,12 @@ defmodule Alchemy.Client do
                       embed: Embed.t) :: {:ok, Message.t}
                                        | {:error, term}
    def send_message(channel_id, content, options \\ []) do
-     options = Keyword.put(options, :content, "#{content}")
+     {_, options} = options
+                  |> Keyword.put(:content, "#{content}")
+                  |> Keyword.get_and_update(:embed, fn
+                    nil -> :pop
+                    some -> {some, Embed.build(some)}
+                  end)
      send {Channels, :create_message, [channel_id, options]}
    end
    @doc """

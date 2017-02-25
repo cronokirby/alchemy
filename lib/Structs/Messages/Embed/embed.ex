@@ -42,4 +42,23 @@ defmodule Alchemy.Embed do
     |> field_map("fields", &map_struct(&1, Field))
     |> to_struct(__MODULE__)
   end
+
+  @doc false # removes all the null keys from the map
+  def build(embed) do
+    embed
+    |> Map.from_struct
+    |> Enum.filter(fn {_, v} -> v != nil end)
+    |> Enum.into(%{})
+  end
+
+
+  def title(embed, string) do
+    %{embed | title: string}
+  end
+
+
+  def description(embed, string) do
+    %{embed | description: string}
+  end
+
 end
