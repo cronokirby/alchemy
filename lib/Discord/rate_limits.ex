@@ -1,7 +1,8 @@
 defmodule Alchemy.Discord.RateLimits do
-  require Logger
   @moduledoc false
   # Used for parsing ratelimits out of headers
+  require Logger
+
 
   defmodule RateInfo do
     @moduledoc false
@@ -19,6 +20,7 @@ defmodule Alchemy.Discord.RateLimits do
   defp parse_headers(none) do
     nil
   end
+
 
   # status code empty
   def rate_info(%{status_code: 204}) do
@@ -39,6 +41,7 @@ defmodule Alchemy.Discord.RateLimits do
       {:local, timeout, parse_headers(h.hdrs)}
     end
   end
+
 
   # Used the first time a bucket is accessed during the program
   # It makes it so that in the case of multiple processes getting sent at the same time

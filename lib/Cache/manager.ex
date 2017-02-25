@@ -1,13 +1,11 @@
 defmodule Alchemy.Cache.Manager do
-  use GenServer
-
-  alias Alchemy.Guild
-  alias Alchemy.Discord.Types, as: D
-  import Alchemy.Cogs.EventHandler, only: [notify: 1]
   @moduledoc false
   # A Genserver used to keep track of the State of the client.
   # The state_event handler will pipe info to this module, and the Client can
   # then access it.
+  use GenServer
+  alias Alchemy.Guild
+  import Alchemy.Cogs.EventHandler, only: [notify: 1]
 
 
   defp cast(msg), do: GenServer.cast(ClientState, msg)
@@ -17,6 +15,7 @@ defmodule Alchemy.Cache.Manager do
     GenServer.call ClientState, {:exists?, section, object["id"]}
   end
 
+
   # Takes a list of maps, and returns a new map with the "id" of each map pointing
   # to the original
   # [%{"id" => 1, "f" => :foo}, %{"id" = 2, "f" => :foo}] => %{1 => ..., 2 =>}
@@ -24,12 +23,14 @@ defmodule Alchemy.Cache.Manager do
     Enum.into(map_list, %{}, &({get_in(&1, key), &1}))
   end
 
+
   # Used to apply `index` to multiple nested fields in a struct
   defp inner_index(base, inners) do
     List.foldr inners, base, fn {field, path}, acc ->
       update_in(acc, field, &index(&1, path))
     end
   end
+
 
   # Used to respond to the ready event, and load a lot of data
   # Acts as the "init" of the cache, in a sense
@@ -48,9 +49,11 @@ defmodule Alchemy.Cache.Manager do
     cast {:store, [:private_channels], channel, channel["id"]}
   end
 
+
   def update_priv_channel(channel) do
      cast {:merge, [:private_channels, channel["id"]], channel}
   end
+
 
   def rem_priv_channel(channel_id) do
     cast {:remove, [:private_channels], channel_id}
@@ -70,10 +73,12 @@ defmodule Alchemy.Cache.Manager do
     inner_index(guild, inners)
   end
 
+
   # Creates a new map with every channel pointing to its guild
   defp channel_index(channels, guild_id) do
     Enum.into(channels, %{}, &({get_in(&1, ["id"]), guild_id}))
   end
+
 
   # Responsible for creating a global event if the guild is new
   def add_guild(guild) do
@@ -87,9 +92,11 @@ defmodule Alchemy.Cache.Manager do
     end
   end
 
+
   def remove_guild(guild) do
     cast {:remove, [:guilds], guild["id"]}
   end
+
 
   def update_guild(guild) do
     indexed = guild_index(guild)
@@ -97,6 +104,7 @@ defmodule Alchemy.Cache.Manager do
     cast {:merge, [:guilds, guild_id], indexed}
     cast {:merge, [:channels], channel_index(guild["channels"], guild_id)}
   end
+
 
   # "unavaliable" indicates an old guild going offline, in which case we don't
   # want to remove that guild entirely.
@@ -107,6 +115,7 @@ defmodule Alchemy.Cache.Manager do
     remove_guild(guild)
     notify {:leave_guild, [Guild.from_map(guild)]}
   end
+
 
   def update_emojis(%{"guild_id" => id, "emojis" => emojis}) do
     cast {:replace, [:guilds, id, "emojis"], emojis}
@@ -119,6 +128,7 @@ defmodule Alchemy.Cache.Manager do
     cast {:replace, [:guilds, guild_id, "members", id], member}
   end
 
+
   def remove_user(guild_id, %{"id" => id}) do
   cast {:remove, [:guilds, guild_id, "members"], id}
   end
@@ -130,9 +140,11 @@ defmodule Alchemy.Cache.Manager do
     cast {:store, [:guilds, guild_id, "roles"], role, id}
   end
 
+
   def update_role(guild_id, %{"id" => id} = role) do
     cast {:merge, [:guilds, guild_id, "roles", id], role}
   end
+
 
   def remove_role(guild_id, role_id) do
     cast {:remove, [:guilds, guild_id, "roles"], role_id}
@@ -161,6 +173,7 @@ defmodule Alchemy.Cache.Manager do
     GenServer.start_link(__MODULE__, %{}, opts)
   end
 
+
   # Checks if an object exists; used for events that mask both creating and updating
   def handle_call({:exists?, section, key}, _from, state) do
     {:reply,
@@ -168,12 +181,17 @@ defmodule Alchemy.Cache.Manager do
      state}
   end
 
+
   def handle_call(_, _from, state) do
     {:reply, state, state}
   end
+
+
   def handle_cast({:init, state}, %{}) do
     {:noreply, state}
   end
+
+
   def handle_cast({:init, new}, old) do
     private_channels = new.private_channels
     guilds = new.guilds
@@ -182,6 +200,7 @@ defmodule Alchemy.Cache.Manager do
      |> update_in([:guilds], &Map.merge(&1, guilds))
      |> update_in([:private_channels], &Map.merge(&1, private_channels))}
   end
+
 
   defmacrop safe_access(normal) do
     quote do
@@ -194,37 +213,36 @@ defmodule Alchemy.Cache.Manager do
     end
   end
 
+
   # Replaces a specific node with a new one
   def handle_cast({:merge, section, new}, state) do
     safe_access(
-    {:noreply,
-     update_in(state, section, &Map.merge(&1, new))
-    })
+      {:noreply, update_in(state, section, &Map.merge(&1, new))}
+    )
   end
+
 
   # Replaces a leaf with a new value
   def handle_cast({:replace, section, new}, state) do
     safe_access(
-    {:noreply,
-     put_in(state, section, new)
-    }
+      {:noreply, put_in(state, section, new)}
     )
-
   end
+
 
   # Removes a specific object from a node
   def handle_cast({:remove, section, key}, state) do
     safe_access(
-    {:noreply,
-     update_in(state, section, &Map.delete(&1, key))
-    })
+      {:noreply, update_in(state, section, &Map.delete(&1, key))}
+    )
   end
+
 
   # Indexes a new object in a certain section
   def handle_cast({:store, section, object, key}, state) do
     safe_access(
       {:noreply, update_in(state, section, &Map.put(&1, key, object))}
     )
-
   end
+
 end

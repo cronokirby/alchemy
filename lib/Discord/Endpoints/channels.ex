@@ -3,14 +3,12 @@ defmodule Alchemy.Discord.Channels do
   alias Alchemy.Discord.Api
   alias Alchemy.{Channel, Channel.Invite, DMChannel, Message, User, Reaction.Emoji}
   import Alchemy.Structs.Utility
-  @moduledoc false
 
   @root "https://discordapp.com/api/v6/channels/"
 
 
   def parse_channel(json) do
     parsed = Parser.parse!(json)
-    IO.inspect  json
     if parsed["type"] == 1 do
       DMChannel.from_map(parsed)
     else
@@ -179,4 +177,5 @@ defmodule Alchemy.Discord.Channels do
     @root <> channel_id <> "/pins/" <> message_id
     |> Api.delete(token)
   end
+
 end

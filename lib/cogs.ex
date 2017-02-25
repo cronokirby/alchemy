@@ -1,5 +1,4 @@
 defmodule Alchemy.Cogs do
-  alias Alchemy.Cogs.CommandHandler
   @moduledoc """
   This module provides quite a bit of sugar for registering commands.
 
@@ -27,6 +26,8 @@ defmodule Alchemy.Cogs do
 
   end
   """
+  alias Alchemy.Cogs.CommandHandler
+  alias Alchemy.Embed
 
 
   @doc """
@@ -36,11 +37,12 @@ defmodule Alchemy.Cogs do
   def set_prefix(prefix) do
     CommandHandler.set_prefix(prefix)
   end
-
   @doc """
   Sends a message to the same channel as the message triggering a command.
 
   This can only be used in a command defined with `Cogs.def`
+
+  This is just a thin macro around `Alchemy.Client.send_message/2`
 
   ## Examples
   ```elixir
@@ -52,6 +54,15 @@ defmodule Alchemy.Cogs do
       Alchemy.Client.send_message(var!(message).channel_id,
                                   unquote(content),
                                   unquote(options))
+    end
+  end
+  @doc """
+  """
+  defmacro send(embed, content \\ "") do
+    quote do
+      Alchemy.Client.send_message(var!(message).channel_id,
+                                  unquote(content),
+                                  embed: unquote(embed))
     end
   end
   @doc """
@@ -145,6 +156,7 @@ defmodule Alchemy.Cogs do
       @before_compile Cogs
     end
   end
+
 
   defmacro __before_compile__(_env) do
     quote do

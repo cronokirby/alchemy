@@ -53,6 +53,7 @@ defmodule Alchemy.Discord.Gateway do
     {:reply, {:text, heartbeat(state.seq)}, state}
   end
 
+
   # Send the identify package to discord, if this is our fist session
   def websocket_info(:identify, _, %State{session_id: nil} = state) do
     this_shard = state.shard

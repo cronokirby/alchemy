@@ -19,11 +19,13 @@ defmodule Alchemy.Discord.Payloads do
        ACK: 11}[op]
   end
 
+
   # Constructs a sendable payload string, from an opcode, and data, in map form
   def build_payload(op, data) do
     payload = %{op: opcode(op), d: data}
     Poison.encode!(payload)
   end
+
 
   def properties(os) do
     %{"$os" => os,

@@ -1,4 +1,8 @@
 defmodule Alchemy.Client do
+  @moduledoc """
+  Represents a Client connection to the Discord API. This is the main public
+  interface for the REST API.
+  """
   require Logger
   alias Alchemy.Discord.{Users, Channels, RateManager}
   alias Alchemy.Discord.Gateway.Manager, as: GatewayManager
@@ -9,19 +13,18 @@ defmodule Alchemy.Client do
   import Alchemy.Discord.RateManager, only: [send: 1]
   use Alchemy.Discord.Types
   use Supervisor
-  @moduledoc """
-  Represents a Client connection to the Discord API. This is the main public
-  interface for the library.
-  """
+
 
   @doc """
   Starts up a new Client with the given token.
   """
+  @spec start(token) :: {:ok, pid}
   def start(token), do: start_link(token)
   @doc false
   defp start_link(token) do
     Supervisor.start_link(__MODULE__, token, name: Client)
   end
+
 
   # This creates a `RateManager`, under the name `API` that will be available
   # for managing requests.
@@ -35,6 +38,7 @@ defmodule Alchemy.Client do
     ]
     supervise(children, strategy: :one_for_one)
   end
+
 
   ### Public ###
 

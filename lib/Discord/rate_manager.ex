@@ -1,11 +1,22 @@
 defmodule Alchemy.Discord.RateManager do
+  @moduledoc false
+  # Used to keep track of rate limiting. All api requests are funneled from
+  # the public Client interface into this server.
   use GenServer
   require Logger
   import Alchemy.Discord.RateLimits
   alias Alchemy.Discord.RateLimits.RateInfo
-  @moduledoc false
-  # Used to keep track of rate limiting. All api requests are funneled from
-  # the public Client interface into this server.
+
+
+  # Wrapper around applying for an api slot
+  def apply(method) do
+    GenServer.call(API, {:apply, method})
+  end
+
+  # Wrapper around processing a request
+  def process(module, method, args) do
+    GenServer.call(API, {module, method, args})
+  end
 
 
   # A helper function for some of the later functions.
@@ -34,15 +45,6 @@ defmodule Alchemy.Discord.RateManager do
     end
   end
 
-  # Wrapper around applying for an api slot
-  def apply(method) do
-    GenServer.call(API, {:apply, method})
-  end
-  # Wrapper around processing a request
-  def process(module, method, args) do
-    GenServer.call(API, {module, method, args})
-  end
-
 
   ### Server ###
 
@@ -51,10 +53,12 @@ defmodule Alchemy.Discord.RateManager do
     defstruct [:token, rates: %{}, global: false]
   end
 
+
   # Starts up the RateManager. The Client token needs to be passed in.
   def start_link(state, opts \\ []) do
     GenServer.start_link(__MODULE__, struct(State, state), opts)
   end
+
 
   # A requester needs to request a slot from here. It will either be told to wait,
   # or to go, in which case it calls the server again for an api call
@@ -99,6 +103,7 @@ defmodule Alchemy.Discord.RateManager do
     {:noreply, %{state | global: false}}
   end
 
+
   # Sets the new rate_info for a given bucket to the rates recieved from an api call
   # If the info is nil, the rates are not be modified
   def update_rates(state, _bucket, nil) do
@@ -108,6 +113,7 @@ defmodule Alchemy.Discord.RateManager do
     Map.put(state.rates, bucket, rate_info)
   end
 
+
   def update_global_rates(state, time) do
     Task.start(fn ->
       Process.sleep(time)
@@ -115,6 +121,8 @@ defmodule Alchemy.Discord.RateManager do
     end)
     %{state | global: {:wait, time}}
   end
+
+
   # Assigns a slot to an incoming request,
   def throttle(%RateInfo{remaining: remaining}) when remaining > 0 do
       {:go, %{remaining: remaining - 1}}
@@ -131,7 +139,6 @@ defmodule Alchemy.Discord.RateManager do
       true ->
         {:go, %{remaining: rate_info.limit - 1, reset_time: now + 2}}
     end
-
   end
 
 end

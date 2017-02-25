@@ -1,13 +1,13 @@
 defmodule Alchemy.Discord.Gateway.Manager do
+  @moduledoc false
+  # Serves as a gatekeeper of sorts, deciding when to let the supervisor spawn new
+  # gateway connections. It also keeps track of the url, and where the sharding is.
+  # This module is in control of the supervisors child spawning.
   use GenServer
   require Logger
   alias Alchemy.Discord.Gateway
   alias Alchemy.Discord.Api
   import Supervisor.Spec
-  @moduledoc false
-  # Serves as a gatekeeper of sorts, deciding when to let the supervisor spawn new
-  # gateway connections. It also keeps track of the url, and where the sharding is.
-  # This module is in control of the supervisors child spawning.
 
 
   ### Public ###
@@ -74,7 +74,7 @@ defmodule Alchemy.Discord.Gateway.Manager do
 
 
   def handle_cast({:start_shard, num}, %{shards: shards} = state)
-  when num == shards do
+    when num == shards do
     {:noreply, state}
   end
   def handle_cast({:start_shard, num}, state) do
@@ -89,4 +89,5 @@ defmodule Alchemy.Discord.Gateway.Manager do
     GenServer.cast(GatewayManager, {:start_shard, shard + 1})
     {:noreply, state}
   end
+
 end
