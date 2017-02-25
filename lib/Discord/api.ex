@@ -27,11 +27,14 @@ defmodule Alchemy.Discord.Api do
     request(:_patch, [url, data, token], body)
   end
 
-  def post(url, token, data, body) do
-    request(:_post, [url, data, token], body)
+  def post(url, token) do
+    request(:_post, [url, token])
   end
   def post(url, token, data) do
     request(:_post, [url, data, token])
+  end
+  def post(url, token, data, body) do
+    request(:_post, [url, data, token], body)
   end
 
   def put(url, token) do
@@ -123,6 +126,9 @@ defmodule Alchemy.Discord.Api do
                           body: data]
   end
 
+  def _post(url, token) do
+    HTTPotion.post url, headers: ["Authorization": "Bot #{token}"]
+  end
   def _post(url, data, token) do
     HTTPotion.post url, [headers: ["Authorization": "Bot #{token}",
                                    "Content-Type": "application/json"],

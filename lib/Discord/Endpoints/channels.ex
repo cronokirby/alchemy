@@ -143,4 +143,39 @@ defmodule Alchemy.Discord.Channels do
     @root <> channel_id <> "/invites"
     |> Api.post(Api.encode(options), token, Invite)
   end
+
+
+  def delete_channel_permission(token, channel_id, overwrite_id) do
+    @root <> channel_id <> "/permissions/" <> overwrite_id
+    |> Api.delete(token)
+  end
+
+
+  def trigger_typing(token, channel_id) do
+    @root <> channel_id <> "/typing"
+    |> Api.post(token)
+  end
+
+
+  def get_pinned_messages(token, channel_id) do
+    parser = fn json ->
+      json
+      |> Parser.parse!
+      |> Enum.map(&Message.from_map/1)
+    end
+    @root <> channel_id <> "/pins"
+    |> Api.get(token, parser)
+  end
+
+
+  def add_pinned_message(token, channel_id, message_id) do
+    @root <> channel_id <> "/pins/" <> message_id
+    |> Api.put(token)
+  end
+
+
+  def delete_pinned_message(token, channel_id, message_id) do
+    @root <> channel_id <> "/pins/" <> message_id
+    |> Api.delete(token)
+  end
 end

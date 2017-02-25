@@ -232,7 +232,7 @@ defmodule Alchemy.Client do
                       embed: Embed.t) :: {:ok, Message.t}
                                        | {:error, term}
    def send_message(channel_id, content, options \\ []) do
-     options = Keyword.put(options, :content, content)
+     options = Keyword.put(options, :content, "#{content}")
      send {Channels, :create_message, [channel_id, options]}
    end
    @doc """
@@ -469,5 +469,73 @@ defmodule Alchemy.Client do
                         unique: True) :: {:ok, Invite.t} | {:error, term}
     def create_invite(channel_id, options \\ []) do
       send {Channels, :create_channel_invite, [channel_id, options]}
+    end
+    @doc """
+    Triggers the typing indicator.
+
+    This **shouldn't** be used by bots usually.
+
+    ## Examples
+    ```elixir
+    Cogs.def hard_math do
+      Client.trigger_typing(message.channel_id)
+      Process.sleep(3000)
+      Cogs.say("done!")
+    end
+    ```
+    """
+    @spec trigger_typing(snowflake) :: {:ok, nil} | {:error, term}
+    def trigger_typing(channel_id) do
+      send {Channels, :trigger_typing, [channel_id]}
+    end
+    @doc """
+    Gets a list of pinned messages in a channel.
+
+    ## Examples
+    ```elixir
+    Cogs.def pins do
+      {:ok, pinned} = Task.await Client.get_pins(message.channel_id)
+      Cogs.say("there are #\{length(pinned)\} pins in this channel.")
+    end
+    ```
+    """
+    @spec get_pins(snowflake) :: {:ok, [Message.t]} | {:error, term}
+    def get_pins(channel_id) do
+      send {Channels, :get_pinned_messages, [channel_id]}
+    end
+    @doc """
+    Pins a message to its channel.
+
+    ## Examples
+    ```elixir
+    Cogs.def pin_this do
+      Client.pin(message)
+    end
+    ```
+    """
+    @spec pin(Message.t | {channel_id, message_id}) :: {:ok, nil} | {:error, term}
+    def pin(%Message{channel_id: channel_id, id: id}) do
+      send {Channels, :add_pinned_message, [channel_id, id]}
+    end
+    def pin({channel_id, message_id}) do
+      send {Channels, :add_pinned_message, [channel_id, message_id]}
+    end
+    @doc """
+    Removes a pinned message from a channel.
+
+    ## Examples
+    ```elixir
+    Cogs.def unpin do
+      {:ok, [first|_]} = Task.await Client.get_pins(message.channel_id)
+      Client.unpin(first)
+    end
+    ```
+    """
+    @spec unpin(Message.t | {channel_id, message_id}) :: {:ok, nil} | {:error, term}
+    def unpin(%Message{channel_id: channel_id, id: id}) do
+      send {Channels, :delete_pinned_message, [channel_id, id]}
+    end
+    def unpin({channel_id, message_id}) do
+      send {Channels, :delete_pinned_message, [channel_id, message_id]}
     end
 end
