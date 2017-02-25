@@ -1,36 +1,26 @@
 defmodule Alchemy.DMChannel do
+  @moduledoc false
   alias Alchemy.User
-  import Alchemy.Channel, only: [channel_type: 1]
   import Alchemy.Structs.Utility
-  @moduledoc """
-  DMChannels represent a private message between 2 users; in this case,
-  between a client and a user
 
-  > **id**
 
-    represents the private channel's id
-  > **is_private**
-
-    always true
-  > **recipient**
-
-    the user with which the private channel is open
-  > **last_message_id**
-
-    the id of the last message sent
-  """
-  @type t :: %__MODULE__{
-    id: String.t,
-    type: atom,
-    recipients: User.t,
-    last_message_id: String.t
-  }
   @derive [Poison.Encoder]
   defstruct [:id,
              :type,
              :recipients,
              :last_message_id
             ]
+
+
+  @doc false
+  def channel_type(code) do
+    case code do
+      -1 -> :text
+      0 -> :private
+      1 -> :voice
+      2 -> :group
+    end
+  end
 
 
   def from_map(map) do
