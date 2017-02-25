@@ -55,10 +55,9 @@ defmodule Alchemy.Discord.Channels do
   end
 
 
-  def edit_message(token, channel_id, message_id, content) do
+  def edit_message(token, channel_id, message_id, options) do
     url = @root <> channel_id <> "/messages/" <> message_id
-    json = ~s/{"content": "#{content}"}/
-    Api.patch(url, token, json, Message)
+    Api.patch(url, token, Api.encode(options), Message)
   end
 
 

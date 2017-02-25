@@ -1,8 +1,12 @@
 defmodule Alchemy.Embed do
+    @moduledoc """
+    """
   import Alchemy.Structs.Utility
   alias Alchemy.Embed.{Footer, Image, Video, Provider, Author, Field}
-  @moduledoc """
-  """
+  alias Alchemy.Embed
+
+
+  @type url :: String.t
   @type t :: %__MODULE__{
     title: String.t,
     type: String.t,
@@ -43,22 +47,40 @@ defmodule Alchemy.Embed do
     |> to_struct(__MODULE__)
   end
 
+
   @doc false # removes all the null keys from the map
-  def build(embed) do
-    embed
+  def build(struct) when is_map(struct) do
+    struct
     |> Map.from_struct
-    |> Enum.filter(fn {_, v} -> v != nil end)
+    |> Enum.filter_map(fn {_, v} -> v != nil end,
+                       fn {k, v} -> {k, build(v)} end)
     |> Enum.into(%{})
+  end
+  def build(value) do
+    value
   end
 
 
+  @spec title(Embed.t, String.t) :: Embed.t
   def title(embed, string) do
     %{embed | title: string}
   end
 
-
+  @spec title(Embed.t, String.t) :: Embed.t
   def description(embed, string) do
     %{embed | description: string}
   end
 
+  @spec author(Embed.t, [name: String.t, url: url] | Author.t) :: Embed.t
+  def author(embed, %Author{} = author) do
+    %{embed | author: author}
+  end
+  def author(embed, options) do
+    %{embed | author: Enum.into(options, %{})}
+  end
+
+  @spec color(Embed.t, Integer) :: Embed.t
+  def color(embed, integer) do
+    %{embed | color: integer}
+  end
 end

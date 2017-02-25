@@ -257,11 +257,38 @@ defmodule Alchemy.Client do
    @spec edit_message(Message.t | {channel_id, message_id},
                       String.t) :: {:ok, Message.t}
                                  | {:error, term}
-   def edit_message(%Message{channel_id: channel_id, id: id}, content) do
-     send {Channels, :edit_message, [channel_id, id, content]}
+   def edit_message(message, content, opts \\ []) do
+     {channel_id, message_id} = case message do
+       %Message{channel_id: channel_id, id: id} ->
+         {channel_id, id}
+       tuple ->
+         tuple
+     end
+     opts = Keyword.put(opts, :content, content)
+     send {Channels, :edit_message, [channel_id, message_id, opts]}
    end
-   def edit_message({channel_id, message_id} = message, content) do
-     send {Channels, :edit_message, [channel_id, message_id, content]}
+   @doc """
+   Edits a previously sent embed.
+
+   Note that this can be accomplished via `edit_message/3` as well, but that requires
+   editing the content as well.
+
+   ```elixir
+   Cogs.def embed do
+    embed = %Embed{description: "the best embed"}
+            |> color(0xc13261)
+    {:ok, message} = Task.await Cogs.send(embed)
+    Process.sleep(2000)
+    Client.edit_embed(message, embed |> color(0x5aa4d4))
+   end
+   """
+   @spec edit_embed(Message.t | {channel_id, message_id}, Embed.t) :: {:ok, Message.t}
+                                                                    | {:error, term}
+   def edit_embed(%Message{channel_id: channel_id, id: id}, embed) do
+     send {Channels, :edit_message, [channel_id, id, [embed: Embed.build(embed)]]}
+   end
+   def edit_embed({channel_id, id}, embed) do
+     send {Channels, :edit_message, [channel_id, id, [embed: Embed.build(embed)]]}
    end
    @doc """
    Deletes a message.
