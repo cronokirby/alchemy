@@ -46,9 +46,8 @@ defmodule Alchemy.Channel do
     id: String.t,
     guild_id: String.t,
     name: String.t,
-    type: String.t,
+    type: atom,
     position: Integer,
-    is_private: Boolean,
     permission_overwrites: [OverWrite.t],
     topic: String.t | nil,
     last_message_id: String.t | nil,
@@ -61,16 +60,28 @@ defmodule Alchemy.Channel do
              :name,
              :type,
              :position,
-             :is_private,
              :permission_overwrites,
              :topic,
              :last_message_id,
              :bitrate,
              :user_limit]
 
+
+  @doc false
+  def channel_type(code) do
+    case code do
+      0 -> :text
+      1 -> :private
+      2 -> :voice
+      3 -> :group
+    end
+  end
+
+
   def from_map(map) do
     map
-    |> update_in(["permission_overwrites"], &(map_struct &1, OverWrite))
+    |> field_map("permission_overwrites", &(map_struct &1, OverWrite))
+    |> field_map("type", &channel_type/1)
     |> to_struct(__MODULE__)
   end
 end
