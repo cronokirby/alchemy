@@ -91,10 +91,7 @@ defmodule Alchemy.Cogs do
   So, in this case, when a 2nd argument isn't given, an error message is sent back.
   """
   defmacro def({name, ctx, args} = func, do: body) do
-    args = case args do
-      nil -> []
-      some -> some
-    end
+    args = args || []
     arity = length(args)
     arg_ctx = Keyword.get(ctx, :context)
     injected = [{:message, [], arg_ctx} | args]
