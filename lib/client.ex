@@ -106,7 +106,7 @@ defmodule Alchemy.Client do
    ## Examples
 
    ```elixir
-   Client.leave_guild
+   Client.leave_guild(guild_id)
    ```
    """
    @spec leave_guild(snowflake) :: {:ok, nil} | {:error, term}
@@ -287,7 +287,7 @@ defmodule Alchemy.Client do
    def edit_embed(%Message{channel_id: channel_id, id: id}, embed) do
      send {Channels, :edit_message, [channel_id, id, [embed: Embed.build(embed)]]}
    end
-   def edit_embed({channel_id, id}, embed) do
+   def edit_embed({channel_id, id} = message, embed) do
      send {Channels, :edit_message, [channel_id, id, [embed: Embed.build(embed)]]}
    end
    @doc """

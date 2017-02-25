@@ -50,8 +50,8 @@ defmodule Alchemy.Embed do
 
   @doc false # removes all the null keys from the map
   def build(struct) when is_map(struct) do
+    {_, struct} = Map.pop(struct, :__struct__)
     struct
-    |> Map.from_struct
     |> Enum.filter_map(fn {_, v} -> v != nil end,
                        fn {k, v} -> {k, build(v)} end)
     |> Enum.into(%{})
@@ -59,19 +59,68 @@ defmodule Alchemy.Embed do
   def build(value) do
     value
   end
+  @doc """
+  Adds a title to an embed.
 
-
+  ## Examples
+  ```elixir
+  Cogs.def title(string) do
+    %Embed{}
+    |> title(string)
+    |> Cog.send
+  end
+  """
   @spec title(Embed.t, String.t) :: Embed.t
   def title(embed, string) do
     %{embed | title: string}
   end
+  @doc """
+  Adds a description to an embed.
 
-  @spec title(Embed.t, String.t) :: Embed.t
+  ```elixir
+  Cogs.def embed(description) do
+    %Embed{}
+    |> title("generic title")
+    |> description(description)
+    |> Cogs.send
+  end
+  ```
+  """
+  @spec description(Embed.t, String.t) :: Embed.t
   def description(embed, string) do
     %{embed | description: string}
   end
+  @doc """
+  Adds author information to an embed.
 
-  @spec author(Embed.t, [name: String.t, url: url] | Author.t) :: Embed.t
+  Note that the `proxy_icon_url`, `height`, and `width` fields have no effect,
+  when using a pre-made Author struct.
+
+  ## Options
+
+  - `name`
+
+    The name of the author.
+  - `url`
+
+    The url of the author.
+  - `icon_url`
+
+    The url of the icon to display.
+
+  ## Examples
+  ```elixir
+  Cogs.def embed do
+    %Embed{}
+    |> author(name: "John",
+              url: "https://discordapp.com/developers"
+              icon_url: "http://i.imgur.com/3nuwWCB.jpg")
+    |> Cogs.send
+  end
+  ```
+  """
+  @spec author(Embed.t, [name: String.t, url: url, icon_url: url] | Author.t) ::
+               Embed.t
   def author(embed, %Author{} = author) do
     %{embed | author: author}
   end
@@ -83,4 +132,5 @@ defmodule Alchemy.Embed do
   def color(embed, integer) do
     %{embed | color: integer}
   end
+
 end

@@ -1,4 +1,5 @@
 defmodule Alchemy.Discord.Channels do
+  @moduledoc false
   alias Poison.Parser
   alias Alchemy.Discord.Api
   alias Alchemy.{Channel, Channel.Invite, DMChannel, Message, User, Reaction.Emoji}
