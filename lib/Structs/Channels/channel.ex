@@ -12,36 +12,35 @@ defmodule Alchemy.Channel do
 
   - `id`
 
-    id of this specific channel. Will be the same as the guild for the "#general"
+    The id of this specific channel. Will be the same as the guild for the "#general"
     channel
   - `guild_id`
 
-    the id of the guild this channel is a part of
+    The id of the guild this channel is a part of
   - `name`
 
-    the name of the channel
-
+    The name of the channel
   - `type`
 
     `:text`, `:voice`, or `:group`
   - `position`
 
-    sorting position of the channel
+    Sorting position of the channel
   - `permission_overwrites`
 
-    an array of `%OverWrite{}` objects
+    An array of `%OverWrite{}` objects
   - `topic`
 
-    the topic of a channel, `nil` for voice
+    The topic of a channel, `nil` for voice
   - `last_message_id`
 
-    the id of the last message sent in the channel, `nil` for voice
+    The id of the last message sent in the channel, `nil` for voice
   - `bitrate`
 
-    the bitrate of a voice channel, `nil` for text
+    The bitrate of a voice channel, `nil` for text
   - `user_limit`
 
-    the user limit of a voice channel, `nil` for text
+    The user limit of a voice channel, `nil` for text
   """
   @type t :: %__MODULE__{
     id: String.t,
@@ -61,13 +60,13 @@ defmodule Alchemy.Channel do
 
   - `id`
 
-    represents the private channel's id
-  - `recipient`
+    the private channel's id
+  - `recipients`
 
-    the user with which the private channel is open
+    the users with which the private channel is open
   - `last_message_id`
 
-    the id of the last message sent
+    The id of the last message sent
   """
   @type dm_channel :: %DMChannel{
     id: String.t,
@@ -159,10 +158,10 @@ defmodule Alchemy.Channel do
     The name of the guild
   - `splash`
 
-    The hash of the guild splash (or nil)
+    The hash of the guild splash (or `nil`)
   - `icon`
 
-    The hash of the guild icon (or nil)
+    The hash of the guild icon (or `nil`)
   """
 
   @type invite_guild ::%InviteGuild{
@@ -182,7 +181,7 @@ defmodule Alchemy.Channel do
     The name of the channel
   - `type`
 
-    the type of the channel, either "text" or "voice"
+    The type of the channel, either "text" or "voice"
   """
   @type invite_channel :: %InviteChannel{
     id: snowflake,

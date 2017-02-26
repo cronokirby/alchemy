@@ -14,8 +14,7 @@ defmodule Alchemy.Mixfile do
 
   def application do
     # Specify extra applications you'll use from Erlang/Elixir
-    [mod: {Script, []},
-     extra_applications: [:logger],
+    [extra_applications: [:logger],
      applications: [:httpotion] ]
   end
 

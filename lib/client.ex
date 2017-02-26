@@ -281,6 +281,7 @@ defmodule Alchemy.Client do
     Process.sleep(2000)
     Client.edit_embed(message, embed |> color(0x5aa4d4))
    end
+   ```
    """
    @spec edit_embed(Message.t | {channel_id, message_id}, Embed.t) :: {:ok, Message.t}
                                                                     | {:error, term}

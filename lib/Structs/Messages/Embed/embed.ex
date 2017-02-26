@@ -61,7 +61,6 @@ defmodule Alchemy.Embed do
   end
   @doc """
   Adds a title to an embed.
-
   ## Examples
   ```elixir
   Cogs.def title(string) do
@@ -94,10 +93,8 @@ defmodule Alchemy.Embed do
   Adds author information to an embed.
 
   Note that the `proxy_icon_url`, `height`, and `width` fields have no effect,
-  when using a pre-made Author struct.
-
+  when using a pre-made `Author` struct.
   ## Options
-
   - `name`
 
     The name of the author.
@@ -107,7 +104,6 @@ defmodule Alchemy.Embed do
   - `icon_url`
 
     The url of the icon to display.
-
   ## Examples
   ```elixir
   Cogs.def embed do
@@ -127,10 +123,53 @@ defmodule Alchemy.Embed do
   def author(embed, options) do
     %{embed | author: Enum.into(options, %{})}
   end
+  @doc """
+  Sets the color of an embed
 
+  Color should be 3 byte integer, with each byte representing a single
+  color component; i.e. `0xRrGgBb`
+  ## Examples
+  ```elixir
+  Cogs.def embed do
+    embed = %Embed{description: "the best embed"}
+          |> color(0xc13261)
+    {:ok, message} = Task.await Cogs.send(embed)
+    Process.sleep(2000)
+    Client.edit_embed(message, embed |> color(0x5aa4d4))
+  end
+  ```
+  """
   @spec color(Embed.t, Integer) :: Embed.t
   def color(embed, integer) do
     %{embed | color: integer}
   end
+  @doc """
+  Adds a footer to an embed.
 
+  Note that the `proxy_icon_url` field has no effect,
+  when using a pre-made `Footer` struct.
+  ## Options
+  - `text`
+
+    The content of the footer.
+  - `icon_url`
+
+    The icon the footer should have
+  ## Examples
+  ```elixir
+  Cogs.def you do
+    %Embed{}
+    |> footer(text: "<- this is you",
+              icon_url: message.author |> User.avatar_url)
+    |> Cogs.send
+  end
+  ```
+  """
+  @spec footer(Embed.t, [text: String.t, icon_url: url] | Author.t) :: Embed.t
+  def footer(embed, %Footer{} = footer) do
+    %{embed | footer: footer}
+  end
+  def footer(embed, options) do
+    %{embed | footer: Enum.into(options, %{})}
+  end
 end
