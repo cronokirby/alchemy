@@ -35,9 +35,18 @@ defmodule Alchemy.Cache.Manager do
   # Used to respond to the ready event, and load a lot of data
   # Acts as the "init" of the cache, in a sense
   def ready(user, priv_channels, guilds) do
+    # we need to prep the data if it's already there.
+    guilds = Task.async_stream(guilds, fn
+      %{"unavailable" => true} = guild ->
+        guild
+      available ->
+        guild_index(available)
+    end)
+    |> Stream.map(fn {:ok, val} -> val end)
+    |> index
     state = %{user: user,
               private_channels: index(priv_channels),
-              guilds: index(guilds),
+              guilds: guilds,
               channels: %{}}
     cast {:init, state}
   end
