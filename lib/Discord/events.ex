@@ -154,7 +154,7 @@ defmodule Alchemy.Discord.Events do
 
   def handle("VOICE_STATE_UPDATE", voice) do
     Cache.update_voice_state(voice)
-    notify {:voice_state_update, [to_struct(voice, Voice)]}
+    notify {:voice_state_update, [to_struct(voice, VoiceState)]}
   end
 
 
