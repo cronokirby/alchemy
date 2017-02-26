@@ -19,7 +19,7 @@ defmodule Alchemy.Cache.Manager do
   # Takes a list of maps, and returns a new map with the "id" of each map pointing
   # to the original
   # [%{"id" => 1, "f" => :foo}, %{"id" = 2, "f" => :foo}] => %{1 => ..., 2 =>}
-  defp index(map_list, key \\ ["id"]) do
+  def index(map_list, key \\ ["id"]) do
     Enum.into(map_list, %{}, &({get_in(&1, key), &1}))
   end
 

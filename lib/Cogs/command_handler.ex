@@ -48,7 +48,7 @@ defmodule Alchemy.Cogs.CommandHandler do
     end
     {:noreply, state}
   end
-  def handle_cast({:disptach, message}, state) do
+  def handle_cast({:dispatch, message}, state) do
     Task.start(fn -> dispatch(message, state) end)
     {:noreply, state}
   end

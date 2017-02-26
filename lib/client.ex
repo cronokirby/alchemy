@@ -19,13 +19,14 @@ defmodule Alchemy.Client do
   Starts up a new Client with the given token.
   """
   @spec start(token, selfbot: snowflake) :: {:ok, pid}
+  def start(token) do
+    start_link(token, [])
+  end
   def start(token, selfbot: id) do
     Application.put_env(:alchemy, :self_bot, " ")
-      start_link(token, selfbot: id)
+    start_link(token, selfbot: id)
   end
-  def start(token, options) do
-    start_link(token, options)
-  end
+
   @doc false
   defp start_link(token, options) do
     Supervisor.start_link(__MODULE__, {token, options}, name: Client)

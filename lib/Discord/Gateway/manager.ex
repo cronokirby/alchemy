@@ -26,7 +26,7 @@ defmodule Alchemy.Discord.Gateway.Manager do
     {json["url"] <> "?v=6&encoding=json", 1}
   end
   defp get_url(token, []) do
-    {:ok, json} = Api._get("https://discordapp.com/api/v6/gateway/bot").body
+    {:ok, json} = Api._get("https://discordapp.com/api/v6/gateway/bot", token).body
                   |> Poison.Parser.parse
     {json["url"] <> "?v=6&encoding=json",
      json["shards"]}
