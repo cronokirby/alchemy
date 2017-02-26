@@ -21,8 +21,8 @@ defmodule Alchemy.Cogs.CommandHandler do
 
   ### Server ###
 
-  def start_link do
-    GenServer.start_link(__MODULE__, %{prefix: "!"}, name: Commands)
+  def start_link(options) do
+    GenServer.start_link(__MODULE__, %{prefix: "!", options: options}, name: Commands)
   end
 
 
@@ -42,10 +42,17 @@ defmodule Alchemy.Cogs.CommandHandler do
   end
 
 
-  def handle_cast({:dispatch, message}, state) do
+  def handle_cast({:dispatch, message}, %{options: [selfbot: id]} = state) do
+    if message.author.id == id do
+      Task.start(fn -> dispatch(message, state) end)
+    end
+    {:noreply, state}
+  end
+  def handle_cast({:disptach, message}, state) do
     Task.start(fn -> dispatch(message, state) end)
     {:noreply, state}
   end
+
 
   defp dispatch(message, state) do
      prefix = state.prefix

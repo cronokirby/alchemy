@@ -20,8 +20,13 @@ defmodule Alchemy.Discord.Gateway.Manager do
 
   ### Private Utility ###
 
-  defp get_url(token) do
-    {:ok, json} = Api._get("https://discordapp.com/api/v6/gateway/bot", token).body
+  defp get_url(token, selfbot: _) do
+    {:ok, json} = Api._get("https://discordapp.com/api/v6/gateway").body
+                  |> Poison.Parser.parse
+    {json["url"] <> "?v=6&encoding=json", 1}
+  end
+  defp get_url(token, []) do
+    {:ok, json} = Api._get("https://discordapp.com/api/v6/gateway/bot").body
                   |> Poison.Parser.parse
     {json["url"] <> "?v=6&encoding=json",
      json["shards"]}
@@ -41,8 +46,8 @@ defmodule Alchemy.Discord.Gateway.Manager do
   end
 
 
-  def start_link(token) do
-    {url, shards} = get_url(token)
+  def start_link(token, options) do
+    {url, shards} = get_url(token, options)
     Logger.debug "Starting up #{shards} shards"
     {:ok, sup} = start_supervisor()
     state = %{url: url,

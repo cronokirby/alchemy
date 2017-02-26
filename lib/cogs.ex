@@ -129,6 +129,7 @@ defmodule Alchemy.Cogs do
   """
   @type parser :: (String.t -> Enum.t)
   defmacro set_parser(name, parser) do
+    parser = Macro.to_string(parser)
     quote do
       @commands update_in(@commands, [unquote(name)], fn
         nil ->
@@ -160,7 +161,15 @@ defmodule Alchemy.Cogs do
       defmacro __using__(_opts) do
         commands = Macro.escape(@commands)
         quote do
-          Alchemy.Cogs.CommandHandler.add_commands(unquote(commands))
+          Alchemy.Cogs.CommandHandler.add_commands(
+            unquote(commands) |> Enum.map(fn
+              {k, {mod, arity, string}} ->
+                {eval, _} = Code.eval_string(string)
+                {k, {mod, arity, eval}}
+              {k, v} ->
+                {k, v}
+            end)
+            |> Enum.into(%{}))
         end
       end
     end

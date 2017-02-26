@@ -125,44 +125,52 @@ defmodule Alchemy.Discord.Api do
   end
 
 
+  # gets the auth headers, checking for selfbot
+  def auth_headers(token) do
+    client_type = Application.get_env(:alchemy, :self_bot, "Bot ")
+    ["Authorization": client_type <> "#{token}"]
+  end
   # Performs a `get` request for a url, using the provided token as authorization.
+  def _get(url) do
+    HTTPotion.get url
+  end
   def _get(url, token) do
     HTTPotion.get url,
-      headers: ["Authorization": "Bot #{token}"]
+      headers: auth_headers(token)
   end
 
   # Performs a `patch` request, returning an HTTPotion response.
   # This isn't used too often
   def _patch(url, data, token) do
     HTTPotion.patch url,
-      [headers: ["Authorization": "Bot #{token}",
-                 "Content-Type": "application/json"],
+      [headers: auth_headers(token) ++
+                ["Content-Type": "application/json"],
       body: data]
   end
 
 
   def _post(url, token) do
     HTTPotion.post url,
-      headers: ["Authorization": "Bot #{token}"]
+      headers: auth_headers(token)
   end
   def _post(url, data, token) do
     HTTPotion.post url,
-      [headers: ["Authorization": "Bot #{token}",
-                 "Content-Type": "application/json"],
+      [headers: auth_headers(token) ++
+                ["Content-Type": "application/json"],
       body: data]
   end
 
 
   def _put(url, token) do
     HTTPotion.put url,
-      headers: ["Authorization": "Bot #{token}"]
+      headers: auth_headers(token)
   end
 
 
   # Performs a `delete` request, returning an HTTPotion response.
   def _delete(url, token) do
     HTTPotion.delete url,
-      headers: ["Authorization": "Bot #{token}"]
+      headers: auth_headers(token)
   end
 
 end

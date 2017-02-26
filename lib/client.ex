@@ -18,23 +18,29 @@ defmodule Alchemy.Client do
   @doc """
   Starts up a new Client with the given token.
   """
-  @spec start(token) :: {:ok, pid}
-  def start(token), do: start_link(token)
+  @spec start(token, selfbot: snowflake) :: {:ok, pid}
+  def start(token, selfbot: id) do
+    Application.put_env(:alchemy, :self_bot, " ")
+      start_link(token, selfbot: id)
+  end
+  def start(token, options) do
+    start_link(token, options)
+  end
   @doc false
-  defp start_link(token) do
-    Supervisor.start_link(__MODULE__, token, name: Client)
+  defp start_link(token, options) do
+    Supervisor.start_link(__MODULE__, {token, options}, name: Client)
   end
 
 
   # This creates a `RateManager`, under the name `API` that will be available
   # for managing requests.
-  def init(token) do
+  def init({token, options}) do
     children = [
       worker(RateManager, [[token: token], [name: API]]),
       worker(EventHandler, []),
-      worker(CommandHandler, []),
+      worker(CommandHandler, [options]),
       worker(CacheManager, [[name: ClientState]]),
-      worker(GatewayManager, [token])
+      worker(GatewayManager, [token, options])
     ]
     supervise(children, strategy: :one_for_one)
   end

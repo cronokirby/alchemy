@@ -34,7 +34,7 @@ defmodule Alchemy.Embed do
              :video,
              :provider,
              :author,
-             :fields]
+             fields: []]
 
   def from_map(map) do
     map
@@ -52,7 +52,7 @@ defmodule Alchemy.Embed do
   def build(struct) when is_map(struct) do
     {_, struct} = Map.pop(struct, :__struct__)
     struct
-    |> Enum.filter_map(fn {_, v} -> v != nil end,
+    |> Enum.filter_map(fn {_, v} -> v != nil and v != [] end,
                        fn {k, v} -> {k, build(v)} end)
     |> Enum.into(%{})
   end
@@ -72,6 +72,22 @@ defmodule Alchemy.Embed do
   @spec title(Embed.t, String.t) :: Embed.t
   def title(embed, string) do
     %{embed | title: string}
+  end
+  @doc """
+  Sets the url for an embed.
+
+  ## Examples
+  ```elixir
+  Cogs.def embed(url) do
+    %Embed{}
+    |> url(url)
+    |> Cogs.send
+  end
+  ```
+  """
+  @spec url(Embed.t, url) :: Embed.t
+  def url(embed, url) do
+    %{embed | url: url}
   end
   @doc """
   Adds a description to an embed.
@@ -171,5 +187,22 @@ defmodule Alchemy.Embed do
   end
   def footer(embed, options) do
     %{embed | footer: Enum.into(options, %{})}
+  end
+
+
+  def field(embed, name, value, options \\ []) do
+    field = %{name: name, value: value}
+            |> Map.merge(Enum.into(options, %{}))
+    %{embed | fields: embed.fields ++ [field]}
+  end
+
+
+  def thumbnail(embed, url) do
+    %{embed | thumbnail: %{url: url}}
+  end
+
+
+  def image(embed, url) do
+    %{embed | image: %{url: url}}
   end
 end
