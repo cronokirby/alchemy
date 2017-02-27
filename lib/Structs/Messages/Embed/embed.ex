@@ -188,8 +188,32 @@ defmodule Alchemy.Embed do
   def footer(embed, options) do
     %{embed | footer: Enum.into(options, %{})}
   end
+  @doc """
+  Adds a field to an embed.
 
+  Fields are appended when using this method, so the order you pipe them in,
+  is the order they'll end up when sent. The name and value must be non empty
+  strings.
+  ## Parameters
+  - `name`
 
+    The title of the embed.
+  - `value`
+
+    The text of the field
+  ## Options
+  - `inline`
+
+    When setting this to `true`, up to 3 fields can appear side by side,
+    given they are all inlined.
+  ## Examples
+  ```elixir
+  %Embed{}
+  |> field("Field1", "the best field!")
+  |> field("Inline1", "look a field ->")
+  |> field("Inline2", "<- look a field")
+  ```
+  """
   def field(embed, name, value, options \\ []) do
     field = %{name: name, value: value}
             |> Map.merge(Enum.into(options, %{}))
