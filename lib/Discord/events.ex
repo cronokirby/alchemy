@@ -13,11 +13,11 @@ defmodule Alchemy.Discord.Events do
   def handle("CHANNEL_CREATE", %{"is_private" => true} = dm_channel) do
     Cache.add_priv_channel(dm_channel)
     struct = to_struct(dm_channel, DMChannel)
-    {:dm_channel_create, [struct]}
+    notify {:dm_channel_create, [struct]}
   end
   def handle("CHANNEL_CREATE", channel) do
     struct = Channel.from_map(channel)
-    {:channel_create, [struct]}
+    notify {:channel_create, [struct]}
   end
 
 
