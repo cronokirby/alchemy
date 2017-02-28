@@ -54,6 +54,17 @@ defmodule Alchemy.Channel do
     bitrate: Integer | nil,
     user_limit: Integer | nil
   }
+  @derive Poison.Encoder
+  defstruct [:id,
+              :guild_id,
+              :name,
+              :type,
+              :position,
+              :permission_overwrites,
+              :topic,
+              :last_message_id,
+              :bitrate,
+              :user_limit]
   @typedoc """
   DMChannels represent a private message between 2 users; in this case,
   between a client and a user
@@ -188,18 +199,6 @@ defmodule Alchemy.Channel do
     name: String.t,
     type: String.t
   }
-  @derive Poison.Encoder
-  defstruct [:id,
-             :guild_id,
-             :name,
-             :type,
-             :position,
-             :permission_overwrites,
-             :topic,
-             :last_message_id,
-             :bitrate,
-             :user_limit]
-
 
 
   @doc false
