@@ -28,7 +28,8 @@ defmodule Alchemy.Embed do
     ```
     """
   import Alchemy.Structs.Utility
-  alias Alchemy.Embed.{Footer, Image, Video, Provider, Author, Field}
+  alias Alchemy.Attachment
+  alias Alchemy.Embed.{Footer, Image, Video, Provider, Author, Field, Thumbnail}
   alias Alchemy.Embed
 
 
@@ -40,12 +41,13 @@ defmodule Alchemy.Embed do
     url: String.t,
     timestamp: String.t,
     color: Integer,
-    footer: Footer.t,
-    image: Image.t,
-    video: Video.t,
-    provider: Provider.t,
-    author: Author.t,
-    fields: [Field.t]
+    footer: footer,
+    image: image,
+    thumbnail: thumbnail,
+    video: video,
+    provider: provider,
+    author: author,
+    fields: [field]
   }
   @derive Poison.Encoder
   defstruct [:title,
@@ -61,6 +63,180 @@ defmodule Alchemy.Embed do
              :provider,
              :author,
              fields: []]
+  @typedoc """
+  Represents the author of an embed.
+
+  - `name`
+
+    The name of the author
+  - `url`
+
+    The author's url
+  - `icon_url`
+
+    A link to the author's icon image
+  - `proxy_icon_url`
+
+    A proxied url for the author's icon image
+  """
+  @type author :: %Author{
+    name: String.t,
+    url: url,
+    icon_url: url,
+    proxy_icon_url: url
+  }
+  @typedoc """
+  Represents a file attached to an embed.
+
+  - `id`
+
+    The attachment id
+  - `filename`
+
+    The name of the file attached
+  - `size`
+
+    The size of the file attached
+  - `url`
+
+    The source url of a file
+  - `proxy_url`
+
+    A proxied url of a file
+  - `height`
+
+    The height of the file, if it's an image
+  - `width`
+
+    The width of a file, if it's an image
+  """
+  @type attachment :: %Attachment{
+    id: String.t,
+    filename: String.t,
+    size: Integer,
+    url: url,
+    proxy_url: url,
+    height: Integer | nil,
+    width: Integer | nil
+  }
+  @typedoc """
+  Represents a field in an embed.
+
+  - `name`
+
+    The title of the field
+  - `value`
+
+    The text of the field
+  - `inline`
+
+    Whether or not the field should be aligned with other inline fields.
+  """
+  @type field :: %Field{
+    name: String.t,
+    value: String.t,
+    inline: Boolean
+  }
+  @typedoc """
+  Represents an Embed footer.
+
+  - `text`
+
+    The text of the footer
+  - `icon_url`
+
+    The url of the image in the footer
+  - `proxy_icon_url`
+
+    The proxied url of the footer's icon. Setting this when sending an embed serves
+    no purpose.
+  """
+  @type footer :: %Footer{
+    text: String.t,
+    icon_url: url,
+    proxy_icon_url: url
+  }
+  @typedoc """
+  Represents the image of an embed.
+
+  - `url`
+
+    A link to this image
+
+  The following parameters shouldn't be set when sending embeds:
+  - `proxy_url`
+
+    A proxied url of the image
+  - `height`
+
+    The height of the image.
+  - `width`
+
+    The width of the image.
+  """
+  @type image :: %Image{
+    url: url,
+    proxy_url: url,
+    height: Integer,
+    width: Integer
+  }
+  @typedoc """
+  Represents the provider of an embed.
+
+  This is usually comes from a linked resource (youtube video, etc.)
+
+  - `name`
+
+    The name of the provider
+  - `url`
+
+    The source of the provider
+  """
+  @type provider :: %Provider{
+    name: String.t,
+    url: url
+  }
+  @typedoc """
+  Represents the thumnail of an embed.
+
+  - `url`
+
+    A link to the thumbnail image.
+  - `proxy_url`
+
+    A proxied link to the thumbnail image
+  - `height`
+
+    The height of the thumbnail
+  - `width`
+
+    The width of the thumbnail
+  """
+  @type thumbnail :: %Thumbnail{
+    url: url,
+    proxy_url: url,
+    height: Integer,
+    width: Integer
+  }
+  @typedoc """
+  Represents a video attached to an embed.
+
+  Users can't set this themselves.
+  - `url`
+
+    The source of the video
+  - `height`
+
+    The height of the video
+  - `width`
+
+    The width of the video
+  """
+  @type video :: %Video{
+    url: url,
+    height: Integer,
+    width: Integer
+  }
 
 
   @doc false
