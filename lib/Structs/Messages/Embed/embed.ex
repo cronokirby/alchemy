@@ -1,5 +1,8 @@
 defmodule Alchemy.Embed do
     @moduledoc """
+    A module containing structs and functions relative to Embeds.
+
+    Embeds
     """
   import Alchemy.Structs.Utility
   alias Alchemy.Embed.{Footer, Image, Video, Provider, Author, Field}
@@ -214,18 +217,34 @@ defmodule Alchemy.Embed do
   |> field("Inline2", "<- look a field")
   ```
   """
+  @spec field(Embed.t, String.t, String.t) :: Embed.t
   def field(embed, name, value, options \\ []) do
     field = %{name: name, value: value}
             |> Map.merge(Enum.into(options, %{}))
     %{embed | fields: embed.fields ++ [field]}
   end
+  @doc """
+  Adds a thumbnail to an embed.
 
-
+  ## Examples
+  ```elixir
+  %Embed{}
+  |> thumbnail("http://i.imgur.com/4AiXzf8.jpg")
+  ```
+  """
+  @spec thumbnail(Embed.t, url) :: Embed.t
   def thumbnail(embed, url) do
     %{embed | thumbnail: %{url: url}}
   end
+  @doc """
+  Sets the main image of the embed.
 
-
+  ## Examples
+  ```elixir
+  %Embed{}
+  |> image("http://i.imgur.com/4AiXzf8.jpg")
+  """
+  @spec image(Embed.t, url) :: Embed.t
   def image(embed, url) do
     %{embed | image: %{url: url}}
   end
