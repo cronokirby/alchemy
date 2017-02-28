@@ -1,13 +1,13 @@
 defmodule Alchemy.Discord.Gateway.Manager do
+  @moduledoc false
+  # Serves as a gatekeeper of sorts, deciding when to let the supervisor spawn new
+  # gateway connections. It also keeps track of the url, and where the sharding is.
+  # This module is in control of the supervisors child spawning.
   use GenServer
   require Logger
   alias Alchemy.Discord.Gateway
   alias Alchemy.Discord.Api
   import Supervisor.Spec
-  @moduledoc false
-  # Serves as a gatekeeper of sorts, deciding when to let the supervisor spawn new
-  # gateway connections. It also keeps track of the url, and where the sharding is.
-  # This module is in control of the supervisors child spawning.
 
 
   ### Public ###
@@ -20,7 +20,12 @@ defmodule Alchemy.Discord.Gateway.Manager do
 
   ### Private Utility ###
 
-  defp get_url(token) do
+  defp get_url(token, selfbot: _) do
+    {:ok, json} = Api._get("https://discordapp.com/api/v6/gateway").body
+                  |> Poison.Parser.parse
+    {json["url"] <> "?v=6&encoding=json", 1}
+  end
+  defp get_url(token, []) do
     {:ok, json} = Api._get("https://discordapp.com/api/v6/gateway/bot", token).body
                   |> Poison.Parser.parse
     {json["url"] <> "?v=6&encoding=json",
@@ -41,8 +46,8 @@ defmodule Alchemy.Discord.Gateway.Manager do
   end
 
 
-  def start_link(token) do
-    {url, shards} = get_url(token)
+  def start_link(token, options) do
+    {url, shards} = get_url(token, options)
     Logger.debug "Starting up #{shards} shards"
     {:ok, sup} = start_supervisor()
     state = %{url: url,
@@ -74,7 +79,7 @@ defmodule Alchemy.Discord.Gateway.Manager do
 
 
   def handle_cast({:start_shard, num}, %{shards: shards} = state)
-  when num == shards do
+    when num == shards do
     {:noreply, state}
   end
   def handle_cast({:start_shard, num}, state) do
@@ -89,4 +94,5 @@ defmodule Alchemy.Discord.Gateway.Manager do
     GenServer.cast(GatewayManager, {:start_shard, shard + 1})
     {:noreply, state}
   end
+
 end

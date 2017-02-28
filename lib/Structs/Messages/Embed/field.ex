@@ -1,11 +1,7 @@
 defmodule Alchemy.Embed.Field do
-  @moduledoc """
-  """
-  @type t :: %__MODULE__{
-    name: String.t,
-    value: String.t,
-    inline: Boolean
-  }
+  @moduledoc false
+
+
   @derive Poison.Encoder
   defstruct [:name,
              :value,

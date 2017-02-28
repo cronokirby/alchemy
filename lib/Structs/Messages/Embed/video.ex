@@ -1,11 +1,7 @@
 defmodule Alchemy.Embed.Video do
-  @moduledoc """
-  """
-  @type t :: %__MODULE__{
-    url: String.t,
-    height: Integer,
-    width: Integer
-  }
+  @moduledoc false
+
+
   @derive Poison.Encoder
   defstruct [:url,
              :height,

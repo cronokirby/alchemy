@@ -1,40 +1,51 @@
 defmodule Alchemy.Client do
+  @moduledoc """
+  Represents a Client connection to the Discord API. This is the main public
+  interface for the REST API.
+  """
   require Logger
   alias Alchemy.Discord.{Users, Channels, RateManager}
   alias Alchemy.Discord.Gateway.Manager, as: GatewayManager
   alias Alchemy.{Channel, Channel.Invite, DMChannel, Reaction.Emoji,
-                 Message, User, UserGuild}
+                 Embed, Message, User, UserGuild}
   alias Alchemy.Cache.Manager, as: CacheManager
   alias Alchemy.Cogs.{CommandHandler, EventHandler}
   import Alchemy.Discord.RateManager, only: [send: 1]
   use Alchemy.Discord.Types
   use Supervisor
-  @moduledoc """
-  Represents a Client connection to the Discord API. This is the main public
-  interface for the library.
-  """
+
 
   @doc """
   Starts up a new Client with the given token.
   """
-  def start(token), do: start_link(token)
-  @doc false
-  defp start_link(token) do
-    Supervisor.start_link(__MODULE__, token, name: Client)
+  @spec start(token, selfbot: snowflake) :: {:ok, pid}
+  def start(token) do
+    start_link(token, [])
   end
+  def start(token, selfbot: id) do
+    Application.put_env(:alchemy, :self_bot, " ")
+    start_link(token, selfbot: id)
+  end
+
+  @doc false
+  defp start_link(token, options) do
+    Supervisor.start_link(__MODULE__, {token, options}, name: Client)
+  end
+
 
   # This creates a `RateManager`, under the name `API` that will be available
   # for managing requests.
-  def init(token) do
+  def init({token, options}) do
     children = [
       worker(RateManager, [[token: token], [name: API]]),
       worker(EventHandler, []),
-      worker(CommandHandler, []),
+      worker(CommandHandler, [options]),
       worker(CacheManager, [[name: ClientState]]),
-      worker(GatewayManager, [token])
+      worker(GatewayManager, [token, options])
     ]
     supervise(children, strategy: :one_for_one)
   end
+
 
   ### Public ###
 
@@ -102,7 +113,7 @@ defmodule Alchemy.Client do
    ## Examples
 
    ```elixir
-   Client.leave_guild
+   Client.leave_guild(guild_id)
    ```
    """
    @spec leave_guild(snowflake) :: {:ok, nil} | {:error, term}
@@ -232,7 +243,12 @@ defmodule Alchemy.Client do
                       embed: Embed.t) :: {:ok, Message.t}
                                        | {:error, term}
    def send_message(channel_id, content, options \\ []) do
-     options = Keyword.put(options, :content, "#{content}")
+     {_, options} = options
+                  |> Keyword.put(:content, "#{content}")
+                  |> Keyword.get_and_update(:embed, fn
+                    nil -> :pop
+                    some -> {some, Embed.build(some)}
+                  end)
      send {Channels, :create_message, [channel_id, options]}
    end
    @doc """
@@ -248,11 +264,39 @@ defmodule Alchemy.Client do
    @spec edit_message(Message.t | {channel_id, message_id},
                       String.t) :: {:ok, Message.t}
                                  | {:error, term}
-   def edit_message(%Message{channel_id: channel_id, id: id}, content) do
-     send {Channels, :edit_message, [channel_id, id, content]}
+   def edit_message(message, content, opts \\ []) do
+     {channel_id, message_id} = case message do
+       %Message{channel_id: channel_id, id: id} ->
+         {channel_id, id}
+       tuple ->
+         tuple
+     end
+     opts = Keyword.put(opts, :content, content)
+     send {Channels, :edit_message, [channel_id, message_id, opts]}
    end
-   def edit_message({channel_id, message_id} = message, content) do
-     send {Channels, :edit_message, [channel_id, message_id, content]}
+   @doc """
+   Edits a previously sent embed.
+
+   Note that this can be accomplished via `edit_message/3` as well, but that requires
+   editing the content as well.
+
+   ```elixir
+   Cogs.def embed do
+    embed = %Embed{description: "the best embed"}
+            |> color(0xc13261)
+    {:ok, message} = Task.await Cogs.send(embed)
+    Process.sleep(2000)
+    Client.edit_embed(message, embed |> color(0x5aa4d4))
+   end
+   ```
+   """
+   @spec edit_embed(Message.t | {channel_id, message_id}, Embed.t) :: {:ok, Message.t}
+                                                                    | {:error, term}
+   def edit_embed(%Message{channel_id: channel_id, id: id}, embed) do
+     send {Channels, :edit_message, [channel_id, id, [embed: Embed.build(embed)]]}
+   end
+   def edit_embed({channel_id, id} = message, embed) do
+     send {Channels, :edit_message, [channel_id, id, [embed: Embed.build(embed)]]}
    end
    @doc """
    Deletes a message.
