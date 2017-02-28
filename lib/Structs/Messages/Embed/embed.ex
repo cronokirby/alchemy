@@ -2,7 +2,30 @@ defmodule Alchemy.Embed do
     @moduledoc """
     A module containing structs and functions relative to Embeds.
 
-    Embeds
+    Embeds allow you to format messages in a structured, and quite pretty way; much more
+    than can be done with simple text.
+    For a basic idea of how embeds work, check this
+    [link](https://cdn.discordapp.com/attachments/84319995256905728/252292324967710721/embed.png).
+
+    ## Example Usage
+    ```elixir
+    Cogs.def embed do
+      %Embed{}
+      |> title("The BEST embed")
+      |> description("the best description")
+      |> image("http://i.imgur.com/4AiXzf8.jpg")
+      |> Cogs.send
+    end
+    ```
+    Note that this is equivalent to:
+    ```elixir
+    Cogs.def embed do
+      %Embed{title: "The BEST embed",
+             description: "the best description",
+             image: "http://i.imgur.com/4AiXzf8.jpg"}
+      |> Cogs.send
+    end
+    ```
     """
   import Alchemy.Structs.Utility
   alias Alchemy.Embed.{Footer, Image, Video, Provider, Author, Field}
@@ -39,6 +62,8 @@ defmodule Alchemy.Embed do
              :author,
              fields: []]
 
+
+  @doc false
   def from_map(map) do
     map
     |> field?("footer", Footer)
@@ -184,7 +209,7 @@ defmodule Alchemy.Embed do
   end
   ```
   """
-  @spec footer(Embed.t, [text: String.t, icon_url: url] | Author.t) :: Embed.t
+  @spec footer(Embed.t, [text: String.t, icon_url: url] | Footer.t) :: Embed.t
   def footer(embed, %Footer{} = footer) do
     %{embed | footer: footer}
   end
@@ -196,7 +221,7 @@ defmodule Alchemy.Embed do
 
   Fields are appended when using this method, so the order you pipe them in,
   is the order they'll end up when sent. The name and value must be non empty
-  strings.
+  strings. You can have a maximum of `25` fields.
   ## Parameters
   - `name`
 
