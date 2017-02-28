@@ -1,17 +1,17 @@
 defmodule Alchemy.Discord.Channels do
+  @moduledoc false
   alias Poison.Parser
   alias Alchemy.Discord.Api
   alias Alchemy.{Channel, Channel.Invite, DMChannel, Message, User, Reaction.Emoji}
   import Alchemy.Structs.Utility
-  @moduledoc false
 
-  @root "https://discordapp.com/api/channels/"
+  @root "https://discordapp.com/api/v6/channels/"
 
 
   def parse_channel(json) do
     parsed = Parser.parse!(json)
-    if parsed["is_private"] do
-      to_struct(parsed, DMChannel)
+    if parsed["type"] == 1 do
+      DMChannel.from_map(parsed)
     else
       Channel.from_map(parsed)
     end
@@ -56,10 +56,9 @@ defmodule Alchemy.Discord.Channels do
   end
 
 
-  def edit_message(token, channel_id, message_id, content) do
+  def edit_message(token, channel_id, message_id, options) do
     url = @root <> channel_id <> "/messages/" <> message_id
-    json = ~s/{"content": "#{content}"}/
-    Api.patch(url, token, json, Message)
+    Api.patch(url, token, Api.encode(options), Message)
   end
 
 
@@ -178,4 +177,5 @@ defmodule Alchemy.Discord.Channels do
     @root <> channel_id <> "/pins/" <> message_id
     |> Api.delete(token)
   end
+
 end

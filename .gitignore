@@ -17,7 +17,8 @@ erl_crash.dump
 # Also ignore archive artifacts (built via "mix archive.build").
 *.ez
 t.exs
-lib/script.ex
+lib/CogLib/
+lib/mix
 doc/
 mix.lock
 ttb_last_config

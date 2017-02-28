@@ -8,6 +8,7 @@ defmodule Alchemy.Discord.Gateway do
 
 
   defmodule State do
+    @moduledoc false
     defstruct [:token, :shard, :trace, :session_id, :seq]
   end
 
@@ -52,6 +53,7 @@ defmodule Alchemy.Discord.Gateway do
     Process.send_after(self(), {:heartbeat, interval}, interval)
     {:reply, {:text, heartbeat(state.seq)}, state}
   end
+
 
   # Send the identify package to discord, if this is our fist session
   def websocket_info(:identify, _, %State{session_id: nil} = state) do

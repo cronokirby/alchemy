@@ -1,5 +1,4 @@
 defmodule Alchemy.Cogs do
-  alias Alchemy.Cogs.CommandHandler
   @moduledoc """
   This module provides quite a bit of sugar for registering commands.
 
@@ -27,6 +26,8 @@ defmodule Alchemy.Cogs do
 
   end
   """
+  alias Alchemy.Cogs.CommandHandler
+  alias Alchemy.Embed
 
 
   @doc """
@@ -36,11 +37,12 @@ defmodule Alchemy.Cogs do
   def set_prefix(prefix) do
     CommandHandler.set_prefix(prefix)
   end
-
   @doc """
   Sends a message to the same channel as the message triggering a command.
 
   This can only be used in a command defined with `Cogs.def`
+
+  This is just a thin macro around `Alchemy.Client.send_message/2`
 
   ## Examples
   ```elixir
@@ -52,6 +54,15 @@ defmodule Alchemy.Cogs do
       Alchemy.Client.send_message(var!(message).channel_id,
                                   unquote(content),
                                   unquote(options))
+    end
+  end
+  @doc """
+  """
+  defmacro send(embed, content \\ "") do
+    quote do
+      Alchemy.Client.send_message(var!(message).channel_id,
+                                  unquote(content),
+                                  embed: unquote(embed))
     end
   end
   @doc """
@@ -80,10 +91,7 @@ defmodule Alchemy.Cogs do
   So, in this case, when a 2nd argument isn't given, an error message is sent back.
   """
   defmacro def({name, ctx, args} = func, do: body) do
-    args = case args do
-      nil -> []
-      some -> some
-    end
+    args = args || []
     arity = length(args)
     arg_ctx = Keyword.get(ctx, :context)
     injected = [{:message, [], arg_ctx} | args]
@@ -121,6 +129,7 @@ defmodule Alchemy.Cogs do
   """
   @type parser :: (String.t -> Enum.t)
   defmacro set_parser(name, parser) do
+    parser = Macro.to_string(parser)
     quote do
       @commands update_in(@commands, [unquote(name)], fn
         nil ->
@@ -146,12 +155,21 @@ defmodule Alchemy.Cogs do
     end
   end
 
+
   defmacro __before_compile__(_env) do
     quote do
       defmacro __using__(_opts) do
         commands = Macro.escape(@commands)
         quote do
-          Alchemy.Cogs.CommandHandler.add_commands(unquote(commands))
+          Alchemy.Cogs.CommandHandler.add_commands(
+            unquote(commands) |> Enum.map(fn
+              {k, {mod, arity, string}} ->
+                {eval, _} = Code.eval_string(string)
+                {k, {mod, arity, eval}}
+              {k, v} ->
+                {k, v}
+            end)
+            |> Enum.into(%{}))
         end
       end
     end

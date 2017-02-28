@@ -77,6 +77,7 @@ defmodule Alchemy.Events do
     end
   end
 
+
   @doc false
   # For every handle in the attribute, a handler is added to the EventManager
   defmacro __before_compile__(_env) do
@@ -90,7 +91,5 @@ defmodule Alchemy.Events do
       end
     end
   end
-
-
 
 end
