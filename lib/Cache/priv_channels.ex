@@ -22,6 +22,8 @@ defmodule Alchemy.Cache.PrivChannels do
       children = [
         worker(PrivChannels, [])
       ]
+
+      supervise(children, strategy: :simple_one_for_one)
     end
   end
 

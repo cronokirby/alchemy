@@ -44,6 +44,9 @@ defmodule Alchemy.Cache.Guilds do
 
 
   # This changes the inner arrays to become maps, for easier access later
+  defp guild_index(%{"unavailable" => true} = guild) do
+    guild
+  end
   defp guild_index(guild) do
     inners = [
       {["members"], ["user", "id"]},
