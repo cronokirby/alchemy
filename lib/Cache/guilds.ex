@@ -3,6 +3,7 @@ defmodule Alchemy.Cache.Guilds do
   # by the supervisor in the submodule below
   use GenServer
   alias Alchemy.Cache.Guilds.GuildSupervisor
+  alias Alchemy.Cache.Channels
   import Alchemy.Cache.Utility
 
 
@@ -11,7 +12,6 @@ defmodule Alchemy.Cache.Guilds do
     # acts as a dynamic supervisor for the surrounding GenServer
     use Supervisor
     alias Alchemy.Cache.Guilds
-    alias Alchemy.Cache.Channels
 
 
     def start_link do
@@ -71,6 +71,7 @@ defmodule Alchemy.Cache.Guilds do
       [] ->
         start_guild(guild)
       [{pid, _}] ->
+        Channels.add_channels(guild["channels"], id)
         GenServer.call(pid, {:merge, guild_index(guild)})
     end
 
@@ -85,8 +86,9 @@ defmodule Alchemy.Cache.Guilds do
   end
 
 
-  def update_guild(guild) do
-    call(guild["id"], {:merge, guild_index(guild)})
+  def update_guild(%{"id" => id} = guild) do
+    Channels.add_channels(guild["channels"], id)
+    call(id, {:merge, guild_index(guild)})
   end
 
 
