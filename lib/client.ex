@@ -41,7 +41,6 @@ defmodule Alchemy.Client do
       worker(RateManager, [[token: token], [name: API]]),
       worker(EventHandler, []),
       worker(CommandHandler, [options]),
-      worker(CacheManager, [[name: ClientState]]),
       worker(GatewayManager, [token, options]),
       supervisor(CacheSupervisor, [])
     ]
