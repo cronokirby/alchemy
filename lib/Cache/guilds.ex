@@ -155,6 +155,7 @@ defmodule Alchemy.Cache.Guilds do
     {:reply, :ok, new}
   end
 
+
   def handle_call(:set_unavailable, _, guild) do
     {:reply, :ok, %{guild | "unavailable" => true}}
   end
