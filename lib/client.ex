@@ -9,6 +9,7 @@ defmodule Alchemy.Client do
   alias Alchemy.{Channel, Channel.Invite, DMChannel, Reaction.Emoji,
                  Embed, Message, User, UserGuild}
   alias Alchemy.Cache.Manager, as: CacheManager
+  alias Alchemy.Cache.Supervisor, as: CacheSupervisor
   alias Alchemy.Cogs.{CommandHandler, EventHandler}
   import Alchemy.Discord.RateManager, only: [send: 1]
   use Alchemy.Discord.Types
@@ -40,8 +41,8 @@ defmodule Alchemy.Client do
       worker(RateManager, [[token: token], [name: API]]),
       worker(EventHandler, []),
       worker(CommandHandler, [options]),
-      worker(CacheManager, [[name: ClientState]]),
-      worker(GatewayManager, [token, options])
+      worker(GatewayManager, [token, options]),
+      supervisor(CacheSupervisor, [])
     ]
     supervise(children, strategy: :one_for_one)
   end

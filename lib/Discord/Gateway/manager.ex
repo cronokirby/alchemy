@@ -47,6 +47,11 @@ defmodule Alchemy.Discord.Gateway.Manager do
 
 
   def start_link(token, options) do
+    run = GenServer.start_link(__MODULE__, {token, options}, name: GatewayManager)
+  end
+
+
+  def init({token, options}) do
     {url, shards} = get_url(token, options)
     Logger.debug "Starting up #{shards} shards"
     {:ok, sup} = start_supervisor()
@@ -56,9 +61,8 @@ defmodule Alchemy.Discord.Gateway.Manager do
               started: [],
               token: token,
               supervisor: sup}
-    run = GenServer.start_link(__MODULE__, state, name: GatewayManager)
     GenServer.cast(GatewayManager, {:start_shard, 0})
-    run
+    {:ok, state}
   end
 
 

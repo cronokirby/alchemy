@@ -1,7 +1,7 @@
 defmodule Alchemy.Discord.Protocol do
   @moduledoc false
   require Logger
-  alias Alchemy.Cache.Manager, as: Cache
+  alias Alchemy.Cache.Supervisor, as: Cache
   alias Alchemy.Discord.{Events, Gateway}
   import Alchemy.Discord.Payloads
 
@@ -51,7 +51,11 @@ defmodule Alchemy.Discord.Protocol do
 
   # The READY event, part of the standard protocol
   def dispatch(%{"t" => "READY", "s" => seq, "d" => payload}, state) do
-    Cache.ready(payload["user"], payload["private_channels"], payload["guilds"])
+    Task.start(fn ->
+      Cache.ready(payload["user"],
+                  payload["private_channels"],
+                  payload["guilds"])
+    end)
     Logger.debug "Recieved READY"
     {:ok, %{state | seq: seq,
                     session_id: payload["session_id"],
