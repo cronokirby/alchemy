@@ -3,7 +3,8 @@ defmodule Alchemy.Discord.Events do
   # Used to generate events, and notify the main EventManager
   alias Alchemy.{Channel, DMChannel, Emoji, Guild, GuildMember, OverWrite,
                  Message, Role, User, Users.Presence, VoiceState}
-  alias Alchemy.Cache.Manager, as: Cache
+  alias Alchemy.Cache.Guilds
+  alias Alchemy.Cache.PrivChannels
   alias Alchemy.Cogs.CommandHandler, as: Commands
   import Alchemy.Structs.Utility
   import Alchemy.Cogs.EventHandler, only: [notify: 1]
@@ -11,7 +12,7 @@ defmodule Alchemy.Discord.Events do
 
   # A direct message was started with the bot
   def handle("CHANNEL_CREATE", %{"is_private" => true} = dm_channel) do
-    Cache.add_priv_channel(dm_channel)
+    PrivChannels.add_priv_channel(dm_channel)
     struct = to_struct(dm_channel, DMChannel)
     notify {:dm_channel_create, [struct]}
   end
@@ -22,7 +23,7 @@ defmodule Alchemy.Discord.Events do
 
 
   def handle("CHANNEL_UPDATE", %{"is_private" => true} = dm_channel) do
-    Cache.update_priv_channel(dm_channel)
+    PrivChannels.update_priv_channel(dm_channel)
     notify {:dm_channel_update, [to_struct(dm_channel, DMChannel)]}
   end
   def handle("CHANNEL_UPDATE", channel) do
@@ -31,7 +32,7 @@ defmodule Alchemy.Discord.Events do
 
 
   def handle("CHANNEL_DELETE", %{"is_private" => true} = dm_channel) do
-    Cache.rem_priv_channel(dm_channel["id"])
+    PrivChannels.rem_priv_channel(dm_channel["id"])
     notify {:dm_channel_delete, [to_struct(dm_channel, DMChannel)]}
   end
 
@@ -39,19 +40,19 @@ defmodule Alchemy.Discord.Events do
   # The Cache manager is tasked of notifying, if, and only if this guild is new,
   # and not in the unavailable guilds loaded before
   def handle("GUILD_CREATE", guild) do
-    Cache.add_guild(guild)
+    Guilds.add_guild(guild)
   end
 
 
   def handle("GUILD_UPDATE", guild) do
-    Cache.update_guild(guild)
+    Guilds.update_guild(guild)
     notify {:guild_update, [Guild.from_map(guild)]}
   end
 
 
   # The Cache is responsible for notifications in this case
   def handle("GUILD_DELETE", guild) do
-    Cache.delete(guild)
+    Guilds.remove_guild(guild)
   end
 
 
@@ -66,7 +67,7 @@ defmodule Alchemy.Discord.Events do
 
 
   def handle("GUILD_EMOJIS_UPDATE", data) do
-    Cache.update_emojis(data)
+    Guilds.update_emojis(data)
     notify {:emoji_update, [map_struct(data["emojis"], Emoji), data["guild_id"]]}
   end
 
@@ -82,26 +83,26 @@ defmodule Alchemy.Discord.Events do
 
 
   def handle("GUILD_MEMBER_REMOVE", %{"guild_id" => id, "user" => user}) do
-    Cache.remove_user(id, user)
+    Guilds.remove_member(id, user)
     notify {:member_leave, [to_struct(user, User), id]}
   end
 
 
   def handle("GUILD_MEMBER_UPDATE", %{"guild_id" => id} = data) do
     # This key would get popped implicitly later, but I'd rather do it clearly here
-    Cache.update_member(id, Map.delete(data, "guild_id"))
+    Guilds.update_member(id, Map.delete(data, "guild_id"))
     notify {:member_update, [GuildMember.from_map(data), id]}
   end
 
 
   def handle("GUILD_ROLE_CREATE", %{"guild_id" => id, "role" => role}) do
-    Cache.add_role(id, role)
+    Guilds.add_role(id, role)
     notify {:role_create, [to_struct(role, Role), id]}
   end
 
 
   def handle("GUILD_ROLE_DELETE", %{"guild_id" => guild_id, "role_id" => id}) do
-    Cache.remove_role(guild_id, id)
+    Guilds.remove_role(guild_id, id)
     notify {:role_delete, [id, guild_id]}
   end
 
@@ -129,7 +130,7 @@ defmodule Alchemy.Discord.Events do
 
 
   def handle("PRESENCE_UPDATE", presence) do
-    Cache.update_presence(presence)
+    Guilds.update_presence(presence)
     notify {:presence_update, [Presence.from_map(presence)]}
   end
 
@@ -153,7 +154,7 @@ defmodule Alchemy.Discord.Events do
 
 
   def handle("VOICE_STATE_UPDATE", voice) do
-    Cache.update_voice_state(voice)
+    Guilds.update_voice_state(voice)
     notify {:voice_state_update, [to_struct(voice, VoiceState)]}
   end
 

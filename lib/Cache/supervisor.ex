@@ -37,7 +37,7 @@ defmodule Alchemy.Cache.Supervisor do
   # used to handle the READY event
   def ready(user, priv_channels, guilds) do
     Enum.each(guilds, &Task.start(fn ->
-      Guilds.start_guild(&1)
+      Guilds.add_guild(&1)
     end))
     Enum.each(priv_channels, &Task.start(fn ->
       PrivChannels.add_priv_channel(&1)

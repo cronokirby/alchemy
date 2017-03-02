@@ -14,7 +14,7 @@ defmodule Alchemy.Cache.PrivChannels do
 
 
     def start_link do
-      Supervisor.start_link(__MODULE__, :ok)
+      Supervisor.start_link(__MODULE__, :ok, name: __MODULE__)
     end
 
 
