@@ -67,11 +67,11 @@ defmodule Alchemy.Cache.Guilds do
 
   # The guild is either new, or partial info for an existing guild
   def add_guild(%{"id" => id} = guild) do
+    Channels.add_channels(guild["channels"], id)
     case Registry.lookup(:guilds, id) do
       [] ->
         start_guild(guild)
       [{pid, _}] ->
-        Channels.add_channels(guild["channels"], id)
         GenServer.call(pid, {:merge, guild_index(guild)})
     end
 

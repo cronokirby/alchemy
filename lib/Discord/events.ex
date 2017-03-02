@@ -129,8 +129,11 @@ defmodule Alchemy.Discord.Events do
   end
 
 
-  def handle("PRESENCE_UPDATE", presence) do
+  def handle("PRESENCE_UPDATE", %{"guild_id" => id} = presence) do
     Guilds.update_presence(presence)
+    notify {:presence_update, [Presence.from_map(presence)]}
+  end
+  def handle("PRESENCE_UPDATE", presence) do
     notify {:presence_update, [Presence.from_map(presence)]}
   end
 
