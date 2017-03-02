@@ -1,6 +1,7 @@
 defmodule Alchemy.Cache.Guilds do
   @moduledoc false # The template GenServer for guilds started dynamically
-  # by the supervisor in the cache.
+  # by the supervisor in the submodule below
+  use GenServer
   alias Alchemy.Cache.Guilds.GuildSupervisor
   import Alchemy.Cache.Utility
 
@@ -122,29 +123,28 @@ defmodule Alchemy.Cache.Guilds do
 
   ### Server ###
 
-  def handle_call({:merge, new_info}, _, guild) do
-    {:reply, :ok, Map.merge(guild, new_info)}
+  def handle_call({:merge, new_info}, _, state) do
+    {:reply, :ok, Map.merge(state, new_info)}
   end
 
+
+  def handle_call({:replace, section, data}, _, state) do
+    {:reply, :ok, %{state | section => data}}
+  end
+
+
+  def handle_call({:put, section, key, node}, _, state) do
+    {:reply, :ok, put_in(state, [section, key], node)}
+  end
+
+
+  def handle_call({:pop, section, key}, _, state) do
+    {_, new} = pop_in(state, [section, key])
+    {:reply, :ok, new}
+  end
 
   def handle_call(:set_unavailable, _, guild) do
     {:reply, :ok, %{guild | "unavailable" => true}}
-  end
-
-
-  def handle_call({:replace, section, data}, _, guild) do
-    {:reply, :ok, %{guild | section => data}}
-  end
-
-
-  def handle_call({:put, section, key, node}, _, guild) do
-    {:reply, :ok, put_in(guild, [section, key], node)}
-  end
-
-
-  def handle_call({:pop, section, key}, _, guild) do
-    {_, new} = pop_in(guild, [section, key])
-    {:reply, :ok, new}
   end
 
 end

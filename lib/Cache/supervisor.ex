@@ -9,7 +9,8 @@ defmodule Alchemy.Cache.Supervisor do
   # as well as a GenServer keeping a registry of these children.
   # PrivateChannels; A Supervisor / GenServer combo, like Guilds, but with less info
   # stored.
-  alias Alchemy.Cache.{Guilds, Guilds.GuildSupervisor}
+  alias Alchemy.Cache.{Guilds, Guilds.GuildSupervisor,
+                       PrivChannels, PrivChannels.PrivChanSupervisor}
   use Supervisor
 
 
@@ -23,6 +24,7 @@ defmodule Alchemy.Cache.Supervisor do
       supervisor(Registry, [:unique, :guilds], id: 1),
       supervisor(GuildSupervisor, []),
       supervisor(Registry, [:unique, :priv_channels], id: 2),
+      supervisor(PrivChanSupervisor, [])
     ]
 
     supervise(children, strategy: :one_for_one)
