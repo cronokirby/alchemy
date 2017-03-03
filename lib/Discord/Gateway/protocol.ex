@@ -70,9 +70,9 @@ defmodule Alchemy.Discord.Protocol do
 
 
   # Generic events are handled unlinked, to prevent potential crashes
-  def dispatch(%{"t" => type, "d" => payload}, state) do
+  def dispatch(%{"t" => type, "d" => payload, "s" => seq}, state) do
     Task.start(fn -> Events.handle(type, payload) end)
-    {:ok, state}
+    {:ok, %{state | seq: seq}}
   end
 
 end
