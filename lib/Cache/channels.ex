@@ -4,9 +4,12 @@ defmodule Alchemy.Cache.Channels do
 
 
   def start_link do
-    GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
+    GenServer.start_link(__MODULE__, :ok, name: __MODULE__)
   end
 
+  def init(:ok) do
+    {:ok, :ets.new(:channels, [:named_table])}
+  end
 
   # unavailability does not get checked when this gets triggered
   def add_channels(nil, _) do
@@ -18,10 +21,10 @@ defmodule Alchemy.Cache.Channels do
 
 
   def handle_call({:add, channels, guild_id}, _, state) do
-    new_state = Enum.reduce(channels, state, fn channel, state ->
-      Map.put(state, channel["id"], guild_id)
-    end)
-    {:reply, :ok, new_state}
+    for channel <- channels do
+      :ets.insert(:channels, {channel["id"], guild_id})
+    end
+    {:reply, :ok, state}
   end
 
 end
