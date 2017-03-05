@@ -4,7 +4,7 @@ defmodule Alchemy.Client do
   interface for the REST API.
   """
   require Logger
-  alias Alchemy.Discord.{Users, Channels, RateManagerRe}
+  alias Alchemy.Discord.{Users, Channels, RateManager}
   alias Alchemy.Discord.Gateway.Manager, as: GatewayManager
   alias Alchemy.{Channel, Channel.Invite, DMChannel, Reaction.Emoji,
                  Embed, Message, User, UserGuild}
