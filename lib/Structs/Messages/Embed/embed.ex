@@ -453,7 +453,7 @@ defmodule Alchemy.Embed do
   @doc """
   Adds a timestamp to an embed.
 
-  Note that the Datetime object will get convert to an `iso8601` formatted string.
+  Note that the Datetime object will get converted to an `iso8601` formatted string.
 
   ## Examples
   %Embed{} |> timestamp(DateTime.utc_now())
