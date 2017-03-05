@@ -1,144 +1,153 @@
 defmodule Alchemy.Discord.RateManager do
   @moduledoc false
-  # Used to keep track of rate limiting. All api requests are funneled from
-  # the public Client interface into this server.
+  # Used to keep track of rate limits. All api requests must request permission to
+  # run from here.
   use GenServer
   require Logger
   import Alchemy.Discord.RateLimits
-  alias Alchemy.Discord.RateLimits.RateInfo
+  alias ALchemy.Discord.RateLimits.RateInfo
 
 
-  # Wrapper around applying for an api slot
-  def apply(method) do
-    GenServer.call(API, {:apply, method})
-  end
-
-  # Wrapper around processing a request
-  def process(module, method, args) do
-    GenServer.call(API, {module, method, args})
+  def start_link(token) do
+    GenServer.start_link(__MODULE__, token, name: API)
   end
 
 
-  # A helper function for some of the later functions.
-  def send(req), do: Task.async(fn -> request(req) end)
+  # Starts a new task to go through the whole process
+  def send_req(req, route) do
+    Task.async(__MODULE__, :request, [req, route])
+  end
 
-  # Used to wait a certain amount of time if the rate_manager can't handle the load
-  defp request({m, f, a} = req) do
-    case apply(f) do
+
+  # Wrapper method around applying for a slot
+  def apply(route) do
+    GenServer.call(API, {:apply, route})
+  end
+
+
+
+
+  # Applies for a bucket, waiting and retrying if it fails to get a slot
+  def request(req, route) do
+    case apply(route) do
       {:wait, n} ->
         Process.sleep(n)
-        request(req)
-      :go ->
-        process_req(req)
+        request(req, route)
+      {:go, token} ->
+        process_req(req, token, route)
     end
   end
 
-  defp process_req({m, f, a} = req) do
-    case process(m, f, a) do
+
+  # Wrapper method around processing an API response
+  def process(result, route) do
+    GenServer.call(API, {:process, route, result})
+  end
+
+
+  # Performs the request, and then sends the info back to the genserver to handle
+  defp process_req({m, f, a}, token, route) do
+    result = apply(m, f, [token | a])
+    case process(result, route) do
       {:retry, time} ->
-        Logger.info "local rate limit encountered for endpoint #{f}\
-                     \n retrying in #{time} milliseconds"
+        Logger.info "Local rate limit encountered for route #{route}" <>
+                    "\n retrying in #{time} ms."
         Process.sleep(time)
-        apply(req)
+        request({m, f, a}, route)
       done ->
         done
     end
   end
 
 
-  ### Server ###
-
   defmodule State do
     @moduledoc false
-    defstruct [:token, rates: %{}, global: false]
+    defstruct [:token, :global, :rates]
   end
 
 
-  # Starts up the RateManager. The Client token needs to be passed in.
-  def start_link(state, opts \\ []) do
-    GenServer.start_link(__MODULE__, struct(State, state), opts)
+  def init(token) do
+    table = :ets.new(:rates, [:named_table])
+    {:ok, %State{token: token, rates: table}}
   end
 
 
-  # A requester needs to request a slot from here. It will either be told to wait,
-  # or to go, in which case it calls the server again for an api call
-  def handle_call({:apply, _}, _from, %{global: {:wait, time}} = state) do
-    {:reply, {:wait, time}, state}
-  end
-  def handle_call({:apply, method}, _from, state) do
-    rates = state.rates
-    rate_info = Map.get(rates, method, default_info)
-    case throttle(rate_info) do
-      {:wait, time} ->
-        Logger.debug "Timeout of #{time} under request #{method}"
-        {:reply, {:wait, time}, state}
-      {:go, new_rates} ->
-        reserved = Map.merge(rate_info, new_rates)
-        new_state = %{state | rates:  Map.put(rates, method, reserved)}
-        {:reply, :go, new_state}
+  defp get_rates(route) do
+    case :ets.lookup(:rates, route) do
+      [{^route, info}] -> info
+      [] -> default_info()
     end
   end
 
 
-  def handle_call({module, method, args}, _from, state) do
-    # Call the specific method requested
-    result = apply(module, method, [state.token | args])
-    case result do
-      {:ok, info, rate_info} ->
-         new_rates = update_rates(state, method, rate_info)
-         {:reply, {:ok, info}, %{state | rates: new_rates}}
-      {:local, timeout, rate_info} ->
-        new_rates = update_rates(state, method, rate_info)
-        {:reply, {:retry, timeout}, %{state | rates: new_rates}}
-      {:global, timeout} ->
-        new_state = update_global_rates(state, timeout)
-        {:reply, {:retry, timeout}, new_state}
-      error ->
-        {:reply, error, state}
-    end
+  defp update_rates(_route, nil) do
+    nil
+  end
+  defp update_rates(route, info) do
+    :ets.insert(:rates, {route, info})
   end
 
 
-  def handle_cast(:reset_global, state) do
-    {:noreply, %{state | global: false}}
+  defp set_global(timeout) do
+    GenServer.call(API, {:set_global, timeout})
   end
 
 
-  # Sets the new rate_info for a given bucket to the rates recieved from an api call
-  # If the info is nil, the rates are not be modified
-  def update_rates(state, _bucket, nil) do
-    state.rates
+  def throttle(%{remaining: remaining} = rates) when remaining > 0 do
+    {:go, %{rates | remaining: remaining - 1}}
   end
-  def update_rates(state, bucket, rate_info) do
-    Map.put(state.rates, bucket, rate_info)
-  end
-
-
-  def update_global_rates(state, time) do
-    Task.start(fn ->
-      Process.sleep(time)
-      GenServer.cast(API, :reset_globals)
-    end)
-    %{state | global: {:wait, time}}
-  end
-
-
-  # Assigns a slot to an incoming request,
-  def throttle(%RateInfo{remaining: remaining}) when remaining > 0 do
-      {:go, %{remaining: remaining - 1}}
-  end
-  def throttle(rate_info) do
+  def throttle(rates) do
     now = DateTime.utc_now |> DateTime.to_unix
-    reset_time = rate_info.reset_time
-    wait_time = reset_time - now
+    wait_time = rates.reset_time
     cond do
       wait_time > 0 ->
         {:wait, wait_time * 1000}
       wait_time == 0 ->
         {:wait, 1000}
+      # this means the reset_time has passed
       true ->
-        {:go, %{remaining: rate_info.limit - 1, reset_time: now + 2}}
+        {:go, %{rates | remaining: rates.limit - 1,
+                        reset_time: now + 2}}
     end
+  end
+
+
+  def handle_call({:apply, route}, _, state) do
+    case throttle(get_rates(route)) do
+      {:wait, time} ->
+        Logger.debug "Timeout of #{time} under route #{route}"
+        {:reply, {:wait, time}, state}
+      {:go, new_rates} ->
+        update_rates(route, new_rates)
+        {:reply, {:go, state.token}, state}
+    end
+  end
+
+
+  def handle_call({:process, route, result}, _, state) do
+    response = case result do
+      {:ok, data, rates} ->
+        update_rates(route, rates)
+        {:ok, data}
+      {:local, timeout, rates} ->
+        update_rates(route, rates)
+        {:retry, timeout}
+      {:global, timeout} ->
+        set_global(timeout)
+        {:retry, timeout}
+      error ->
+        error
+    end
+    {:reply, response, state}
+  end
+
+
+  def handle_call({:set_global, timeout}, _, state) do
+    Task.start(fn ->
+      Process.sleep(timeout)
+      GenServer.call(API, :reset_global)
+    end)
+    {:reply, :ok, %{state | global: {:wait, timeout}}}
   end
 
 end

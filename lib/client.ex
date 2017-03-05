@@ -4,14 +4,14 @@ defmodule Alchemy.Client do
   interface for the REST API.
   """
   require Logger
-  alias Alchemy.Discord.{Users, Channels, RateManager}
+  alias Alchemy.Discord.{Users, Channels, RateManagerRe}
   alias Alchemy.Discord.Gateway.Manager, as: GatewayManager
   alias Alchemy.{Channel, Channel.Invite, DMChannel, Reaction.Emoji,
                  Embed, Message, User, UserGuild}
   alias Alchemy.Cache.Manager, as: CacheManager
   alias Alchemy.Cache.Supervisor, as: CacheSupervisor
   alias Alchemy.Cogs.{CommandHandler, EventHandler}
-  import Alchemy.Discord.RateManager, only: [send: 1]
+  import Alchemy.Discord.RateManager, only: [send_req: 2]
   use Alchemy.Discord.Types
   use Supervisor
 
@@ -38,7 +38,7 @@ defmodule Alchemy.Client do
   # for managing requests.
   def init({token, options}) do
     children = [
-      worker(RateManager, [[token: token], [name: API]]),
+      worker(RateManager, [token]),
       worker(EventHandler, []),
       worker(CommandHandler, [options]),
       worker(GatewayManager, [token, options]),
@@ -68,8 +68,8 @@ defmodule Alchemy.Client do
   """
   @spec get_user(snowflake) :: {:ok, User.t} | {:error, term}
   def get_user(client_id) do
-    request = {Users, :get_user, [client_id]}
-    send(request)
+    {Users, :get_user, [client_id]}
+    |> send_req("/users/#{client_id}")
    end
    @doc """
    Edits the client's user_name and/or avatar.
@@ -93,7 +93,8 @@ defmodule Alchemy.Client do
    @spec edit_profile(username: String.t,
                       avatar: url) :: {:ok, User.t} | {:error, term}
    def edit_profile(options) do
-     send {Users, :modify_user, [options]}
+     {Users, :modify_user, [options]}
+     |> send_req("/users/@me")
    end
    @doc """
    Gets a list of guilds the client is currently a part of.
@@ -106,7 +107,8 @@ defmodule Alchemy.Client do
    """
    @spec get_current_guilds() :: {:ok, [UserGuild.t]} | {:error, term}
    def get_current_guilds do
-     send {Users, :get_current_guilds, []}
+     {Users, :get_current_guilds, []}
+     |> send_req("/users/@me/guilds")
    end
    @doc """
    Makes the client leave a guild.
@@ -119,7 +121,8 @@ defmodule Alchemy.Client do
    """
    @spec leave_guild(snowflake) :: {:ok, nil} | {:error, term}
    def leave_guild(guild_id) do
-    send {Users, :leave_guild, [guild_id]}
+    {Users, :leave_guild, [guild_id]}
+    |> send_req("/users/@me/guilds/#{guild_id}")
    end
    @doc """
    Gets a channel by its ID. Works on both private channels, and guild channels.
@@ -133,7 +136,8 @@ defmodule Alchemy.Client do
                                  | {:ok, DMChannel.t}
                                  | {:error, term}
    def get_channel(channel_id) do
-     send {Channels, :get_channel, [channel_id]}
+     {Channels, :get_channel, [channel_id]}
+     |> send_req("/channels/#{channel_id}")
    end
    @doc """
    Edits a channel in a guild, referenced by id.
@@ -166,7 +170,8 @@ defmodule Alchemy.Client do
                       user_limit: Integer) :: {:ok, Channel.t}
                                             | {:error, term}
    def edit_channel(channel_id, options) do
-     send {Channels, :modify_channel, [channel_id, options]}
+     {Channels, :modify_channel, [channel_id, options]}
+     |> send_req("/channels/#{channel_id}")
    end
    @doc """
    Deletes a channel from a guild.
@@ -188,7 +193,8 @@ defmodule Alchemy.Client do
                                     | {:ok, DMChannel.t}
                                     | {:error, term}
    def delete_channel(channel_id) do
-     send {Channels, :delete_channel, [channel_id]}
+     {Channels, :delete_channel, [channel_id]}
+     |> send_req("/channels/#{channel_id}")
    end
    @doc """
    Gets up to `100` messages from a channel.
@@ -214,7 +220,8 @@ defmodule Alchemy.Client do
                                        | {:error, term}
    def get_messages(channel_id, options) do
      options = Keyword.put_new(options, :limit, 100)
-     send {Channels, :channel_messages, [channel_id, options]}
+     {Channels, :channel_messages, [channel_id, options]}
+     |> send_req("/channels/#{channel_id}/messages")
    end
    @doc """
    Gets a message by channel, and message_id
@@ -226,7 +233,8 @@ defmodule Alchemy.Client do
    """
    @spec get_message(snowflake, snowflake) :: {:ok, Message.t} | {:error, term}
    def get_message(channel_id, message_id) do
-     send {Channels, :channel_message, [channel_id, message_id]}
+     {Channels, :channel_message, [channel_id, message_id]}
+     |> send_req("/channels/#{channel_id}/messages/#{message_id}")
    end
    @doc """
    Sends a message to a particular channel
@@ -250,7 +258,8 @@ defmodule Alchemy.Client do
                     nil -> :pop
                     some -> {some, Embed.build(some)}
                   end)
-     send {Channels, :create_message, [channel_id, options]}
+     {Channels, :create_message, [channel_id, options]}
+     |> send_req("/channels/#{channel_id}/messages")
    end
    @doc """
    Edits a message's contents.
@@ -273,7 +282,8 @@ defmodule Alchemy.Client do
          tuple
      end
      opts = Keyword.put(opts, :content, content)
-     send {Channels, :edit_message, [channel_id, message_id, opts]}
+     {Channels, :edit_message, [channel_id, message_id, opts]}
+     |> send_req("/channels/#{channel_id}/messages")
    end
    @doc """
    Edits a previously sent embed.
@@ -294,10 +304,12 @@ defmodule Alchemy.Client do
    @spec edit_embed(Message.t | {channel_id, message_id}, Embed.t) :: {:ok, Message.t}
                                                                     | {:error, term}
    def edit_embed(%Message{channel_id: channel_id, id: id}, embed) do
-     send {Channels, :edit_message, [channel_id, id, [embed: Embed.build(embed)]]}
+     {Channels, :edit_message, [channel_id, id, [embed: Embed.build(embed)]]}
+     |> send_req("/channels/#{channel_id}/messages")
    end
    def edit_embed({channel_id, id} = message, embed) do
-     send {Channels, :edit_message, [channel_id, id, [embed: Embed.build(embed)]]}
+     {Channels, :edit_message, [channel_id, id, [embed: Embed.build(embed)]]}
+     |> send_req("/channels/#{channel_id}/messages")
    end
    @doc """
    Deletes a message.
@@ -314,10 +326,12 @@ defmodule Alchemy.Client do
    @spec delete_message(Message.t | {channel_id, message_id}) ::
                        {:ok, nil} | {:error, term}
    def delete_message(%Message{channel_id: channel_id, id: id}) do
-     send {Channels, :delete_message, [channel_id, id]}
+     {Channels, :delete_message, [channel_id, id]}
+     |> send_req("del/channels/#{channel_id}/messages")
    end
    def delete_message({channel_id, message_id} = message) do
-     send {Channels, :delete_message, [channel_id, message_id]}
+     {Channels, :delete_message, [channel_id, message_id]}
+     |> send_req("del/channels/#{channel_id}/messages")
    end
    @doc """
    Deletes a list of messages.
@@ -343,7 +357,8 @@ defmodule Alchemy.Client do
        %{id: id} -> id
        id -> id
      end)
-     send {Channels, :delete_messages, [channel_id, messages]}
+     {Channels, :delete_messages, [channel_id, messages]}
+     |> send_req("del/channels/#{channel_id}/messages/bulk-delete")
    end
    @doc """
    Adds a reaction to a message.
@@ -364,11 +379,13 @@ defmodule Alchemy.Client do
                       unicode | Emoji.t) :: {:ok, nil} | {:error, term}
    def add_reaction(%Message{channel_id: channel_id, id: id}, emoji) do
      emoji = Emoji.resolve(emoji)
-     send {Channels, :create_reaction, [channel_id, id, emoji]}
+     {Channels, :create_reaction, [channel_id, id, emoji]}
+     |> send_req("/channels/#{channel_id}/messages/reactions/@me")
    end
    def add_reaction({channel_id, message_id} = message, emoji) do
      emoji = Emoji.resolve(emoji)
-     send {Channels, :create_reaction, [channel_id, message_id, emoji]}
+     {Channels, :create_reaction, [channel_id, message_id, emoji]}
+     |> send_req("/channels/#{channel_id}/messages/reactions/@me")
    end
    @doc """
    Removes a reaction on a message, posted by this user.
@@ -389,11 +406,13 @@ defmodule Alchemy.Client do
                          unicode | Emoji.t) :: {:ok, nil} | {:error, term}
    def remove_reaction(%Message{channel_id: channel_id, id: id}, emoji) do
      emoji = Emoji.resolve(emoji)
-     send {Channels, :delete_own_reaction, [channel_id, id, emoji]}
+     {Channels, :delete_own_reaction, [channel_id, id, emoji]}
+     |> send_req("/channels/#{channel_id}/messages/reactions/@me")
    end
     def remove_reaction({channel_id, message_id} = message, emoji) do
       emoji = Emoji.resolve(emoji)
-      send {Channels, :delete_own_reaction, [channel_id, message_id, emoji]}
+      {Channels, :delete_own_reaction, [channel_id, message_id, emoji]}
+      |> send_req("/channels/#{channel_id}/messages/reactions/@me")
     end
     @doc """
     Deletes a reaction added by another user.
@@ -410,7 +429,8 @@ defmodule Alchemy.Client do
         %User{id: id} -> id
         id -> id
       end
-      send {Channels, :delete_reaction, [channel_id, id, emoji, user]}
+      {Channels, :delete_reaction, [channel_id, id, emoji, user]}
+      |> send_req("/channels/#{channel_id}/messages/reactions")
     end
     def delete_reaction({channel_id, message_id}, emoji, user) do
       emoji = Emoji.resolve(emoji)
@@ -418,7 +438,8 @@ defmodule Alchemy.Client do
         %User{id: id} -> id
         id -> id
       end
-      send {Channels, :delete_reaction, [channel_id, message_id, emoji, user]}
+      {Channels, :delete_reaction, [channel_id, message_id, emoji, user]}
+      |> send_req("/channels/#{channel_id}/messages/reactions")
     end
     @doc """
     Gets a list of users who reacted to message with a particular emoji.
@@ -435,11 +456,13 @@ defmodule Alchemy.Client do
                         unicode | Emoji.t) :: {:ok, [User.t]} | {:error, term}
     def get_reactions(%Message{channel_id: channel_id, id: id}, emoji) do
       emoji = Emoji.resolve(emoji)
-      send {Channels, :get_reactions, [channel_id, id, emoji]}
+      {Channels, :get_reactions, [channel_id, id, emoji]}
+      |> send_req("/channels/#{channel_id}/messages/reactions")
     end
     def get_reactions({channel_id, message_id}, emoji) do
       emoji = Emoji.resolve(emoji)
-      send {Channels, :get_reactions, [channel_id, message_id, emoji]}
+      {Channels, :get_reactions, [channel_id, message_id, emoji]}
+      |> send_req("/channels/#{channel_id}/messages/reactions")
     end
     @doc """
     Removes all reactions from a message.
@@ -458,10 +481,12 @@ defmodule Alchemy.Client do
     @spec remove_reactions(Message.t | {channel_id, message_id}) ::
                            {:ok, nil} | {:error, term}
     def remove_reactions(%Message{channel_id: channel_id, id: id}) do
-      send {Channels, :delete_reactions, [channel_id, id]}
+      {Channels, :delete_reactions, [channel_id, id]}
+      |> send_req("/channels/#{channel_id}/messages/reactions")
     end
     def remove_reactions({channel_id, message_id} = message) do
-      send {Channels, :delete_reactions, [channel_id, message_id]}
+      {Channels, :delete_reactions, [channel_id, message_id]}
+      |> send_req("/channels/#{channel_id}/messages/reactions")
     end
     @doc """
     Gets a list of invites for a channel.
@@ -477,7 +502,8 @@ defmodule Alchemy.Client do
     """
     @spec get_invites(snowflake) :: {:ok, [Invite.t]} | {:error, term}
     def get_invites(channel_id) do
-      send {Channels, :get_channel_invites, [channel_id]}
+      {Channels, :get_channel_invites, [channel_id]}
+      |> send_req("/channels/#{channel_id}/invites")
     end
     @doc """
     Creates a new invite for a channel.
@@ -513,7 +539,8 @@ defmodule Alchemy.Client do
                         temporary: Boolean,
                         unique: True) :: {:ok, Invite.t} | {:error, term}
     def create_invite(channel_id, options \\ []) do
-      send {Channels, :create_channel_invite, [channel_id, options]}
+      {Channels, :create_channel_invite, [channel_id, options]}
+      |> send_req("/channels/#{channel_id}/invites")
     end
     @doc """
     Triggers the typing indicator.
@@ -531,7 +558,8 @@ defmodule Alchemy.Client do
     """
     @spec trigger_typing(snowflake) :: {:ok, nil} | {:error, term}
     def trigger_typing(channel_id) do
-      send {Channels, :trigger_typing, [channel_id]}
+      {Channels, :trigger_typing, [channel_id]}
+      |> send_req("/channels/#{channel_id}/typing")
     end
     @doc """
     Gets a list of pinned messages in a channel.
@@ -546,7 +574,8 @@ defmodule Alchemy.Client do
     """
     @spec get_pins(snowflake) :: {:ok, [Message.t]} | {:error, term}
     def get_pins(channel_id) do
-      send {Channels, :get_pinned_messages, [channel_id]}
+      {Channels, :get_pinned_messages, [channel_id]}
+      |> send_req("/channels/#{channel_id}/pins")
     end
     @doc """
     Pins a message to its channel.
@@ -560,10 +589,12 @@ defmodule Alchemy.Client do
     """
     @spec pin(Message.t | {channel_id, message_id}) :: {:ok, nil} | {:error, term}
     def pin(%Message{channel_id: channel_id, id: id}) do
-      send {Channels, :add_pinned_message, [channel_id, id]}
+      {Channels, :add_pinned_message, [channel_id, id]}
+      |> send_req("/channels/#{channel_id}/pins")
     end
     def pin({channel_id, message_id}) do
-      send {Channels, :add_pinned_message, [channel_id, message_id]}
+      {Channels, :add_pinned_message, [channel_id, message_id]}
+      |> send_req("/channels/#{channel_id}/pins")
     end
     @doc """
     Removes a pinned message from a channel.
@@ -578,9 +609,11 @@ defmodule Alchemy.Client do
     """
     @spec unpin(Message.t | {channel_id, message_id}) :: {:ok, nil} | {:error, term}
     def unpin(%Message{channel_id: channel_id, id: id}) do
-      send {Channels, :delete_pinned_message, [channel_id, id]}
+      {Channels, :delete_pinned_message, [channel_id, id]}
+      |> send_req("/channels/#{channel_id}/pins")
     end
     def unpin({channel_id, message_id}) do
-      send {Channels, :delete_pinned_message, [channel_id, message_id]}
+      {Channels, :delete_pinned_message, [channel_id, message_id]}
+      |> send_req("/channels/#{channel_id}/pins")
     end
 end
