@@ -451,8 +451,10 @@ defmodule Alchemy.Embed do
   def image(embed, url) do
     %{embed | image: %{url: url}}
   end
+  @doc """
 
-
+  """
+  @spec timestamp(Embed.t, DateTime.t) :: DateTime.t
   def timestamp(embed, %DateTime{} = time) do
     %{embed | timestamp: time}
   end
