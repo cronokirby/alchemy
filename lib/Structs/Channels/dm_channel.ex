@@ -15,7 +15,7 @@ defmodule Alchemy.DMChannel do
   @doc false
   def channel_type(code) do
     case code do
-      -1 -> :text
+     -1 -> :text
       0 -> :private
       1 -> :voice
       2 -> :group
@@ -29,6 +29,5 @@ defmodule Alchemy.DMChannel do
     |> field_map("recipients", &map_struct(&1, User))
     |> to_struct(__MODULE__)
   end
-
 
 end

@@ -3,8 +3,9 @@ defmodule Alchemy.Client do
   Represents a Client connection to the Discord API. This is the main public
   interface for the REST API.
   """
+  use Supervisor
   require Logger
-  alias Alchemy.Discord.{Users, Channels, RateManagerRe}
+  alias Alchemy.Discord.{Users, Channels, RateManager}
   alias Alchemy.Discord.Gateway.Manager, as: GatewayManager
   alias Alchemy.{Channel, Channel.Invite, DMChannel, Reaction.Emoji,
                  Embed, Message, User, UserGuild}
@@ -13,7 +14,7 @@ defmodule Alchemy.Client do
   alias Alchemy.Cogs.{CommandHandler, EventHandler}
   import Alchemy.Discord.RateManager, only: [send_req: 2]
   use Alchemy.Discord.Types
-  use Supervisor
+
 
 
   @doc """
@@ -123,6 +124,32 @@ defmodule Alchemy.Client do
    def leave_guild(guild_id) do
     {Users, :leave_guild, [guild_id]}
     |> send_req("/users/@me/guilds/#{guild_id}")
+   end
+   @doc """
+   Gets a list of private channels open with this user.
+
+   ## Examples
+   ```elixir
+   Client.get_DMs()
+   ```
+   """
+   @spec get_DMs :: [DMChannel.t]
+   def get_DMs do
+     {Users, :get_DMs, []}
+     |> send_req("/users/@me/channels")
+   end
+   @doc """
+   Opens a new private channel with a user.
+
+   ## Examples
+   Cogs.def dm_me do
+    Client.create_DM(message.author.id)
+   end
+   """
+   @spec create_DM(snowflake) :: DMChannel.t
+   def create_DM(user_id) do
+     {Users, :create_DM, [user_id]}
+     |> send_req("/users/@me/channels")
    end
    @doc """
    Gets a channel by its ID. Works on both private channels, and guild channels.
