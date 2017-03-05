@@ -1,7 +1,7 @@
 defmodule Alchemy.Discord.Users do
   @moduledoc false
   alias Alchemy.Discord.Api
-  alias Alchemy.{User, UserGuild}
+  alias Alchemy.{DMChannel, User, UserGuild}
 
   @root "https://discordapp.com/api/v6/users/"
 
@@ -32,4 +32,17 @@ defmodule Alchemy.Discord.Users do
     |> Api.delete(token)
   end
 
+
+  # Gets a list of DMChannel objects for a user
+  def get_DMs(token) do
+    @root <> "@me/channels"
+    |> Api.get(token, DMChannel)
+  end
+
+
+  def create_DM(token, user_id) do
+    json = ~s/{recipient_id: user_id}/
+    @root <> "/@me/channels"
+    |> Api.post(json, token, DMChannel)
+  end
 end
