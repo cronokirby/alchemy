@@ -253,9 +253,11 @@ defmodule Alchemy.Embed do
 
 
   @doc false # removes all the null keys from the map
+  # This will also convert datetime objects into iso_8601
   def build(struct) when is_map(struct) do
     {_, struct} = Map.pop(struct, :__struct__)
     struct
+    |> update_in([:timestamp], &DateTime.to_iso8601/1)
     |> Enum.filter_map(fn {_, v} -> v != nil and v != [] end,
                        fn {k, v} -> {k, build(v)} end)
     |> Enum.into(%{})
@@ -448,5 +450,10 @@ defmodule Alchemy.Embed do
   @spec image(Embed.t, url) :: Embed.t
   def image(embed, url) do
     %{embed | image: %{url: url}}
+  end
+
+
+  def timestamp(embed, %DateTime{} = time) do
+    %{embed | timestamp: time}
   end
 end
