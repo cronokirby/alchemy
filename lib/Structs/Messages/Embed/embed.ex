@@ -257,7 +257,6 @@ defmodule Alchemy.Embed do
   def build(struct) when is_map(struct) do
     {_, struct} = Map.pop(struct, :__struct__)
     struct
-    |> update_in([:timestamp], &DateTime.to_iso8601/1)
     |> Enum.filter_map(fn {_, v} -> v != nil and v != [] end,
                        fn {k, v} -> {k, build(v)} end)
     |> Enum.into(%{})
@@ -452,10 +451,15 @@ defmodule Alchemy.Embed do
     %{embed | image: %{url: url}}
   end
   @doc """
+  Adds a timestamp to an embed.
 
+  Note that the Datetime object will get convert to an `iso8601` formatted string.
+
+  ## Examples
+  %Embed{} |> timestamp(DateTime.utc_now())
   """
   @spec timestamp(Embed.t, DateTime.t) :: DateTime.t
   def timestamp(embed, %DateTime{} = time) do
-    %{embed | timestamp: time}
+    %{embed | timestamp: DateTime.to_iso8601(time) }
   end
 end
