@@ -3,7 +3,7 @@ defmodule Alchemy.Discord.Channels do
   alias Poison.Parser
   alias Alchemy.Discord.Api
   alias Alchemy.{Channel, Channel.Invite, DMChannel, Message, User, Reaction.Emoji}
-  import Alchemy.Structs.Utility
+  import Alchemy.Structs
 
   @root "https://discordapp.com/api/v6/channels/"
 

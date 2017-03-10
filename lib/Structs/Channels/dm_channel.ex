@@ -1,7 +1,7 @@
 defmodule Alchemy.DMChannel do
   @moduledoc false
   alias Alchemy.User
-  import Alchemy.Structs.Utility
+  import Alchemy.Structs
 
 
   @derive [Poison.Encoder]

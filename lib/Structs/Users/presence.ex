@@ -1,5 +1,5 @@
 defmodule Alchemy.Users.Presence do
-  import Alchemy.Structs.Utility
+  import Alchemy.Structs
   alias Alchemy.User
   @moduledoc """
   """

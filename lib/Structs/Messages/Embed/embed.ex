@@ -27,7 +27,7 @@ defmodule Alchemy.Embed do
     end
     ```
     """
-  import Alchemy.Structs.Utility
+  import Alchemy.Structs
   alias Alchemy.Attachment
   alias Alchemy.Embed.{Footer, Image, Video, Provider, Author, Field, Thumbnail}
   alias Alchemy.Embed

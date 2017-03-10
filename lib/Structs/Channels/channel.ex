@@ -3,7 +3,7 @@ defmodule Alchemy.Channel do
   alias Alchemy.DMChannel
   alias Alchemy.Channel.{Invite, Invite.InviteChannel, Invite.InviteGuild}
   import Alchemy.DMChannel, only: [channel_type: 1]
-  import Alchemy.Structs.Utility
+  import Alchemy.Structs
   @moduledoc """
   This module contains useful functions for operating on `Channels`.
   """

@@ -6,7 +6,7 @@ defmodule Alchemy.Discord.Events do
   alias Alchemy.Cache.Guilds
   alias Alchemy.Cache.PrivChannels
   alias Alchemy.Cogs.CommandHandler, as: Commands
-  import Alchemy.Structs.Utility
+  import Alchemy.Structs
   import Alchemy.Cogs.EventHandler, only: [notify: 1]
 
 
