@@ -21,6 +21,14 @@ defmodule Alchemy.Discord.Api do
     end)
   end
 
+  # returns a function to be used in api requests
+  def parse_map(mapper) do
+    fn json ->
+      json
+      |> Parser.parse!
+      |> Enum.map(mapper)
+    end
+  end
 
   ### Request API ###
 

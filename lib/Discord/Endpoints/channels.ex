@@ -34,13 +34,8 @@ defmodule Alchemy.Discord.Channels do
 
 
   def channel_messages(token, channel_id, options) do
-     parser = fn json ->
-       json
-       |> Parser.parse!
-       |> Enum.map(&Message.from_map/1)
-     end
      @root <> channel_id <> "/messages" <> Api.query(options)
-     |> Api.get(token, parser)
+     |> Api.get(token, Api.parse_map(&Message.from_map/1))
   end
 
 
