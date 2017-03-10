@@ -31,14 +31,14 @@ defmodule Alchemy.Structs do
   end
 
 
+  def field_map(map, key, func) do
+    update_in(map[key], &func.(&1))
+  end
   def field_map?(map, key, func) do
     case map[key] do
       nil -> map
       _   -> update_in(map, [key], &func.(&1))
     end
-  end
-  def field_map(map, key, func) do
-    update_in(map[key], &func.(&1))
   end
 
 end
