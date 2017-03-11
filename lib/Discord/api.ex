@@ -3,7 +3,6 @@ defmodule Alchemy.Discord.Api do
   require Logger
   alias Alchemy.Discord.RateLimits
 
-
   ### Utility ###
 
   # Converts a keyword list into json
@@ -22,11 +21,11 @@ defmodule Alchemy.Discord.Api do
   end
 
   # returns a function to be used in api requests
-  def parse_map(mapper) do
+  def parse_map(mod) do
     fn json ->
       json
       |> Parser.parse!
-      |> Enum.map(mapper)
+      |> Enum.map(&mod.from_map/1)
     end
   end
 
@@ -86,7 +85,7 @@ defmodule Alchemy.Discord.Api do
   end
   defp request(req_type, req_args, module) when is_atom(module) do
     apply(__MODULE__, req_type, req_args)
-    |> handle_response(&apply(module, :from_map, [Poison.Parser.parse!(&1)]))
+    |> handle_response(&module.from_map(Poison.Parser.parse!(&1)))
   end
   defp request(req_type, req_args, parser) when is_function(parser) do
     apply(__MODULE__, req_type, req_args)

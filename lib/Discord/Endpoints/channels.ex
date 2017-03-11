@@ -35,7 +35,7 @@ defmodule Alchemy.Discord.Channels do
 
   def channel_messages(token, channel_id, options) do
      @root <> channel_id <> "/messages" <> Api.query(options)
-     |> Api.get(token, Api.parse_map(&Message.from_map/1))
+     |> Api.get(token, Api.parse_map(Message))
   end
 
 
@@ -52,21 +52,21 @@ defmodule Alchemy.Discord.Channels do
 
 
   def edit_message(token, channel_id, message_id, options) do
-    url = @root <> channel_id <> "/messages/" <> message_id
-    Api.patch(url, token, Api.encode(options), Message)
+    @root <> channel_id <> "/messages/" <> message_id
+    |> Api.patch(token, Api.encode(options), Message)
   end
 
 
   def delete_message(token, channel_id, message_id) do
-    url = @root <> channel_id <> "/messages/" <> message_id
-    Api.delete(url, token)
+    @root <> channel_id <> "/messages/" <> message_id
+    |> Api.delete(token)
   end
 
 
   def delete_messages(token, channel_id, messages) do
     json = Poison.encode!(%{messages: messages})
-    url = @root <> channel_id <> "/messages/bulk-delete"
-    Api.post(url, token, json)
+    @root <> channel_id <> "/messages/bulk-delete"
+    |> Api.post(token, json)
   end
 
 

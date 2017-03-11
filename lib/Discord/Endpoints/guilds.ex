@@ -1,7 +1,7 @@
 defmodule Alchemy.Discord.Guilds do
   @moduledoc false
   alias Alchemy.Discord.Api
-  alias Alchemy.{Channel, Guild, GuildMember}
+  alias Alchemy.{Channel, Guild, GuildMember, User, Role}
 
   @root "https://discordapp.com/api/v6/guilds/"
 
@@ -19,7 +19,7 @@ defmodule Alchemy.Discord.Guilds do
 
   def get_channels(token, guild_id) do
     @root <> guild_id <> "/channels"
-    |> Api.get(token, Api.parse_map(&Guild.from_map/1))
+    |> Api.get(token, Api.parse_map(Guild))
   end
 
 
@@ -36,7 +36,7 @@ defmodule Alchemy.Discord.Guilds do
       %{id: id, position: pos}
     end) |> Api.encode
     @root <> guild_id <> "/channels"
-    |> Api.patch(token, channels, Api.parse_map(&Channel.from_map/1))
+    |> Api.patch(token, channels, Api.parse_map(Channel))
   end
 
 
@@ -47,7 +47,107 @@ defmodule Alchemy.Discord.Guilds do
 
 
   def get_member_list(token, guild_id, options) do
-    @root <> guild_id <> "/members" <> URI.encode_query(options)
-    |> Api.get(token, Api.parse_map(&GuildMember.from_map/1))
+    query = case URI.encode_query(options) do
+      "" -> ""
+      q  -> "?" <> q
+    end
+    @root <> guild_id <> "/members" <> query
+    |> Api.get(token, Api.parse_map(GuildMember))
+  end
+
+
+  def modify_member(token, guild_id, user_id, options) do
+    @root <> guild_id <> "/members/" <> user_id
+    |> Api.patch(token, Api.encode(options), GuildMember)
+  end
+
+
+  def modify_nick(token, guild_id, nick) do
+    json = ~s/{"nick": #{nick}}/
+    @root <> guild_id <> "/members/@me/nick"
+    |> Api.patch(token, json)
+  end
+
+
+  def add_role(token, guild_id, user_id, role_id) do
+    @root <> guild_id <> "/members/" <> user_id <> "/roles/" <> role_id
+    |> Api.put(token)
+  end
+
+
+  def remove_role(token, guild_id, user_id, role_id) do
+    @root <> guild_id <> "/members/" <> user_id <> "/roles/" <> role_id
+    |> Api.delete(token)
+  end
+
+
+  def remove_member(token, guild_id, user_id) do
+    @root <> guild_id <> "/members/" <> user_id
+    |> Api.delete(token)
+  end
+
+
+  def get_bans(token, guild_id) do
+    @root <> guild_id <> "/bans"
+    |> Api.get(token, Api.parse_map(User))
+  end
+
+
+  def create_ban(token, guild_id, user_id, days) do
+    json = ~s/{"delete-message-days": #{days}}/
+    @root <> guild_id <> "/bans/" <> user_id
+    |> Api.put(token, json)
+  end
+
+
+  def remove_ban(token, guild_id, user_id) do
+    @root <> guild_id <> "/bans/" <> user_id
+    |> Api.delete(token)
+  end
+
+
+  def get_roles(token, guild_id) do
+    @root <> guild_id <> "/roles"
+    |> Api.get(token, Api.parse_map(Role))
+  end
+
+
+  def create_role(token, guild_id, options) do
+    @root <> guild_id <> "/roles"
+    |> Api.post(token, Api.encode(options), Role)
+  end
+
+
+  def move_roles(token, guild_id, tuples) do
+    roles = Stream.map(tuples, fn {id, pos} ->
+      %{id: id, position: pos}
+    end) |> Api.encode
+    @root <> guild_id <> "/roles"
+    |> Api.patch(token, roles, Api.parse_map(Role))
+  end
+
+
+  def modify_role(token, guild_id, role_id, options) do
+    @root <> guild_id <> "/roles/" <> role_id
+    |> Api.patch(token, Api.encode(options), Role)
+  end
+
+
+  def delete_role(token, guild_id, role_id) do
+    @root <> guild_id <> "/roles/" <> role_id
+    |> Api.delete(token)
+  end
+
+
+  def get_prune_count(token, guild_id, days) do
+    @root <> guild_id <> "/prune?" <> URI.encode_query(%{"days" => days})
+    |> Api.get(token)
+  end
+
+
+  def prune_guild(token, guild_id, days) do
+    json = ~s/{"days": #{days}}/
+    @root <> guild_id <> "/prune"
+    |> Api.post(token, json)
   end
 end
