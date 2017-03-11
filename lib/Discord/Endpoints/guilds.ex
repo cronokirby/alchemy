@@ -1,7 +1,7 @@
 defmodule Alchemy.Discord.Guilds do
   @moduledoc false
   alias Alchemy.Discord.Api
-  alias Alchemy.{Channel, Guild, GuildMember, User, Role}
+  alias Alchemy.{Channel, Invite, Guild, GuildMember, User, Role, VoiceRegion}
 
   @root "https://discordapp.com/api/v6/guilds/"
 
@@ -150,4 +150,23 @@ defmodule Alchemy.Discord.Guilds do
     @root <> guild_id <> "/prune"
     |> Api.post(token, json)
   end
+
+
+  def get_regions(token, guild_id) do
+    @root <> guild_id <> "/regions"
+    |> Api.get(token, [VoiceRegion])
+  end
+
+
+  def get_invites(token, guild_id) do
+    @root <> guild_id <> "/invites"
+    |> Api.get(token, Api.parse_map(Invite))
+  end
+
+
+  def get_all_regions(token) do
+    "https://discordapp.com/api/v6/voice/regions"
+    |> Api.get(token, [VoiceRegion])
+  end
+
 end

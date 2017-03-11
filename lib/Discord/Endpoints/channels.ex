@@ -123,13 +123,8 @@ defmodule Alchemy.Discord.Channels do
 
 
   def get_channel_invites(token, channel_id) do
-    parser = fn json ->
-      json
-      |> Parser.parse!
-      |> Enum.map(&Invite.from_map/1)
-    end
     @root <> channel_id <> "/invites"
-    |>  Api.get(token, parser)
+    |>  Api.get(token, Api.parse_map(Invite))
   end
 
 
