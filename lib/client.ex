@@ -5,10 +5,10 @@ defmodule Alchemy.Client do
   """
   use Supervisor
   require Logger
-  alias Alchemy.Discord.{Users, Channels, RateManager}
+  alias Alchemy.Discord.{Users, Channels, Guilds, RateManager}
   alias Alchemy.Discord.Gateway.Manager, as: GatewayManager
   alias Alchemy.{Channel, Channel.Invite, DMChannel, Reaction.Emoji,
-                 Embed, Message, User, UserGuild}
+                 Embed, Guild, Message, User, UserGuild}
   alias Alchemy.Cache.Manager, as: CacheManager
   alias Alchemy.Cache.Supervisor, as: CacheSupervisor
   alias Alchemy.Cogs.{CommandHandler, EventHandler}
@@ -643,4 +643,102 @@ defmodule Alchemy.Client do
       {Channels, :delete_pinned_message, [channel_id, message_id]}
       |> send_req("/channels/#{channel_id}/pins")
     end
+    @doc """
+    Gets info about a certain guild.
+
+    The info returned here doesn't contain as much info as contained in the cache.
+    For guilds the user is a part of, the cache should be preferred over this method.
+
+    ```examples
+    Client.get_guild(id)
+    ```
+    """
+    @spec get_guild(snowflake) :: {:ok, Guild.t} | {:error, term}
+    def get_guild(guild_id) do
+      {Guilds, :get_guild, [guild_id]}
+      |> send_req("/guilds/#{guild_id}")
+    end
+    @doc """
+    Modifies a guild's settings.
+
+    ## Options
+    - `name`
+      The name of the guild.
+    - `region`
+      The id of the voice region.
+    - `verification_level`
+      The level of verification of the guild.
+    - `default_message_notifications`
+      The default message notification settings.
+    - `afk_channel_id`
+      The id of the afk channel.
+    - `afk_timeout`
+      The afk timeout in seconds.
+    - `icon`
+      A url to the new icon. Must be a 128x128 jpeg image.
+    - `splash`
+      A url to the new splash screen. This is only available for partnered guilds.
+
+    ## Examples
+    ```elixir
+    Client.edit_guild(guild_id, name: "new name")
+    ```
+    """
+    @spec edit_guild(snowflake,
+                     name: String.t,
+                     region: snowflake,
+                     verification_level: Integer,
+                     default_message_notifications: Integer,
+                     afk_channel_id: snowflake,
+                     afk_timeout: snowflake,
+                     icon: url,
+                     splash: url) :: {:ok, Guild.t} | {:error, term}
+    def edit_guild(guild_id, options) do
+       {Guilds, :modify_guild, [guild_id, options]}
+       |> send_req("/guilds/#{guild_id}")
+    end
+    @doc """
+    Returns a list of channel objects for a guild.
+
+    As with most guild methods, the cache should be preferred
+    over the api if possible.
+
+    ## Examples
+    ```elixir
+    Client.get_channels(guild_id)
+    ```
+    """
+    @spec get_channels(snowflake) :: {:ok, [Channel.t]} | {:error, term}
+    def get_channels(guild_id) do
+      {Guilds, :get_channels, [guild_id]}
+      |> send_req("/guilds/#{guild_id}/channels")
+    end
+    @doc """
+    Creates a new channel in a guild.
+
+    Requires the `MANAGE_CHANNELS` permission.
+
+    ## Options
+    - `voice`
+      Setting this creates a new voice channel.
+    - `bitrate`
+      Sets the bitrate (bits) for a voice channel.
+    - `user_limit`
+      Sets the max amount of users for a voice channel.
+    - `permission_overwrites`
+      An overwrite for permissions in that channel
+    ## Examples
+    ```elixir
+    Client.create_channel(guild_id)
+    ```
+    """
+    @spec create_channel(snowflake, String.t,
+                         voice: Boolean,
+                         bitrate: Integer,
+                         user_limit: Integer) :: {:ok, Channel.t} | {:error, term}
+    def create_channel(guild_id, name, options) do
+      {Guilds, :create_channel, [guild_id, name, options]}
+      |> send_req("/guilds/#{guild_id}/channels")
+    end
+
 end

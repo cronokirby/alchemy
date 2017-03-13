@@ -24,7 +24,7 @@ defmodule Alchemy.Discord.Api do
   def parse_map(mod) do
     fn json ->
       json
-      |> Parser.parse!
+      |> Poison.Parser.parse!
       |> Enum.map(&mod.from_map/1)
     end
   end
@@ -69,12 +69,18 @@ defmodule Alchemy.Discord.Api do
   end
 
 
+
+  def image_data(url) do
+    {:ok, HTTPotion.get(url).body |> Base.encode64}
+  end
+
   # Fetches an image, encodes it base64, and then formats it in discord's
   # preferred formatting. Returns {:ok, formatted}, or {:error, why}
   def fetch_avatar(url) do
-    data = HTTPotion.get(url).body |> Base.encode64
+    {:ok, data} = image_data(url)
     {:ok, "data:image/jpeg;base64,#{data}"}
   end
+
 
 
   ### Private ###

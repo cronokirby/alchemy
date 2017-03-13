@@ -1,7 +1,8 @@
 defmodule Alchemy.Discord.Guilds do
   @moduledoc false
   alias Alchemy.Discord.Api
-  alias Alchemy.{Channel, Invite, Guild, GuildMember, User, Role, VoiceRegion}
+  alias Alchemy.{DMChannel, Channel, Invite, Guild, GuildMember,
+                 User, Role, VoiceRegion}
 
   @root "https://discordapp.com/api/v6/guilds/"
 
@@ -13,19 +14,32 @@ defmodule Alchemy.Discord.Guilds do
 
 
   def modify_guild(token, guild_id, options) do
+    update = fn
+      nil -> :pop
+      some -> Api.image_data(some)
+    end
+    {_, options} = Keyword.get_and_update(options, :icon, update)
+    {_, options} = Keyword.get_and_update(options, :splash, update)
     Api.patch(@root <> guild_id, token, Api.encode(options), Guild)
   end
 
 
   def get_channels(token, guild_id) do
     @root <> guild_id <> "/channels"
-    |> Api.get(token, Api.parse_map(Guild))
+    |> Api.get(token, Api.parse_map(Channel))
   end
 
 
   def create_channel(token, guild_id, name, options) do
-    options = Keyword.put(options, :name, name)
-              |> Api.encode
+    options = case Keyword.get(options, :voice) do
+      true ->
+        {_, o} = Keyword.pop(options, :voice)
+        Keyword.put(o, :type, 2)
+      _ ->
+        options
+    end
+    |> Keyword.put(:name, name)
+    |> Api.encode
     @root <> guild_id <> "/channels"
     |> Api.post(token, options, Channel)
   end
