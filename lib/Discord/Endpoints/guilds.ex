@@ -14,12 +14,12 @@ defmodule Alchemy.Discord.Guilds do
 
 
   def modify_guild(token, guild_id, options) do
-    update = fn
-      nil -> :pop
-      some -> Api.image_data(some)
-    end
-    {_, options} = Keyword.get_and_update(options, :icon, update)
-    {_, options} = Keyword.get_and_update(options, :splash, update)
+    options =
+      options
+      |> Keyword.take([:icon, :splash])
+      |> Task.async_stream(fn {k, v} -> {k, Api.image_data(v)} end)
+      |> Enum.map(fn {:ok, v} -> v end)
+      |> Keyword.merge(options)
     Api.patch(@root <> guild_id, token, Api.encode(options), Guild)
   end
 
