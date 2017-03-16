@@ -831,4 +831,17 @@ defmodule Alchemy.Client do
       {Guilds, :modify_member, [guild_id, user_id, options]}
       |> send_req("/guilds/#{guild_id}/members")
     end
+    @doc """
+    Modifies the nickname of the current user.
+
+    ## Examples
+    ```elixir
+    Client.change_nickname(guild_id, "best bot")
+    ```
+    """
+    @spec change_nickname(snowflake, String.t) :: {:ok, nil} | {:error, term}
+    def change_nickname(guild_id, name) do
+      {Guilds, :modify_nick, [guild_id, name]}
+      |> send_req("/guilds/#{guild_id}/members/@me/nick")
+    end
 end
