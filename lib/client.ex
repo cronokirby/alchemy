@@ -736,9 +736,28 @@ defmodule Alchemy.Client do
                          voice: Boolean,
                          bitrate: Integer,
                          user_limit: Integer) :: {:ok, Channel.t} | {:error, term}
-    def create_channel(guild_id, name, options) do
+    def create_channel(guild_id, name, options \\ []) do
       {Guilds, :create_channel, [guild_id, name, options]}
       |> send_req("/guilds/#{guild_id}/channels")
     end
+    @doc """
+    Swaps the position of channels in a guild.
 
+    ## Examples
+    ```elixir
+    # alphabetizes a guild channel list
+    with {:ok, channels} <- Task.await Client.get_channels(guild_id) do
+      channels
+      |> Enum.sort_by(& &1.name)
+      |> Stream.map(& &1.id)
+      |> Enum.with_index
+      |> (&Client.move_channels(guild_id, &1)).()
+    end
+    """
+    @spec move_channels(snowflake, [{snowflake, Integer}]) :: {:ok, nil}
+                                                            | {:error, term}
+    def move_channels(guild_id, pairs) do
+      {Guilds, :move_channels, [guild_id, pairs]}
+      |> send_req("/guilds/#{guild_id}/channels")
+    end
 end
