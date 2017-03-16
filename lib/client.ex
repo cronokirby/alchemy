@@ -777,4 +777,58 @@ defmodule Alchemy.Client do
       {Guilds, :get_member, [guild_id, user_id]}
       |> send_req("/guilds/#{guild_id}/members")
     end
+    # CACHESTUB
+    @doc """
+    Gets a list of members from a guild.
+
+    ## Options
+    - `limit`
+      The number of members to fetch (max 1000).
+    - `after`
+      Setting this to a user id will only fetch members that joined after that person.
+    ## Examples
+    ```elixir
+    Client.get_member_list(guild_id, limit: 10)
+    ```
+    """
+    @spec get_member_list(snowflake,
+                          limit: Integer, after: snowflake) :: {:ok, [GuildMember.t]}
+                                                             | {:error, term}
+    def get_member_list(guild_id, options \\ []) do
+      {Guilds, :get_member_list, [guild_id, options]}
+      |> send_req("/guilds/#{guild_id}/members")
+    end
+    # SUGARSTUB
+    @doc """
+    Modifies a member in a guild.
+
+    Each option requires different permissions.
+    ## Options
+    - `nick`
+      The nickname of the user. Requires `:manage_nicknames`
+    - `roles`
+      A list of roles (ids) the user should have after the change.
+      Requires `:manage_roles`
+    - `mute`
+      Whether or not the user should be muted. Requires `:mute_members`
+    - `deaf`
+      Whether or not the user should be deafened. Requires `:deafen_members`
+    - `channel_id`
+      Voice channel to move the user too (if they are connected).
+      Requires `:move_members`, and permission to connect to that channel.
+    ## Examples
+    ```elixir
+    Client.edit_member(guild_id, user_id, nick: "cool guy")
+    ```
+    """
+    @spec edit_member(snowflake, snowflake,
+                      nick: String.t,
+                      roles: [snowflake],
+                      mute: Boolean,
+                      deaf: Boolean,
+                      channel_id: snowflake) :: {:ok, GuildMember.t} | {:error, term}
+    def edit_member(guild_id, user_id, options) do
+      {Guilds, :modify_member, [guild_id, user_id, options]}
+      |> send_req("/guilds/#{guild_id}/members")
+    end
 end
