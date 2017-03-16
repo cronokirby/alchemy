@@ -46,7 +46,7 @@ defmodule Alchemy.Discord.Guilds do
 
 
   def move_channels(token, guild_id, tuples) do
-    channels = Enum.map(tuples, fn {id, pos} ->
+    channels = Stream.map(tuples, fn {id, pos} ->
       %{"id" => id, "position" => pos}
     end) |> Poison.encode!
     @root <> guild_id <> "/channels"
