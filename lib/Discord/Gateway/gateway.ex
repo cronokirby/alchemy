@@ -9,7 +9,7 @@ defmodule Alchemy.Discord.Gateway do
 
   defmodule State do
     @moduledoc false
-    defstruct [:token, :shard, :trace, :session_id, :seq]
+    defstruct [:token, :shard, :trace, :session_id, :seq, :started]
   end
 
 
@@ -19,7 +19,10 @@ defmodule Alchemy.Discord.Gateway do
      :ssl.start
      # request_url will return a protocol to execute
      url = Manager.request_url().()
-     :websocket_client.start_link(url, __MODULE__, %State{token: token, shard: shard})
+     # keep track of when the gateway was started.
+     started = DateTime.utc_now |> DateTime.to_unix
+     state = %State{token: token, shard: shard, started: started}
+     :websocket_client.start_link(url, __MODULE__, state)
   end
 
 
@@ -29,12 +32,12 @@ defmodule Alchemy.Discord.Gateway do
 
 
   def onconnect(_ws_req, state) do
-    Logger.debug "Shard #{IO.inspect state.shard} Connected to the gateway"
+    Logger.debug "Shard #{Macro.to_string state.shard} Connected to the gateway"
     {:ok, state}
   end
 
 
-  def ondisconnect(reason, state) do
+  def ondisconnect(reason, %State{started: then} = state) do
     {:reconnect, state}
   end
 
@@ -69,8 +72,7 @@ defmodule Alchemy.Discord.Gateway do
 
 
   def websocket_terminate(why, _conn_state, state) do
-    Logger.info "Websocket terminated, reason: #{IO.inspect why}"
-    IO.inspect state
+    Logger.debug "Websocket terminated, reason: #{Macro.to_string why}"
     :ok
   end
 
