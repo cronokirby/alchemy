@@ -8,8 +8,7 @@ defmodule Alchemy.Client do
   alias Alchemy.Discord.{Users, Channels, Guilds, RateManager}
   alias Alchemy.Discord.Gateway.Manager, as: GatewayManager
   alias Alchemy.{Channel, Channel.Invite, DMChannel, Reaction.Emoji,
-                 Embed, Guild, Message, User, UserGuild}
-  alias Alchemy.Cache.Manager, as: CacheManager
+                 Embed, Guild, GuildMember, Message, User, UserGuild}
   alias Alchemy.Cache.Supervisor, as: CacheSupervisor
   alias Alchemy.Cogs.{CommandHandler, EventHandler}
   import Alchemy.Discord.RateManager, only: [send_req: 2]
@@ -643,6 +642,7 @@ defmodule Alchemy.Client do
       {Channels, :delete_pinned_message, [channel_id, message_id]}
       |> send_req("/channels/#{channel_id}/pins")
     end
+    # CACHESTUB
     @doc """
     Gets info about a certain guild.
 
@@ -697,6 +697,7 @@ defmodule Alchemy.Client do
        {Guilds, :modify_guild, [guild_id, options]}
        |> send_req("/guilds/#{guild_id}")
     end
+    # CACHESTUB
     @doc """
     Returns a list of channel objects for a guild.
 
@@ -759,5 +760,21 @@ defmodule Alchemy.Client do
     def move_channels(guild_id, pairs) do
       {Guilds, :move_channels, [guild_id, pairs]}
       |> send_req("/guilds/#{guild_id}/channels")
+    end
+    # CACHESTUB
+    @doc """
+    Gets info for a member of a guild.
+
+    For guilds the bot is in, use the corresponding cache method instead.
+
+    ## Examples
+    ```elixir
+    Client.get_member(guild_id, user_id)
+    ```
+    """
+    @spec get_member(snowflake, snowflake) :: {:ok, GuildMember.t} | {:error, term}
+    def get_member(guild_id, user_id) do
+      {Guilds, :get_member, [guild_id, user_id]}
+      |> send_req("/guilds/#{guild_id}/members")
     end
 end
