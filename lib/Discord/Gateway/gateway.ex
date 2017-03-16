@@ -9,7 +9,7 @@ defmodule Alchemy.Discord.Gateway do
 
   defmodule State do
     @moduledoc false
-    defstruct [:token, :shard, :trace, :session_id, :seq, :started]
+    defstruct [:token, :shard, :trace, :session_id, :seq]
   end
 
 
@@ -19,10 +19,7 @@ defmodule Alchemy.Discord.Gateway do
      :ssl.start
      # request_url will return a protocol to execute
      url = Manager.request_url().()
-     # keep track of when the gateway was started.
-     started = DateTime.utc_now |> DateTime.to_unix
-     state = %State{token: token, shard: shard, started: started}
-     :websocket_client.start_link(url, __MODULE__, state)
+     :websocket_client.start_link(url, __MODULE__, %State{token: token, shard: shard})
   end
 
 
@@ -37,7 +34,7 @@ defmodule Alchemy.Discord.Gateway do
   end
 
 
-  def ondisconnect(reason, %State{started: then} = state) do
+  def ondisconnect(reason, state) do
     {:reconnect, state}
   end
 
