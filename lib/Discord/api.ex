@@ -37,6 +37,9 @@ defmodule Alchemy.Discord.Api do
   end
 
 
+  def patch(url, token, data) do
+    request(:_patch, [url, data, token])
+  end
   def patch(url, token, data, body) do
     request(:_patch, [url, data, token], body)
   end
