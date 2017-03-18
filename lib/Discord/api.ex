@@ -59,8 +59,8 @@ defmodule Alchemy.Discord.Api do
   def put(url, token) do
     request(:_put, [url, token])
   end
-  def put(url, token, body) do
-    request(:_put, [url, token], body)
+  def put(url, token, data) do
+    request(:_put, [url, token, data])
   end
 
 
@@ -180,6 +180,12 @@ defmodule Alchemy.Discord.Api do
   def _put(url, token) do
     HTTPotion.put url,
       headers: auth_headers(token)
+  end
+  def _put(url, token, data) do
+    HTTPotion.put url,
+      [headers: auth_headers(token) ++
+                ["Content-Type": "application/json"],
+      body: data]
   end
 
 
