@@ -878,7 +878,7 @@ defmodule Alchemy.Client do
     @doc """
     Kicks a member from a guild.
 
-    Not to be confused with `ban_member/2`.
+    Not to be confused with `ban_member/3`.
     ## Examples
     ```elixir
     Client.kick_member(guild_id, user_id)
@@ -904,4 +904,23 @@ defmodule Alchemy.Client do
       {Guilds, :get_bans, [guild_id]}
       |> send_req("/guilds/#{guild_id}/bans")
     end
+    # SUGARSTUB
+    @doc """
+    Bans a member from a guild.
+
+    This prevents a user from rejoining for as long as the ban persists,
+    as opposed to `kick_member/2` which will just make them leave the server.
+
+    A `days` paramater can be set to delete x days of messages; limited to 7.
+    ## Examples
+    ```elixir
+    Client.ban_member(guild_id, user_id, 1)
+    ```
+    """
+    @spec ban_member(snowflake, snowflake) :: {:ok, nil} | {:error, term}
+    def ban_member(guild_id, user_id, days \\ 0) do
+       {Guilds, :create_ban, [guild_id, user_id, days]}
+       |> send_req("/guilds/#{guild_id}/bans")
+    end
+
 end
