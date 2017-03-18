@@ -844,4 +844,64 @@ defmodule Alchemy.Client do
       {Guilds, :modify_nick, [guild_id, name]}
       |> send_req("/guilds/#{guild_id}/members/@me/nick")
     end
+    # SUGARSTUB
+    @doc """
+    Adds a role to a member of a guild.
+
+    Requires the `:manage_roles` permission.
+    ## Examples
+    ```elixir
+    Client.add_role(guild_id, user_id, role_id)
+    ```
+    """
+    @spec add_role(snowflake, snowflake, snowflake) :: {:ok, nil} | {:error, term}
+    def add_role(guild_id, user_id, role_id) do
+      {Guilds, :add_role, [guild_id, user_id, role_id]}
+      |> send_req("/guilds/#{guild_id}/members/roles")
+    end
+    # SUGARSTUB
+    @doc """
+    Removes a role of a guild member.
+
+    Requires the `:manage_roles` permission.
+    ## Examples
+    ```elixir
+    Client.remove_role(guild_id, user_id, role_id)
+    ```
+    """
+    @spec remove_role(snowflake, snowflake, snowflake) :: {:ok, nil} | {:error, term}
+    def remove_role(guild_id, user_id, role_id) do
+      {Guilds, :remove_role, [guild_id, user_id, role_id]}
+      |> send_req("/guilds/#{guild_id}/members/roles")
+    end
+    # SUGARSTUB
+    @doc """
+    Kicks a member from a guild.
+
+    Not to be confused with `ban_member/2`.
+    ## Examples
+    ```elixir
+    Client.kick_member(guild_id, user_id)
+    ```
+    """
+    @spec kick_member(snowflake, snowflake) :: {:ok, nil} | {:error, term}
+    def kick_member(guild_id, user_id) do
+      {Guilds, :remove_member, [guild_id, user_id]}
+      |> send_req("/guilds/#{guild_id}/members")
+    end
+    # SUGARSTUB
+    @doc """
+    Gets a list of users banned from this guild.
+
+    Requires the `:ban_members` permission.
+    ## Examples
+    ```elixir
+    {:ok, bans} = Client.get_bans(guild_id)
+    ```
+    """
+    @spec get_bans(snowflake) :: {:ok, [User.t]} | {:error, term}
+    def get_bans(guild_id) do
+      {Guilds, :get_bans, [guild_id]}
+      |> send_req("/guilds/#{guild_id}/bans")
+    end
 end
