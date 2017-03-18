@@ -922,5 +922,19 @@ defmodule Alchemy.Client do
        {Guilds, :create_ban, [guild_id, user_id, days]}
        |> send_req("/guilds/#{guild_id}/bans")
     end
+    # SUGARSTUB
+    @doc """
+    Unbans a user from the server.
+
+    ## Examples
+    ```elixir
+    Client.unban_member(guild_id, user_id)
+    ```
+    """
+    @spec unban_member(snowflake, snowflake) :: {:ok, nil} | {:error, term}
+    def unban_member(guild_id, user_id) do
+      {Guilds, :remove_ban, [guild_id, user_id]}
+      |> send_req("/guilds/#{guild_id}/bans")
+    end
 
 end
