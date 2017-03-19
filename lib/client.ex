@@ -1059,5 +1059,16 @@ defmodule Alchemy.Client do
     @spec get_regions(snowflake) :: {:ok, [VoiceRegion.t]} | {:error, term}
     def get_regions(guild_id) do
       {Guilds, :get_regions, [guild_id]}
+      |> send_req("/guilds/#{guild_id}/regions")
+    end
+    @doc """
+    Returns a list of invites for a guild.
+
+    Requires the `:manage_guild` permission.
+    """
+    @spec get_invites(snowflake) :: {:ok, [Invite.t]} | {:error, term}
+    def get_invites(guild_id) do
+      {Guilds, :get_invites, [guild_id]}
+      |> send_req("/guilds/#{guild_id}/invites")
     end
 end

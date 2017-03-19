@@ -183,4 +183,8 @@ defmodule Alchemy.Discord.Guilds do
     |> Api.get(token, [%VoiceRegion{}])
   end
 
+
+  def get_integrations(token, guild_id) do
+    @root <> guild_id <> "/integrations"
+  end
 end
