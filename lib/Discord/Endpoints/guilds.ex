@@ -122,13 +122,13 @@ defmodule Alchemy.Discord.Guilds do
 
   def get_roles(token, guild_id) do
     @root <> guild_id <> "/roles"
-    |> Api.get(token, Api.parse_map(Role))
+    |> Api.get(token, [%Role{}])
   end
 
 
   def create_role(token, guild_id, options) do
     @root <> guild_id <> "/roles"
-    |> Api.post(token, Api.encode(options), Role)
+    |> Api.post(token, Api.encode(options), %Role{})
   end
 
 
@@ -137,13 +137,13 @@ defmodule Alchemy.Discord.Guilds do
       %{id: id, position: pos}
     end) |> Api.encode
     @root <> guild_id <> "/roles"
-    |> Api.patch(token, roles, Api.parse_map(Role))
+    |> Api.patch(token, roles, [%Role{}])
   end
 
 
   def modify_role(token, guild_id, role_id, options) do
     @root <> guild_id <> "/roles/" <> role_id
-    |> Api.patch(token, Api.encode(options), Role)
+    |> Api.patch(token, Api.encode(options), %Role{})
   end
 
 

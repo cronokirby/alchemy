@@ -8,7 +8,7 @@ defmodule Alchemy.Client do
   alias Alchemy.Discord.{Users, Channels, Guilds, RateManager}
   alias Alchemy.Discord.Gateway.Manager, as: GatewayManager
   alias Alchemy.{Channel, Channel.Invite, DMChannel, Reaction.Emoji,
-                 Embed, Guild, GuildMember, Message, User, UserGuild}
+                 Embed, Guild, GuildMember, Message, User, UserGuild, Role}
   alias Alchemy.Cache.Supervisor, as: CacheSupervisor
   alias Alchemy.Cogs.{CommandHandler, EventHandler}
   import Alchemy.Discord.RateManager, only: [send_req: 2]
@@ -936,5 +936,49 @@ defmodule Alchemy.Client do
       {Guilds, :remove_ban, [guild_id, user_id]}
       |> send_req("/guilds/#{guild_id}/bans")
     end
+    @doc """
+    Gets a list of roles available in a guild.
 
+    Requires the `:manage_roles` permission.
+    ## Examples
+    ```elixir
+    Client.get_roles(guild_id)
+    ```
+    """
+    @spec get_roles(snowflake) :: {:ok, [Role.t]} | {:error, term}
+    def get_roles(guild_id) do
+      {Guilds, :get_roles, [guild_id]}
+      |> send_req("/guilds/#{guild_id}/roles")
+    end
+    @doc """
+    Creates a new role in the guild.
+
+    Requires the `:manage_roles` permission.
+    ## Options
+    - `name`
+      The name of the new role. Defaults to "new role"
+    - `permissions`
+      The set of permissions for that role. Defaults to the `@everyone`
+      permissions in that guild.
+    - `color`
+      The color of the role. Defaults to `0x000000`
+    - `hoist`
+      When set to `true`, the role will be displayed seperately in the sidebar.
+    - `mentionable`
+      When set to `true`, allows the role to be mentioned.
+    ## Examples
+    ```elixir
+    Client.create_role(guild_id, name: "the best role", color: 0x4bd1be)
+    ```
+    """
+    @spec create_role(snowflake,
+                      name: String.t,
+                      permissions: Integer,
+                      color: Integer,
+                      hoist: Booean,
+                      mentionable: Boolean) :: {:ok, Role.t} | {:error, term}
+    def create_role(guild_id, options) do
+      {Guilds, :create_role, [guild_id, options]}
+      |> send_req("/guilds/#{guild_id}/roles")
+    end
 end
