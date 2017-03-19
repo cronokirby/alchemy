@@ -997,4 +997,18 @@ defmodule Alchemy.Client do
       {Guilds, :modify_role, [guild_id, role_id, options]}
       |> send_req("/guilds/#{guild_id}/roles")
     end
+    @doc """
+    Modifies the position of roles in a guild.
+
+    Takes a list of `{id, position}` where `position` is an integer starting at 0,
+    and `id` is the id of the role.
+
+    Returns a list of all the roles in the guild.
+    """
+    @spec move_roles(snowflake, [{snowflake, Integer}]) :: {:ok, [Role.t]}
+                                                         | {:error, term}
+    def move_roles(guild_id, pairs) do
+      {Guilds, :move_roles, [guild_id, pairs]}
+      |> send_req("/guilds/#{guild_id}/roles")
+    end
 end
