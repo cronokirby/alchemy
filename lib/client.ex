@@ -1023,4 +1023,33 @@ defmodule Alchemy.Client do
       {Guilds, :move_roles, [guild_id, pairs]}
       |> send_req("/guilds/#{guild_id}/roles")
     end
+    @doc """
+    Returns a count of members who would be kicked in a prune operation.
+
+    Days specifies the amount of days of inactivity to check for.
+
+    See `prune_guild/2` for a discussion of this operation.
+    """
+    @spec get_prune_count(snowflake, Integer) :: {:ok, nil} | {:error, term}
+    def get_prune_count(guild_id, days) do
+      {Guilds, :get_prune_count, [guild_id, days]}
+      |> send_req("/guilds/#{guild_id}/prune")
+    end
+    @doc """
+    Removes inactive members of a guild.
+
+    Days allows you to specify the amount of days of inactivity necessary to be
+    kicked from the guild.
+
+    Requires the `:manage_roles` permission
+    ## Examples
+    ```elixir
+    Client.prune_guild(guild_id, )
+    ```
+    """
+    @spec prune_guild(snowflake, Integer) :: {:ok, nil} | {:error, term}
+    def prune_guild(guild_id, days) do
+      {Guilds, :prune_guild, [guild_id, days]}
+      |> send_req("/guilds/#{guild_id}/prune")
+    end
 end
