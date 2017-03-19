@@ -1071,4 +1071,12 @@ defmodule Alchemy.Client do
       {Guilds, :get_invites, [guild_id]}
       |> send_req("/guilds/#{guild_id}/invites")
     end
+    @doc """
+    Gets a list of integrations objects for a guild.
+    """
+    @spec get_integrations(snowflake) :: {:ok, %{}} | {:error, term}
+    def get_integrations(guild_id) do
+      {Guilds, :get_integrations, [guild_id]}
+      |> send_req("/guilds/#{guild_id}/integrations")
+    end
 end

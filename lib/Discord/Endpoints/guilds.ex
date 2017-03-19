@@ -2,7 +2,7 @@ defmodule Alchemy.Discord.Guilds do
   @moduledoc false
   alias Alchemy.Discord.Api
   alias Alchemy.{DMChannel, Channel, Invite, Guild, GuildMember,
-                 User, Role, VoiceRegion}
+                 User, Role, VoiceRegion, Guild.Integration}
 
   @root "https://discordapp.com/api/v6/guilds/"
 
@@ -186,5 +186,6 @@ defmodule Alchemy.Discord.Guilds do
 
   def get_integrations(token, guild_id) do
     @root <> guild_id <> "/integrations"
+    |> Api.get(token, Api.parse_map(Integration))
   end
 end
