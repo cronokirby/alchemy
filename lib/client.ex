@@ -981,4 +981,20 @@ defmodule Alchemy.Client do
       {Guilds, :create_role, [guild_id, options]}
       |> send_req("/guilds/#{guild_id}/roles")
     end
+    @doc """
+    Edits a preexisting role in a guild.
+
+    The same as `create_role/2` except that this operates on a role that has already
+    been created. See that function for discussion.
+    """
+    @spec edit_role(snowflake, snowflake,
+                    name: String.t,
+                    permissions: Integer,
+                    color: Integer,
+                    hoist: Booean,
+                    mentionable: Boolean) :: {:ok, Role.t} | {:error, term}
+    def edit_role(guild_id, role_id, options) do
+      {Guilds, :modify_role, [guild_id, role_id, options]}
+      |> send_req("/guilds/#{guild_id}/roles")
+    end
 end
