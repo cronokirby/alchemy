@@ -998,12 +998,24 @@ defmodule Alchemy.Client do
       |> send_req("/guilds/#{guild_id}/roles")
     end
     @doc """
+    Removes a role from a guild.
+
+    Requires the `:manage_roles` permission.
+    """
+    @spec delete_role(snowflake, snowflake) :: {:ok, nil} | {:error, term}
+    def delete_role(guild_id, role_id) do
+      {Guilds, :delete_role, [guild_id, role_id]}
+      |> send_req("/guilds/#{guild_id}/roles")
+    end
+    @doc """
     Modifies the position of roles in a guild.
 
     Takes a list of `{id, position}` where `position` is an integer starting at 0,
     and `id` is the id of the role.
 
     Returns a list of all the roles in the guild.
+
+    Requires the `:manage_roles` permission.
     """
     @spec move_roles(snowflake, [{snowflake, Integer}]) :: {:ok, [Role.t]}
                                                          | {:error, term}
