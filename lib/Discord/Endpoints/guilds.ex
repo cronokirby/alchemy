@@ -168,7 +168,7 @@ defmodule Alchemy.Discord.Guilds do
 
   def get_regions(token, guild_id) do
     @root <> guild_id <> "/regions"
-    |> Api.get(token, [VoiceRegion])
+    |> Api.get(token, [%VoiceRegion{}])
   end
 
 
@@ -180,7 +180,7 @@ defmodule Alchemy.Discord.Guilds do
 
   def get_all_regions(token) do
     "https://discordapp.com/api/v6/voice/regions"
-    |> Api.get(token, [VoiceRegion])
+    |> Api.get(token, [%VoiceRegion{}])
   end
 
 end

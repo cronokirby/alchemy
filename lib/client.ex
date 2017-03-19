@@ -8,7 +8,8 @@ defmodule Alchemy.Client do
   alias Alchemy.Discord.{Users, Channels, Guilds, RateManager}
   alias Alchemy.Discord.Gateway.Manager, as: GatewayManager
   alias Alchemy.{Channel, Channel.Invite, DMChannel, Reaction.Emoji,
-                 Embed, Guild, GuildMember, Message, User, UserGuild, Role}
+                 Embed, Guild, GuildMember, Message, User, UserGuild, Role,
+                 VoiceRegion}
   alias Alchemy.Cache.Supervisor, as: CacheSupervisor
   alias Alchemy.Cogs.{CommandHandler, EventHandler}
   import Alchemy.Discord.RateManager, only: [send_req: 2]
@@ -1051,5 +1052,12 @@ defmodule Alchemy.Client do
     def prune_guild(guild_id, days) do
       {Guilds, :prune_guild, [guild_id, days]}
       |> send_req("/guilds/#{guild_id}/prune")
+    end
+    @doc """
+    Returns a list of voice regions in a guild.
+    """
+    @spec get_regions(snowflake) :: {:ok, [VoiceRegion.t]} | {:error, term}
+    def get_regions(guild_id) do
+      {Guilds, :get_regions, [guild_id]}
     end
 end
