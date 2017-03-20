@@ -5,11 +5,11 @@ defmodule Alchemy.Client do
   """
   use Supervisor
   require Logger
-  alias Alchemy.Discord.{Users, Channels, RateManager}
+  alias Alchemy.Discord.{Users, Channels, Guilds, RateManager}
   alias Alchemy.Discord.Gateway.Manager, as: GatewayManager
   alias Alchemy.{Channel, Channel.Invite, DMChannel, Reaction.Emoji,
-                 Embed, Message, User, UserGuild}
-  alias Alchemy.Cache.Manager, as: CacheManager
+                 Embed, Guild, GuildMember, Message, User, UserGuild, Role,
+                 VoiceRegion}
   alias Alchemy.Cache.Supervisor, as: CacheSupervisor
   alias Alchemy.Cogs.{CommandHandler, EventHandler}
   import Alchemy.Discord.RateManager, only: [send_req: 2]
@@ -642,5 +642,491 @@ defmodule Alchemy.Client do
     def unpin({channel_id, message_id}) do
       {Channels, :delete_pinned_message, [channel_id, message_id]}
       |> send_req("/channels/#{channel_id}/pins")
+    end
+    # CACHESTUB
+    @doc """
+    Gets info about a certain guild.
+
+    The info returned here doesn't contain as much info as contained in the cache.
+    For guilds the user is a part of, the cache should be preferred over this method.
+
+    ```examples
+    Client.get_guild(id)
+    ```
+    """
+    @spec get_guild(snowflake) :: {:ok, Guild.t} | {:error, term}
+    def get_guild(guild_id) do
+      {Guilds, :get_guild, [guild_id]}
+      |> send_req("/guilds/#{guild_id}")
+    end
+    @doc """
+    Modifies a guild's settings.
+
+    ## Options
+    - `name`
+      The name of the guild.
+    - `region`
+      The id of the voice region.
+    - `verification_level`
+      The level of verification of the guild.
+    - `default_message_notifications`
+      The default message notification settings.
+    - `afk_channel_id`
+      The id of the afk channel.
+    - `afk_timeout`
+      The afk timeout in seconds.
+    - `icon`
+      A url to the new icon. Must be a 128x128 jpeg image.
+    - `splash`
+      A url to the new splash screen. This is only available for partnered guilds.
+
+    ## Examples
+    ```elixir
+    Client.edit_guild(guild_id, name: "new name")
+    ```
+    """
+    @spec edit_guild(snowflake,
+                     name: String.t,
+                     region: snowflake,
+                     verification_level: Integer,
+                     default_message_notifications: Integer,
+                     afk_channel_id: snowflake,
+                     afk_timeout: snowflake,
+                     icon: url,
+                     splash: url) :: {:ok, Guild.t} | {:error, term}
+    def edit_guild(guild_id, options) do
+       {Guilds, :modify_guild, [guild_id, options]}
+       |> send_req("/guilds/#{guild_id}")
+    end
+    # CACHESTUB
+    @doc """
+    Returns a list of channel objects for a guild.
+
+    As with most guild methods, the cache should be preferred
+    over the api if possible.
+
+    ## Examples
+    ```elixir
+    Client.get_channels(guild_id)
+    ```
+    """
+    @spec get_channels(snowflake) :: {:ok, [Channel.t]} | {:error, term}
+    def get_channels(guild_id) do
+      {Guilds, :get_channels, [guild_id]}
+      |> send_req("/guilds/#{guild_id}/channels")
+    end
+    @doc """
+    Creates a new channel in a guild.
+
+    Requires the `MANAGE_CHANNELS` permission.
+
+    ## Options
+    - `voice`
+      Setting this creates a new voice channel.
+    - `bitrate`
+      Sets the bitrate (bits) for a voice channel.
+    - `user_limit`
+      Sets the max amount of users for a voice channel.
+    - `permission_overwrites`
+      An overwrite for permissions in that channel
+    ## Examples
+    ```elixir
+    Client.create_channel(guild_id)
+    ```
+    """
+    @spec create_channel(snowflake, String.t,
+                         voice: Boolean,
+                         bitrate: Integer,
+                         user_limit: Integer) :: {:ok, Channel.t} | {:error, term}
+    def create_channel(guild_id, name, options \\ []) do
+      {Guilds, :create_channel, [guild_id, name, options]}
+      |> send_req("/guilds/#{guild_id}/channels")
+    end
+    @doc """
+    Swaps the position of channels in a guild.
+
+    ## Examples
+    ```elixir
+    # alphabetizes a guild channel list
+    with {:ok, channels} <- Task.await Client.get_channels(guild_id) do
+      channels
+      |> Enum.sort_by(& &1.name)
+      |> Stream.map(& &1.id)
+      |> Enum.with_index
+      |> (&Client.move_channels(guild_id, &1)).()
+    end
+    """
+    @spec move_channels(snowflake, [{snowflake, Integer}]) :: {:ok, nil}
+                                                            | {:error, term}
+    def move_channels(guild_id, pairs) do
+      {Guilds, :move_channels, [guild_id, pairs]}
+      |> send_req("/guilds/#{guild_id}/channels")
+    end
+    # CACHESTUB
+    @doc """
+    Gets info for a member of a guild.
+
+    For guilds the bot is in, use the corresponding cache method instead.
+
+    ## Examples
+    ```elixir
+    Client.get_member(guild_id, user_id)
+    ```
+    """
+    @spec get_member(snowflake, snowflake) :: {:ok, GuildMember.t} | {:error, term}
+    def get_member(guild_id, user_id) do
+      {Guilds, :get_member, [guild_id, user_id]}
+      |> send_req("/guilds/#{guild_id}/members")
+    end
+    # CACHESTUB
+    @doc """
+    Gets a list of members from a guild.
+
+    ## Options
+    - `limit`
+      The number of members to fetch (max 1000).
+    - `after`
+      Setting this to a user id will only fetch members that joined after that person.
+    ## Examples
+    ```elixir
+    Client.get_member_list(guild_id, limit: 10)
+    ```
+    """
+    @spec get_member_list(snowflake,
+                          limit: Integer, after: snowflake) :: {:ok, [GuildMember.t]}
+                                                             | {:error, term}
+    def get_member_list(guild_id, options \\ []) do
+      {Guilds, :get_member_list, [guild_id, options]}
+      |> send_req("/guilds/#{guild_id}/members")
+    end
+    # SUGARSTUB
+    @doc """
+    Modifies a member in a guild.
+
+    Each option requires different permissions.
+    ## Options
+    - `nick`
+      The nickname of the user. Requires `:manage_nicknames`
+    - `roles`
+      A list of roles (ids) the user should have after the change.
+      Requires `:manage_roles`
+    - `mute`
+      Whether or not the user should be muted. Requires `:mute_members`
+    - `deaf`
+      Whether or not the user should be deafened. Requires `:deafen_members`
+    - `channel_id`
+      Voice channel to move the user too (if they are connected).
+      Requires `:move_members`, and permission to connect to that channel.
+    ## Examples
+    ```elixir
+    Client.edit_member(guild_id, user_id, nick: "cool guy")
+    ```
+    """
+    @spec edit_member(snowflake, snowflake,
+                      nick: String.t,
+                      roles: [snowflake],
+                      mute: Boolean,
+                      deaf: Boolean,
+                      channel_id: snowflake) :: {:ok, GuildMember.t} | {:error, term}
+    def edit_member(guild_id, user_id, options) do
+      {Guilds, :modify_member, [guild_id, user_id, options]}
+      |> send_req("/guilds/#{guild_id}/members")
+    end
+    @doc """
+    Modifies the nickname of the current user.
+
+    ## Examples
+    ```elixir
+    Client.change_nickname(guild_id, "best bot")
+    ```
+    """
+    @spec change_nickname(snowflake, String.t) :: {:ok, nil} | {:error, term}
+    def change_nickname(guild_id, name) do
+      {Guilds, :modify_nick, [guild_id, name]}
+      |> send_req("/guilds/#{guild_id}/members/@me/nick")
+    end
+    # SUGARSTUB
+    @doc """
+    Adds a role to a member of a guild.
+
+    Requires the `:manage_roles` permission.
+    ## Examples
+    ```elixir
+    Client.add_role(guild_id, user_id, role_id)
+    ```
+    """
+    @spec add_role(snowflake, snowflake, snowflake) :: {:ok, nil} | {:error, term}
+    def add_role(guild_id, user_id, role_id) do
+      {Guilds, :add_role, [guild_id, user_id, role_id]}
+      |> send_req("/guilds/#{guild_id}/members/roles")
+    end
+    # SUGARSTUB
+    @doc """
+    Removes a role of a guild member.
+
+    Requires the `:manage_roles` permission.
+    ## Examples
+    ```elixir
+    Client.remove_role(guild_id, user_id, role_id)
+    ```
+    """
+    @spec remove_role(snowflake, snowflake, snowflake) :: {:ok, nil} | {:error, term}
+    def remove_role(guild_id, user_id, role_id) do
+      {Guilds, :remove_role, [guild_id, user_id, role_id]}
+      |> send_req("/guilds/#{guild_id}/members/roles")
+    end
+    # SUGARSTUB
+    @doc """
+    Kicks a member from a guild.
+
+    Not to be confused with `ban_member/3`.
+    ## Examples
+    ```elixir
+    Client.kick_member(guild_id, user_id)
+    ```
+    """
+    @spec kick_member(snowflake, snowflake) :: {:ok, nil} | {:error, term}
+    def kick_member(guild_id, user_id) do
+      {Guilds, :remove_member, [guild_id, user_id]}
+      |> send_req("/guilds/#{guild_id}/members")
+    end
+    # SUGARSTUB
+    @doc """
+    Gets a list of users banned from this guild.
+
+    Requires the `:ban_members` permission.
+    ## Examples
+    ```elixir
+    {:ok, bans} = Client.get_bans(guild_id)
+    ```
+    """
+    @spec get_bans(snowflake) :: {:ok, [User.t]} | {:error, term}
+    def get_bans(guild_id) do
+      {Guilds, :get_bans, [guild_id]}
+      |> send_req("/guilds/#{guild_id}/bans")
+    end
+    # SUGARSTUB
+    @doc """
+    Bans a member from a guild.
+
+    This prevents a user from rejoining for as long as the ban persists,
+    as opposed to `kick_member/2` which will just make them leave the server.
+
+    A `days` paramater can be set to delete x days of messages; limited to 7.
+    ## Examples
+    ```elixir
+    Client.ban_member(guild_id, user_id, 1)
+    ```
+    """
+    @spec ban_member(snowflake, snowflake) :: {:ok, nil} | {:error, term}
+    def ban_member(guild_id, user_id, days \\ 0) do
+       {Guilds, :create_ban, [guild_id, user_id, days]}
+       |> send_req("/guilds/#{guild_id}/bans")
+    end
+    # SUGARSTUB
+    @doc """
+    Unbans a user from the server.
+
+    ## Examples
+    ```elixir
+    Client.unban_member(guild_id, user_id)
+    ```
+    """
+    @spec unban_member(snowflake, snowflake) :: {:ok, nil} | {:error, term}
+    def unban_member(guild_id, user_id) do
+      {Guilds, :remove_ban, [guild_id, user_id]}
+      |> send_req("/guilds/#{guild_id}/bans")
+    end
+    @doc """
+    Gets a list of roles available in a guild.
+
+    Requires the `:manage_roles` permission.
+    ## Examples
+    ```elixir
+    Client.get_roles(guild_id)
+    ```
+    """
+    @spec get_roles(snowflake) :: {:ok, [Role.t]} | {:error, term}
+    def get_roles(guild_id) do
+      {Guilds, :get_roles, [guild_id]}
+      |> send_req("/guilds/#{guild_id}/roles")
+    end
+    @doc """
+    Creates a new role in the guild.
+
+    Requires the `:manage_roles` permission.
+    ## Options
+    - `name`
+      The name of the new role. Defaults to "new role"
+    - `permissions`
+      The set of permissions for that role. Defaults to the `@everyone`
+      permissions in that guild.
+    - `color`
+      The color of the role. Defaults to `0x000000`
+    - `hoist`
+      When set to `true`, the role will be displayed seperately in the sidebar.
+    - `mentionable`
+      When set to `true`, allows the role to be mentioned.
+    ## Examples
+    ```elixir
+    Client.create_role(guild_id, name: "the best role", color: 0x4bd1be)
+    ```
+    """
+    @spec create_role(snowflake,
+                      name: String.t,
+                      permissions: Integer,
+                      color: Integer,
+                      hoist: Booean,
+                      mentionable: Boolean) :: {:ok, Role.t} | {:error, term}
+    def create_role(guild_id, options) do
+      {Guilds, :create_role, [guild_id, options]}
+      |> send_req("/guilds/#{guild_id}/roles")
+    end
+    @doc """
+    Edits a preexisting role in a guild.
+
+    The same as `create_role/2` except that this operates on a role that has already
+    been created. See that function for discussion.
+    """
+    @spec edit_role(snowflake, snowflake,
+                    name: String.t,
+                    permissions: Integer,
+                    color: Integer,
+                    hoist: Booean,
+                    mentionable: Boolean) :: {:ok, Role.t} | {:error, term}
+    def edit_role(guild_id, role_id, options) do
+      {Guilds, :modify_role, [guild_id, role_id, options]}
+      |> send_req("/guilds/#{guild_id}/roles")
+    end
+    @doc """
+    Removes a role from a guild.
+
+    Requires the `:manage_roles` permission.
+    """
+    @spec delete_role(snowflake, snowflake) :: {:ok, nil} | {:error, term}
+    def delete_role(guild_id, role_id) do
+      {Guilds, :delete_role, [guild_id, role_id]}
+      |> send_req("/guilds/#{guild_id}/roles")
+    end
+    @doc """
+    Modifies the position of roles in a guild.
+
+    Takes a list of `{id, position}` where `position` is an integer starting at 0,
+    and `id` is the id of the role.
+
+    Returns a list of all the roles in the guild.
+
+    Requires the `:manage_roles` permission.
+    """
+    @spec move_roles(snowflake, [{snowflake, Integer}]) :: {:ok, [Role.t]}
+                                                         | {:error, term}
+    def move_roles(guild_id, pairs) do
+      {Guilds, :move_roles, [guild_id, pairs]}
+      |> send_req("/guilds/#{guild_id}/roles")
+    end
+    @doc """
+    Returns a count of members who would be kicked in a prune operation.
+
+    Days specifies the amount of days of inactivity to check for.
+
+    See `prune_guild/2` for a discussion of this operation.
+    """
+    @spec get_prune_count(snowflake, Integer) :: {:ok, nil} | {:error, term}
+    def get_prune_count(guild_id, days) do
+      {Guilds, :get_prune_count, [guild_id, days]}
+      |> send_req("/guilds/#{guild_id}/prune")
+    end
+    @doc """
+    Removes inactive members of a guild.
+
+    Days allows you to specify the amount of days of inactivity necessary to be
+    kicked from the guild.
+
+    Requires the `:manage_roles` permission
+    ## Examples
+    ```elixir
+    Client.prune_guild(guild_id, )
+    ```
+    """
+    @spec prune_guild(snowflake, Integer) :: {:ok, nil} | {:error, term}
+    def prune_guild(guild_id, days) do
+      {Guilds, :prune_guild, [guild_id, days]}
+      |> send_req("/guilds/#{guild_id}/prune")
+    end
+    @doc """
+    Returns a list of voice regions in a guild.
+    """
+    @spec get_regions(snowflake) :: {:ok, [VoiceRegion.t]} | {:error, term}
+    def get_regions(guild_id) do
+      {Guilds, :get_regions, [guild_id]}
+      |> send_req("/guilds/#{guild_id}/regions")
+    end
+    @doc """
+    Returns a list of invites for a guild.
+
+    Requires the `:manage_guild` permission.
+    """
+    @spec get_invites(snowflake) :: {:ok, [Invite.t]} | {:error, term}
+    def get_invites(guild_id) do
+      {Guilds, :get_invites, [guild_id]}
+      |> send_req("/guilds/#{guild_id}/invites")
+    end
+    @doc """
+    Gets a list of integration objects for a guild.
+
+    Requires the `:manage_guild` permission.
+    """
+    @spec get_integrations(snowflake) :: {:ok, %{}} | {:error, term}
+    def get_integrations(guild_id) do
+      {Guilds, :get_integrations, [guild_id]}
+      |> send_req("/guilds/#{guild_id}/integrations")
+    end
+    @doc """
+    Edits an integration of a guild.
+
+    Requires the `:manage_guild` permission.
+    ## Options
+    - `expire_behaviour`
+      The behaviour when an integration subscription lapses.
+    - `expire_grace_period`
+      Period (seconds) where the integration ignores lapsed subscriptions.
+    - `enable_emoticons`
+      Whether or not emoticons should be synced for this integration.
+    """
+    @spec edit_integration(snowflake, snowflake,
+                           expire_behaviour: Integer,
+                           expire_grace_period: Integer,
+                           enable_emoticons: Boolean) :: {:ok, nil} | {:error, term}
+    def edit_integration(guild_id, integration_id, options) do
+      {Guilds, :edit_integration, [guild_id, integration_id, options]}
+      |> send_req("/guilds/#{guild_id}/integrations")
+    end
+    @doc """
+    Removes an integration from a guild.
+
+    Requires the `:manage_guild` permission.
+    """
+    @spec delete_integration(snowflake, snowflake) :: {:ok, nil} | {:error, term}
+    def delete_integration(guild_id, integration_id) do
+      {Guilds, :delete_integration, [guild_id, integration_id]}
+      |> send_req("/guilds/#{guild_id}/integrations")
+    end
+    @doc """
+    Syncs a guild integration.
+
+    Requires the `:manage_guild` permission.
+    """
+    @spec sync_integration(snowflake, snowflake) :: {:ok, nil} | {:error, term}
+    def sync_integration(guild_id, integration_id) do
+      {Guilds, :sync_integration, [guild_id, integration_id]}
+      |> send_req("/guilds/#{guild_id}/integrations/sync")
+    end
+    @doc """
+    Returns a list of all possible voice regions.
+    """
+    @spec list_voice_regions :: {:ok, [VoiceRegion.t]} | {:error, term}
+    def list_voice_regions do
+      {Guilds, :get_all_regions, []}
+      |> send_req("voice/regions")
     end
 end

@@ -1,7 +1,7 @@
 defmodule Alchemy.GuildMember do
   alias Alchemy.User
   alias Alchemy.Role
-  import Alchemy.Structs.Utility
+  import Alchemy.Structs
   @moduledoc """
   """
   @type t :: %__MODULE__{

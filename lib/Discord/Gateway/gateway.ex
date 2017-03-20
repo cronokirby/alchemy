@@ -29,7 +29,7 @@ defmodule Alchemy.Discord.Gateway do
 
 
   def onconnect(_ws_req, state) do
-    Logger.debug "Shard #{IO.inspect state.shard} Connected to the gateway"
+    Logger.debug "Shard #{Macro.to_string state.shard} Connected to the gateway"
     {:ok, state}
   end
 
@@ -69,8 +69,7 @@ defmodule Alchemy.Discord.Gateway do
 
 
   def websocket_terminate(why, _conn_state, state) do
-    Logger.info "Websocket terminated, reason: #{IO.inspect why}"
-    IO.inspect state
+    Logger.debug "Websocket terminated, reason: #{Macro.to_string why}"
     :ok
   end
 

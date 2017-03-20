@@ -5,7 +5,7 @@ defmodule Alchemy.Guild do
   alias Alchemy.GuildMember
   alias Alchemy.VoiceState
   alias Alchemy.Users.Presence
-  import Alchemy.Structs.Utility
+  import Alchemy.Structs
   @moduledoc """
   """
   @type t :: %__MODULE__{

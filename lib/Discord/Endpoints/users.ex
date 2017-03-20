@@ -15,6 +15,10 @@ defmodule Alchemy.Discord.Users do
 
   # Modify the client's user account settings.
   def modify_user(token, options) do
+    {_, options} = options |> Keyword.get_and_update(:avatar, fn
+      nil -> :pop
+      some -> {some, Api.fetch_avatar(some)}
+    end)
     Api.patch(@root <> "@me", Api.encode(options), token, %User{})
   end
 
@@ -36,7 +40,7 @@ defmodule Alchemy.Discord.Users do
   # Gets a list of DMChannel objects for a user
   def get_DMs(token) do
     @root <> "@me/channels"
-    |> Api.get(token, DMChannel)
+    |> Api.get(token, Api.parse_map(DMChannel))
   end
 
 

@@ -1,6 +1,6 @@
-defmodule Alchemy.Structs.Utility do
+defmodule Alchemy.Structs do
   @moduledoc false
-  # Contains useful functions for working on Structs
+  # Contains useful functions for working on the Structs in this library
 
   # Converts a map into a struct, handling string to atom conversion
   def to_struct(attrs, kind) do
@@ -21,24 +21,24 @@ defmodule Alchemy.Structs.Utility do
 
 
   def field(map, key, kind) do
-    update_in(map, [key], &to_struct(&1, kind))
+    update_in(map[key], &to_struct(&1, kind))
   end
   def field?(map, key, kind) do
-     case get_in(map, [key]) do
+     case map[key] do
        nil -> map
-        _  -> update_in(map, [key], &to_struct(&1, kind))
+        _  -> update_in(map[key], &to_struct(&1, kind))
      end
   end
 
 
+  def field_map(map, key, func) do
+    update_in(map[key], &func.(&1))
+  end
   def field_map?(map, key, func) do
-    case get_in(map, [key]) do
+    case map[key] do
       nil -> map
       _   -> update_in(map, [key], &func.(&1))
     end
-  end
-  def field_map(map, key, func) do
-    update_in(map, [key], &func.(&1))
   end
 
 end

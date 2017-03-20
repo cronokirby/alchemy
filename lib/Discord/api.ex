@@ -3,7 +3,6 @@ defmodule Alchemy.Discord.Api do
   require Logger
   alias Alchemy.Discord.RateLimits
 
-
   ### Utility ###
 
   # Converts a keyword list into json
@@ -21,6 +20,14 @@ defmodule Alchemy.Discord.Api do
     end)
   end
 
+  # returns a function to be used in api requests
+  def parse_map(mod) do
+    fn json ->
+      json
+      |> Poison.Parser.parse!
+      |> Enum.map(&mod.from_map/1)
+    end
+  end
 
   ### Request API ###
 
@@ -30,6 +37,9 @@ defmodule Alchemy.Discord.Api do
   end
 
 
+  def patch(url, token, data) do
+    request(:_patch, [url, data, token])
+  end
   def patch(url, token, data, body) do
     request(:_patch, [url, data, token], body)
   end
@@ -49,8 +59,8 @@ defmodule Alchemy.Discord.Api do
   def put(url, token) do
     request(:_put, [url, token])
   end
-  def put(url, token, body) do
-    request(:_put, [url, token], body)
+  def put(url, token, data) do
+    request(:_put, [url, token, data])
   end
 
 
@@ -62,12 +72,18 @@ defmodule Alchemy.Discord.Api do
   end
 
 
+
+  def image_data(url) do
+    {:ok, HTTPotion.get(url).body |> Base.encode64}
+  end
+
   # Fetches an image, encodes it base64, and then formats it in discord's
   # preferred formatting. Returns {:ok, formatted}, or {:error, why}
   def fetch_avatar(url) do
-    data = HTTPotion.get(url).body |> Base.encode64
+    {:ok, data} = image_data(url)
     {:ok, "data:image/jpeg;base64,#{data}"}
   end
+
 
 
   ### Private ###
@@ -78,7 +94,7 @@ defmodule Alchemy.Discord.Api do
   end
   defp request(req_type, req_args, module) when is_atom(module) do
     apply(__MODULE__, req_type, req_args)
-    |> handle_response(&apply(module, :from_map, [Poison.Parser.parse!(&1)]))
+    |> handle_response(&module.from_map(Poison.Parser.parse!(&1)))
   end
   defp request(req_type, req_args, parser) when is_function(parser) do
     apply(__MODULE__, req_type, req_args)
@@ -164,6 +180,12 @@ defmodule Alchemy.Discord.Api do
   def _put(url, token) do
     HTTPotion.put url,
       headers: auth_headers(token)
+  end
+  def _put(url, token, data) do
+    HTTPotion.put url,
+      [headers: auth_headers(token) ++
+                ["Content-Type": "application/json"],
+      body: data]
   end
 
 

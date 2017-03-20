@@ -1,6 +1,5 @@
 defmodule Alchemy.Message do
-  import Alchemy.Structs.Utility
-  alias Alchemy.Structs.Utility
+  import Alchemy.Structs
   alias Alchemy.{User, Attachment, Embed, Reaction}
   @moduledoc """
   """

@@ -74,7 +74,7 @@ defmodule Alchemy.Discord.Gateway.Manager do
         fn -> state.url end
       true ->
         fn ->
-          Process.sleep(wait_time)
+          Process.sleep(wait_time * 1000)
           request_url()
         end
     end

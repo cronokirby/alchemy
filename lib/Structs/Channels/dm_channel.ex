@@ -1,7 +1,7 @@
 defmodule Alchemy.DMChannel do
   @moduledoc false
   alias Alchemy.User
-  import Alchemy.Structs.Utility
+  import Alchemy.Structs
 
 
   @derive [Poison.Encoder]
@@ -15,10 +15,10 @@ defmodule Alchemy.DMChannel do
   @doc false
   def channel_type(code) do
     case code do
-     -1 -> :text
-      0 -> :private
-      1 -> :voice
-      2 -> :group
+      0 -> :text
+      1 -> :private
+      2 -> :voice
+      3 -> :group
     end
   end
 
