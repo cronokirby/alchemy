@@ -34,7 +34,7 @@ defmodule Alchemy.Cache.Guilds do
   end
 
 
-  defp call(id, msg) do
+  def call(id, msg) do
     GenServer.call(via_guilds(id), msg)
   end
 
@@ -57,6 +57,13 @@ defmodule Alchemy.Cache.Guilds do
       {["emojis"], ["id"]}
     ]
     inner_index(guild, inners)
+  end
+
+  def de_index(guild) do
+    keys = ["members", "roles", "presences", "voice_states", "emojis"]
+    Enum.reduce(keys, guild, fn k, g ->
+      update_in(g[k], &Map.values/1)
+    end)
   end
 
 
@@ -137,6 +144,11 @@ defmodule Alchemy.Cache.Guilds do
 
   def handle_call({:merge, new_info}, _, state) do
     {:reply, :ok, Map.merge(state, new_info)}
+  end
+
+
+  def handle_call(:show, _, state) do
+    {:reply, state, state}
   end
 
 
