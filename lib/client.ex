@@ -1072,11 +1072,34 @@ defmodule Alchemy.Client do
       |> send_req("/guilds/#{guild_id}/invites")
     end
     @doc """
-    Gets a list of integrations objects for a guild.
+    Gets a list of integration objects for a guild.
+
+    Requires the `:manage_guild` permission.
     """
     @spec get_integrations(snowflake) :: {:ok, %{}} | {:error, term}
     def get_integrations(guild_id) do
       {Guilds, :get_integrations, [guild_id]}
       |> send_req("/guilds/#{guild_id}/integrations")
     end
+    @doc """
+    Edits an integration of a guild.
+
+    Requires the `:manage_guild` permission.
+    ## Options
+    - `expire_behaviour`
+      The behaviour when an integration subscription lapses.
+    - `expire_grace_period`
+      Period (seconds) where the integration ignores lapsed subscriptions.
+    - `enable_emoticons`
+      Whether or not emoticons should be synced for this integration.
+    """
+    @spec edit_integration(snowflake, snowflake,
+                           expire_behaviour: Integer,
+                           expire_grace_period: Integer,
+                           enable_emoticons: Boolean) :: {:ok, nil} | {:error, term}
+    def edit_integration(guild_id, integration_id, options) do
+      {Guilds, :edit_integrations, [guild_id, integration_id, options]}
+      |> send_req("/guilds/#{guild_id}/integrations")
+    end
+
 end

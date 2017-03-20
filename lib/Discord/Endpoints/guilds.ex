@@ -188,4 +188,10 @@ defmodule Alchemy.Discord.Guilds do
     @root <> guild_id <> "/integrations"
     |> Api.get(token, Api.parse_map(Integration))
   end
+
+
+  def edit_integration(token, guild_id, integration_id, options) do
+    @root <> guild_id <> "/integrations/" <> integration_id
+    |> Api.patch(token, Api.encode(options))
+  end
 end
