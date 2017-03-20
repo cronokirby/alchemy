@@ -1121,4 +1121,12 @@ defmodule Alchemy.Client do
       {Guilds, :sync_integration, [guild_id, integration_id]}
       |> send_req("/guilds/#{guild_id}/integrations/sync")
     end
+    @doc """
+    Returns a list of all possible voice regions.
+    """
+    @spec list_voice_regions :: {:ok, [VoiceRegion.t]} | {:error, term}
+    def list_voice_regions do
+      {Guilds, :get_all_regions, []}
+      |> send_req("voice/regions")
+    end
 end
