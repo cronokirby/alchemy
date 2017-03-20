@@ -1098,8 +1098,27 @@ defmodule Alchemy.Client do
                            expire_grace_period: Integer,
                            enable_emoticons: Boolean) :: {:ok, nil} | {:error, term}
     def edit_integration(guild_id, integration_id, options) do
-      {Guilds, :edit_integrations, [guild_id, integration_id, options]}
+      {Guilds, :edit_integration, [guild_id, integration_id, options]}
       |> send_req("/guilds/#{guild_id}/integrations")
     end
+    @doc """
+    Removes an integration from a guild.
 
+    Requires the `:manage_guild` permission.
+    """
+    @spec delete_integration(snowflake, snowflake) :: {:ok, nil} | {:error, term}
+    def delete_integration(guild_id, integration_id) do
+      {Guilds, :delete_integration, [guild_id, integration_id]}
+      |> send_req("/guilds/#{guild_id}/integrations")
+    end
+    @doc """
+    Syncs a guild integration.
+
+    Requires the `:manage_guild` permission.
+    """
+    @spec sync_integration(snowflake, snowflake) :: {:ok, nil} | {:error, term}
+    def sync_integration(guild_id, integration_id) do
+      {Guilds, :sync_integration, [guild_id, integration_id]}
+      |> send_req("/guilds/#{guild_id}/integrations/sync")
+    end
 end

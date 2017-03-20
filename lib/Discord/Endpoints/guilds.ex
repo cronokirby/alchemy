@@ -194,4 +194,15 @@ defmodule Alchemy.Discord.Guilds do
     @root <> guild_id <> "/integrations/" <> integration_id
     |> Api.patch(token, Api.encode(options))
   end
+
+
+  def delete_integration(token, guild_id, integration_id) do
+    @root <> guild_id <> "/integrations/" <> integration_id
+    |> Api.delete(token)
+  end
+
+  def sync_integration(token, guild_id, integration_id) do
+    @root <> guild_id <> "/integrations/" <> integration_id <> "/sync"
+    |> Api.post(token)
+  end
 end
