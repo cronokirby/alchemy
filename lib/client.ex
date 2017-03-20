@@ -142,9 +142,11 @@ defmodule Alchemy.Client do
    Opens a new private channel with a user.
 
    ## Examples
+   ```elixir
    Cogs.def dm_me do
     Client.create_DM(message.author.id)
    end
+   ```
    """
    @spec create_DM(snowflake) :: DMChannel.t
    def create_DM(user_id) do
