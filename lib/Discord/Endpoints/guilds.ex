@@ -155,7 +155,7 @@ defmodule Alchemy.Discord.Guilds do
 
   def get_prune_count(token, guild_id, days) do
     @root <> guild_id <> "/prune?" <> URI.encode_query(%{"days" => days})
-    |> Api.get(token)
+    |> Api.get(token, & &1["pruned"])
   end
 
 
