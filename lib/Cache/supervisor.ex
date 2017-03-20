@@ -10,7 +10,7 @@ defmodule Alchemy.Cache.Supervisor do
   # PrivateChannels; A Supervisor / GenServer combo, like Guilds, but with less info
   # stored.
   alias Alchemy.Cache.{Guilds, Guilds.GuildSupervisor,
-                       PrivChannels, PrivChannels.PrivChanSupervisor,
+                       PrivChannels,
                        User, Channels}
   use Supervisor
 
@@ -24,8 +24,7 @@ defmodule Alchemy.Cache.Supervisor do
     children = [
       supervisor(Registry, [:unique, :guilds], id: 1),
       supervisor(GuildSupervisor, []),
-      supervisor(Registry, [:unique, :priv_channels], id: 2),
-      supervisor(PrivChanSupervisor, []),
+      worker(PrivChannels, []),
       worker(User, []),
       worker(Channels, [])
     ]
@@ -40,7 +39,7 @@ defmodule Alchemy.Cache.Supervisor do
       Guilds.add_guild(&1)
     end))
     Enum.each(priv_channels, &Task.start(fn ->
-      PrivChannels.add_priv_channel(&1)
+      PrivChannels.add_channel(&1)
     end))
     User.set_user(user)
   end

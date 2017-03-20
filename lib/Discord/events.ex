@@ -12,7 +12,7 @@ defmodule Alchemy.Discord.Events do
 
   # A direct message was started with the bot
   def handle("CHANNEL_CREATE", %{"is_private" => true} = dm_channel) do
-    PrivChannels.add_priv_channel(dm_channel)
+    PrivChannels.add_channel(dm_channel)
     struct = to_struct(dm_channel, DMChannel)
     notify {:dm_channel_create, [struct]}
   end
@@ -23,7 +23,7 @@ defmodule Alchemy.Discord.Events do
 
 
   def handle("CHANNEL_UPDATE", %{"is_private" => true} = dm_channel) do
-    PrivChannels.update_priv_channel(dm_channel)
+    PrivChannels.update_channel(dm_channel)
     notify {:dm_channel_update, [to_struct(dm_channel, DMChannel)]}
   end
   def handle("CHANNEL_UPDATE", channel) do
@@ -32,7 +32,7 @@ defmodule Alchemy.Discord.Events do
 
 
   def handle("CHANNEL_DELETE", %{"is_private" => true} = dm_channel) do
-    PrivChannels.rem_priv_channel(dm_channel["id"])
+    PrivChannels.remove_channel(dm_channel["id"])
     notify {:dm_channel_delete, [to_struct(dm_channel, DMChannel)]}
   end
 
