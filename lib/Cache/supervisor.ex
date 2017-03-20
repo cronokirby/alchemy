@@ -38,7 +38,7 @@ defmodule Alchemy.Cache.Supervisor do
     # we pipe this into to_list to force evaluation
     Task.async_stream(guilds, &Guilds.add_guild/1)
     |> Enum.to_list
-    PrivChannel.add_channels(priv_channels)
+    PrivChannels.add_channels(priv_channels)
     User.set_user(user)
   end
 
