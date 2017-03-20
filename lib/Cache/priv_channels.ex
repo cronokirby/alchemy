@@ -19,6 +19,11 @@ defmodule Alchemy.Cache.PrivChannels do
     GenServer.call(__MODULE__, {:add, channel})
   end
 
+  # this is mainly used in the ready event
+  def add_channels(channels) do
+    GenServer.call(__MODULE__, {:add_list, channels})
+  end
+
   # Because we're using a set based table, inserting the entry will overwrite.
   def update_channel(channel) do
     GenServer.call(__MODULE__, {:add, channel})
@@ -33,6 +38,11 @@ defmodule Alchemy.Cache.PrivChannels do
   def handle_call({:add, channel}, _from, table) do
      :ets.insert(table, {channel["id"], channel})
      {:reply, :ok, table}
+  end
+
+  def handle_call({:add_list, channels}, _from, table) do
+    Enum.each(channels, &:ets.insert(table, {&1["id"], &1}))
+    {:reply, :ok, table}
   end
 
   def handle_call({:delete, channel}, _from, table) do

@@ -35,12 +35,10 @@ defmodule Alchemy.Cache.Supervisor do
 
   # used to handle the READY event
   def ready(user, priv_channels, guilds) do
-    Enum.each(guilds, &Task.start(fn ->
-      Guilds.add_guild(&1)
-    end))
-    Enum.each(priv_channels, &Task.start(fn ->
-      PrivChannels.add_channel(&1)
-    end))
+    # we pipe this into to_list to force evaluation
+    Task.async_stream(guilds, &Guilds.add_guild/1)
+    |> Enum.to_list
+    PrivChannel.add_channels(priv_channels)
     User.set_user(user)
   end
 
