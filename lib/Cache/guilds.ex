@@ -152,6 +152,11 @@ defmodule Alchemy.Cache.Guilds do
   end
 
 
+  def handle_call({:section, key}, _, state) do
+    {:reply, state[key], state}
+  end
+
+
   def handle_call({:replace, section, data}, _, state) do
     {:reply, :ok, %{state | section => data}}
   end
