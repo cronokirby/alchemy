@@ -95,6 +95,13 @@ defmodule Alchemy.Cogs do
       Cache.guild(channel: var!(message).channel_id)
     end
   end
+  @doc """
+  Gets the member that triggered a command.
+
+  As opposed to `message.author`, this comes with a bit more info about who
+  triggered the command. This is useful for when you want to use certain information
+  in a command, such as permissions, for example.
+  """
   defmacro member do
     quote do
       {:ok, cCcCc} = Cache.guild_id(var!(message).channel_id)
