@@ -45,8 +45,8 @@ defmodule Alchemy.Discord.Users do
 
 
   def create_DM(token, user_id) do
-    json = ~s/{recipient_id: user_id}/
-    @root <> "/@me/channels"
-    |> Api.post(json, token, DMChannel)
+    json = ~s/{"recipient_id": #{user_id}}/
+    @root <> "@me/channels"
+    |> Api.post(token, json, DMChannel)
   end
 end
