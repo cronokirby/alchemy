@@ -95,6 +95,12 @@ defmodule Alchemy.Cogs do
       Cache.guild(channel: var!(message).channel_id)
     end
   end
+  defmacro member do
+    quote do
+      {:ok, cCcCc} = Cache.guild_id(var!(message).channel_id)
+      Cache.member(cCcCc, var!(message).author.id)
+    end
+  end
   @doc """
   Registers a new command, under the name of the function.
 
