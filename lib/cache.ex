@@ -43,17 +43,18 @@ defmodule Alchemy.Cache do
     Using this keyword will fetch the information for the guild a channel belongs to.
   """
   @spec guild(snowflake) :: {:ok, Guild.t} | {:error, String.t}
-  def guild(guild_id) do
-    g = Guilds.call(guild_id, :show)
-    |> Guilds.de_index
-    |> Guild.from_map
-    {:ok, g}
-  end
   def guild(channel: channel_id) do
-    with {:some, id} <- guild_id(channel_id) do
+    with {:ok, id} <- guild_id(channel_id) do
       guild(id)
     end
   end
+  def guild(guild_id) do
+    g = Guilds.call(guild_id, :show)
+        |> Guilds.de_index
+        |> Guild.from_map
+    {:ok, g}
+  end
+
 
 
   defp access(guild_id, section, id, module) do
@@ -87,14 +88,14 @@ defmodule Alchemy.Cache do
 
   This contains info such as their status, and roles.
   """
-  @spec presence(snowflake, snowflake) :: {:some, Presence.t} | {:error, String.t}
+  @spec presence(snowflake, snowflake) :: {:ok, Presence.t} | {:error, String.t}
   def presence(guild_id, user_id) do
     access(guild_id, "presences", user_id, Presence)
   end
   @doc """
   Retrieves a custom emoji by id in a guild.
   """
-  @spec emoji(snowflake, snowflake) :: {:some, Emoji.t} | {:error, String.t}
+  @spec emoji(snowflake, snowflake) :: {:ok, Emoji.t} | {:error, String.t}
   def emoji(guild_id, emoji_id) do
     access(guild_id, "emojis", emoji_id, Emoji)
   end

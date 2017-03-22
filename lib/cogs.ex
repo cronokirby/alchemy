@@ -28,6 +28,7 @@ defmodule Alchemy.Cogs do
   """
   alias Alchemy.Cogs.CommandHandler
   alias Alchemy.Embed
+  alias Alchemy.Cache
 
 
   @doc """
@@ -63,6 +64,35 @@ defmodule Alchemy.Cogs do
       Alchemy.Client.send_message(var!(message).channel_id,
                                   unquote(content),
                                   embed: unquote(embed))
+    end
+  end
+  @doc """
+  Gets the id of the guild from which a command was triggered.
+
+  This is to be used when the guild_id is necessary for an operation,
+  but the fuill guild struct isn't needed.
+  """
+  defmacro guild_id do
+    quote do
+      Cache.guild_id(var!(message).channel_id)
+    end
+  end
+  @doc """
+  Gets the guild struct from which a command was triggered.
+
+  If only the id is needed, see `:guild_id/0`
+
+  ## Examples
+  ```elixir
+  Cogs.def guild do
+    {:ok, %Alchemy.Guild{name: name}} = Cogs.guild()
+    Cogs.say(name)
+  end
+  ```
+  """
+  defmacro guild do
+    quote do
+      Cache.guild(channel: var!(message).channel_id)
     end
   end
   @doc """
