@@ -8,9 +8,9 @@ defmodule Alchemy.Cache do
   functions that will correctly balance the cache and the api, as well as use macros
   to get information from the context of commands.
   """
-  alias Alchemy.Cache.Guilds
+  alias Alchemy.Cache.{Guilds, Guilds.GuildSupervisor}
   alias Alchemy.{Emoji, Guild, GuildMember, Role, Users.Presence}
-
+  import Alchemy.Structs, only: [to_struct: 2]
 
   @type snowflake :: String.t
   @doc """
@@ -98,5 +98,57 @@ defmodule Alchemy.Cache do
   @spec emoji(snowflake, snowflake) :: {:ok, Emoji.t} | {:error, String.t}
   def emoji(guild_id, emoji_id) do
     access(guild_id, "emojis", emoji_id, Emoji)
+  end
+
+
+  # Returns the corresponding protocol for an atom key.
+  # This is mainly needed for `search/2`
+  defp cache_sections(key) do
+    %{members: {"members", &GuildMember.from_map/1},
+      roles: {"roles", &to_struct(&1, Role)},
+      presences: {"presences", &Presence.from_map/1},
+      voice_states: {"voice_states", &to_struct(&1, VoiceState)},
+      emojis: {"emojis", &to_struct(&1, Emoji)}}[key]
+  end
+  @doc """
+  Searches across all guild for information.
+
+  The section is the type of object to search for. The possibilities are:
+  `:guilds`, `:members`, `:roles`, `:presences`, `:voice_states`, `:emojis`
+
+  The filter is a function returning a boolean, that allows you to filter out
+  elements from this list.
+
+  The return type will be a struct of the same type of the section searched for.
+  ## Examples
+  ```elixir
+  Cache.search(:members, fn x -> String.length(x.nick) < 10 end)
+  ```
+  This will return a list of all members whose nickname is less than 10
+  characters long.
+  ```elixir
+  Cache.search(:roles, &match(%{name: "Cool Kids"}, &1))
+  ```
+  This is a good example of using the `match?/2`
+  function to filter against a pattern.
+  """
+  @spec search(atom, (any -> Boolean)) :: [struct]
+  def search(:guilds, filter) do
+    Supervisor.which_children(GuildSupervisor)
+    |> Stream.map(fn {_, pid, _, _} -> pid end)
+    |> Task.async_stream(&GenServer.call(&1, :show))
+    |> Stream.map(fn {:ok, val} ->
+      val |> Guilds.de_index |> Guild.from_map
+    end)
+    |> Enum.filter(filter)
+  end
+  def search(section, filter) do
+    {key, de_indexer} = cache_sections(section)
+     Supervisor.which_children(GuildSupervisor)
+     |> Stream.map(fn {_, pid, _, _} -> pid end)
+     |> Task.async_stream(&GenServer.call(&1, {:section, key}))
+     |> Stream.flat_map(fn {:ok, v} -> Map.values(v) end)
+     |> Stream.map(de_indexer)
+     |> Enum.filter(filter)
   end
 end
