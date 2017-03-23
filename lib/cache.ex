@@ -9,7 +9,7 @@ defmodule Alchemy.Cache do
   to get information from the context of commands.
   """
   alias Alchemy.Cache.{Guilds, Guilds.GuildSupervisor}
-  alias Alchemy.{Emoji, Guild, GuildMember, Role, Users.Presence}
+  alias Alchemy.{DMChannel, Emoji, Guild, GuildMember, Role, Users.Presence}
   import Alchemy.Structs, only: [to_struct: 2]
 
   @type snowflake :: String.t
@@ -127,10 +127,14 @@ defmodule Alchemy.Cache do
   This will return a list of all members whose nickname is less than 10
   characters long.
   ```elixir
-  Cache.search(:roles, &match(%{name: "Cool Kids"}, &1))
+  Cache.search(:roles, &match?(%{name: "Cool Kids"}, &1))
   ```
   This is a good example of using the `match?/2`
   function to filter against a pattern.
+  ```elixir
+  Cache.search(:guilds, &match?(%{name: "Test"}, &1))
+  ```
+  Will match any guilds named "Test" in the cache.
   """
   @spec search(atom, (any -> Boolean)) :: [struct]
   def search(:guilds, filter) do
@@ -142,6 +146,12 @@ defmodule Alchemy.Cache do
     end)
     |> Enum.filter(filter)
   end
+  def search(:private_channels, filter) do
+    fold = fn {id, val}, acc ->
+      if filter.(val) do [val | acc] else acc end
+    end
+    :ets.foldr(fold, [], :priv_channels)
+  end
   def search(section, filter) do
     {key, de_indexer} = cache_sections(section)
      Supervisor.which_children(GuildSupervisor)
@@ -150,5 +160,15 @@ defmodule Alchemy.Cache do
      |> Stream.flat_map(fn {:ok, v} -> Map.values(v) end)
      |> Stream.map(de_indexer)
      |> Enum.filter(filter)
+  end
+  @doc """
+  Fetches a private_channel in the cache by id of the channel.
+  """
+  @spec private_channel(snowflake) :: {:ok, DMChannel.t} | {:error, String.t}
+  def private_channel(channel_id) do
+    case :ets.lookup(:priv_channels, channel_id) do
+       [{_, id}] -> {:ok, id}
+       [] ->  {:error, "Failed to find a DM channel entry for #{channel_id}."}
+    end
   end
 end

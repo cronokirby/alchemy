@@ -156,6 +156,11 @@ defmodule Alchemy.Cache.Guilds do
     {:reply, state[key], state}
   end
 
+  # as opposed to the above call, this also returns the id of the guild
+  def handle_call({:section_with_id, key}, _, state) do
+    {:reply, {state["id"], state[key]}, state}
+  end
+
 
   def handle_call({:replace, section, data}, _, state) do
     {:reply, :ok, %{state | section => data}}

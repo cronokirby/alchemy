@@ -10,7 +10,7 @@ defmodule Alchemy.Cache.PrivChannels do
 
 
   def init(:ok) do
-    table = :ets.new(:priv_channels, [:set, :protected])
+    table = :ets.new(:priv_channels, [:named_table])
     {:ok, table}
   end
 
