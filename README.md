@@ -20,6 +20,8 @@ defp deps do
 end
 ```
 
+Your "main" file in `lib/` could then look like the following:
+
 ```elixir
 defmodule MyBot.Commands do
   use Alchemy.Cogs
