@@ -20,6 +20,7 @@ defp deps do
 end
 ```
 
+Run `mix deps.get` to install the dependencies. 
 Your "main" file in `lib/` could then look like the following:
 
 ```elixir
