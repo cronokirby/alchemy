@@ -1,6 +1,7 @@
 defmodule Alchemy.Cache.PrivChannels do
   @moduledoc false # This genserver keeps an internal ets table of private channels,
   # thus serving as the cache for them
+  # This also keeps a mapping from recipient -> channel id
   use GenServer
 
 
@@ -36,12 +37,17 @@ defmodule Alchemy.Cache.PrivChannels do
 
 
   def handle_call({:add, channel}, _from, table) do
-     :ets.insert(table, {channel["id"], channel})
-     {:reply, :ok, table}
+    %{"id" => id, "recipients" => [%{"id" => user_id}|_]} = channel
+    :ets.insert(table, {id, channel})
+    :ets.insert(table, {user_id, id})
+    {:reply, :ok, table}
   end
 
   def handle_call({:add_list, channels}, _from, table) do
-    Enum.each(channels, &:ets.insert(table, {&1["id"], &1}))
+    Enum.each(channels, fn %{"id" => id, "recipients" => [%{"id" => user_id}|_]} = c ->
+      :ets.insert(table, {id, c})
+      :ets.insert(table, {user_id, id})
+    end)
     {:reply, :ok, table}
   end
 
