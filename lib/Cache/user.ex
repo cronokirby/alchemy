@@ -17,4 +17,8 @@ defmodule Alchemy.Cache.User do
     {:reply, :ok, user}
   end
 
+
+  def handle_call(:get, _, user) do
+    {:reply, user, user}
+  end
 end

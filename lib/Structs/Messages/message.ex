@@ -49,4 +49,5 @@ defmodule Alchemy.Message do
     |> field_map?("reactions", &map_struct(&1, Reaction))
     |> to_struct(__MODULE__)
   end
+
 end

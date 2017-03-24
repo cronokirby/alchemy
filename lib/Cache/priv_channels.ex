@@ -1,65 +1,59 @@
 defmodule Alchemy.Cache.PrivChannels do
-  @moduledoc false # The temple GenServer for private channels
-  # dynamically started by the supervisor in the submodule below
+  @moduledoc false # This genserver keeps an internal ets table of private channels,
+  # thus serving as the cache for them
+  # This also keeps a mapping from recipient -> channel id
   use GenServer
-  alias Alchemy.Cache.PrivChanSupervisor
-  import Alchemy.Cache.Utility
 
 
-  defmodule PrivChanSupervisor do
-    @moduledoc false
-    # acts as a dynamic supervisor for the module above
-    use Supervisor
-    alias Alchemy.Cache.PrivChannels
-
-
-    def start_link do
-      Supervisor.start_link(__MODULE__, :ok, name: __MODULE__)
-    end
-
-
-    def init(:ok) do
-      children = [
-        worker(PrivChannels, [])
-      ]
-
-      supervise(children, strategy: :simple_one_for_one)
-    end
+  def start_link do
+    GenServer.start_link(__MODULE__, :ok, name: __MODULE__)
   end
 
 
-  defp via_priv_channels(id) do
-    {:via, Registry, {:priv_channels, id}}
+  def init(:ok) do
+    table = :ets.new(:priv_channels, [:named_table])
+    {:ok, table}
   end
 
 
-  defp call(id, msg) do
-    GenServer.call(via_priv_channels(id), msg)
+  def add_channel(channel) do
+    GenServer.call(__MODULE__, {:add, channel})
+  end
+
+  # this is mainly used in the ready event
+  def add_channels(channels) do
+    GenServer.call(__MODULE__, {:add_list, channels})
+  end
+
+  # Because we're using a set based table, inserting the entry will overwrite.
+  def update_channel(channel) do
+    GenServer.call(__MODULE__, {:add, channel})
   end
 
 
-  def start_link(%{"id" => id} = priv_channel) do
-    GenServer.start_link(__MODULE__, priv_channel, name: via_priv_channels(id))
+  def remove_channel(channel) do
+    GenServer.call(__MODULE__, {:delete, channel})
   end
 
 
-  def add_priv_channel(channel) do
-    Supervisor.start_child(PrivChanSupervisor, [channel])
+  def handle_call({:add, channel}, _from, table) do
+    %{"id" => id, "recipients" => [%{"id" => user_id}|_]} = channel
+    :ets.insert(table, {id, channel})
+    :ets.insert(table, {user_id, id})
+    {:reply, :ok, table}
   end
 
-
-  def update_priv_channel(%{"id" => id} = channel) do
-    call(id, {:swap, channel})
+  def handle_call({:add_list, channels}, _from, table) do
+    Enum.each(channels, fn %{"id" => id, "recipients" => [%{"id" => user_id}|_]} = c ->
+      :ets.insert(table, {id, c})
+      :ets.insert(table, {user_id, id})
+    end)
+    {:reply, :ok, table}
   end
 
-
-  def rem_priv_channel(id) do
-    Supervisor.terminate_child(GuildSupervisor, via_priv_channels(id))
+  def handle_call({:delete, channel}, _from, table) do
+    :ets.delete(table, channel["id"])
+    {:reply, :ok, table}
   end
 
-  ### Server ###
-
-  def handle_call({:swap, new}, _, _) do
-    {:reply, :ok, new}
-  end
 end
