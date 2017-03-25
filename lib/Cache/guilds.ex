@@ -4,8 +4,9 @@ defmodule Alchemy.Cache.Guilds do
   use GenServer
   alias Alchemy.Cache.Guilds.GuildSupervisor
   alias Alchemy.Cache.Channels
+  alias Alchemy.Guild
   import Alchemy.Cache.Utility
-
+  import Alchemy.Cogs.EventHandler, only: [notify: 1]
 
   defmodule GuildSupervisor do
     @moduledoc false
@@ -84,8 +85,10 @@ defmodule Alchemy.Cache.Guilds do
     case Registry.lookup(:guilds, id) do
       [] ->
         start_guild(guild)
+        notify {:guild_create, [Guild.from_map(guild)]}
       [{pid, _}] ->
-        GenServer.call(pid, {:merge, guild_index(guild)})
+        guild = GenServer.call(pid, {:merge, guild_index(guild)})
+        notify {:guild_online, [Guild.from_map(guild)]}
     end
   end
 
