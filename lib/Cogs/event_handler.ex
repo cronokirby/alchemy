@@ -38,10 +38,10 @@ defmodule Alchemy.Cogs.EventHandler do
 
 
   def handle_cast({:notify, {type, args}}, state) do
-     for {module, method} <- Map.get(state, type, []) do
-       Task.start(fn -> apply(module, method, args) end)
-     end
-     {:noreply, state}
+    Enum.each(Map.get(state, type, []), fn {m, f} ->
+      Task.start(fn -> apply(m, f, args) end)
+    end)
+    {:noreply, state}
   end
 
 end

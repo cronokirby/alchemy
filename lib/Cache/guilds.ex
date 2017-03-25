@@ -44,20 +44,26 @@ defmodule Alchemy.Cache.Guilds do
   end
 
 
+
+  @guild_indexes [
+    {["members"], ["user", "id"]},
+    {["roles"], ["id"]},
+    {["presences"], ["user", "id"]},
+    {["voice_states"], ["user_id"]},
+    {["emojis"], ["id"]}
+  ]
   # This changes the inner arrays to become maps, for easier access later
   defp guild_index(%{"unavailable" => true} = guild) do
     guild
   end
   defp guild_index(guild) do
-    inners = [
-      {["members"], ["user", "id"]},
-      {["roles"], ["id"]},
-      {["presences"], ["user", "id"]},
-      {["voice_states"], ["user_id"]},
-      {["emojis"], ["id"]}
-    ]
-    inner_index(guild, inners)
+    inner_index(guild, @guild_indexes)
   end
+  # This version will check for null keys. Useful in the update event
+  defp safe_guild_index(guild) do
+    safe_inner_index(guild, @guild_indexes)
+  end
+
 
   def de_index(guild) do
     keys = ["members", "roles", "presences", "voice_states", "emojis"]
@@ -81,7 +87,6 @@ defmodule Alchemy.Cache.Guilds do
       [{pid, _}] ->
         GenServer.call(pid, {:merge, guild_index(guild)})
     end
-
   end
 
 
@@ -92,10 +97,9 @@ defmodule Alchemy.Cache.Guilds do
     Supervisor.terminate_child(GuildSupervisor, via_guilds(id))
   end
 
-
+  # Because this event is usually partial, we use safe_guild_index
   def update_guild(%{"id" => id} = guild) do
-    Channels.add_channels(guild["channels"], id)
-    call(id, {:merge, guild_index(guild)})
+    call(id, {:merge, safe_guild_index(guild)})
   end
 
 
