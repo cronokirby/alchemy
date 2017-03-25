@@ -98,6 +98,7 @@ defmodule Alchemy.Cache.Guilds do
   end
   def remove_guild(%{"id" => id}) do
     Supervisor.terminate_child(GuildSupervisor, via_guilds(id))
+    notify {:guild_delete, [id]}
   end
 
   # Because this event is usually partial, we use safe_guild_index
