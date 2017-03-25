@@ -20,7 +20,6 @@ defmodule Alchemy.Events do
 
   defmodule Application do
     use Application
-    use Example
     alias Alchemy.Client
 
     def start(_type, _args) do
@@ -32,20 +31,14 @@ defmodule Alchemy.Events do
   end
   ```
   """
-  @doc false
-  # Registers a function under the @handles attribute
-  # When the module is loaded, it will inject start_child calls
-  # to the EventManager, using this info
-  defmacro add_handle(type, atom) do
-    quote do
-      @handles [{unquote(type), {__MODULE__, unquote(atom)}} | @handles]
-    end
-  end
-
+  require Alchemy.EventMacros
+  import Alchemy.EventMacros
   @doc """
   Adds a handler that will respond to any message by passing it to this function.
 
-  `args` : `Alchemy.Message`
+  `args` : `Alchemy.Message.t`
+
+  This event gets triggered anytime a message gets sent.
 
   ### Examples
 
@@ -57,11 +50,8 @@ defmodule Alchemy.Events do
   ```
   """
   defmacro on_message(func) do
-    quote do
-      Alchemy.Events.add_handle(:message_create, unquote(func))
-    end
+    handle(:message_create, func)
   end
-
 
   @doc false
   # Requires and aliases this module, as well as adds a @handles attribute,
