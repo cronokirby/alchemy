@@ -99,6 +99,7 @@ defmodule Alchemy.Cache.Guilds do
 
   # Because this event is usually partial, we use safe_guild_index
   def update_guild(%{"id" => id} = guild) do
+    Channels.add_channels(guild["channels"], id)
     call(id, {:merge, safe_guild_index(guild)})
   end
 
@@ -146,8 +147,11 @@ defmodule Alchemy.Cache.Guilds do
 
   ### Server ###
 
+  # This call returns the full info, because the partial info from the event
+  # isn't usually very useful.
   def handle_call({:merge, new_info}, _, state) do
-    {:reply, :ok, Map.merge(state, new_info)}
+    new = Map.merge(state, new_info)
+    {:reply, new, new}
   end
 
 

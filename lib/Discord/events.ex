@@ -45,7 +45,7 @@ defmodule Alchemy.Discord.Events do
 
 
   def handle("GUILD_UPDATE", guild) do
-    Guilds.update_guild(guild)
+    guild = Guilds.update_guild(guild)
     notify {:guild_update, [Guild.from_map(guild)]}
   end
 
