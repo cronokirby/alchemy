@@ -20,7 +20,6 @@ defmodule Alchemy.Events do
 
   defmodule Application do
     use Application
-    use Example
     alias Alchemy.Client
 
     def start(_type, _args) do
@@ -32,20 +31,230 @@ defmodule Alchemy.Events do
   end
   ```
   """
-  @doc false
-  # Registers a function under the @handles attribute
-  # When the module is loaded, it will inject start_child calls
-  # to the EventManager, using this info
-  defmacro add_handle(type, atom) do
-    quote do
-      @handles [{unquote(type), {__MODULE__, unquote(atom)}} | @handles]
-    end
-  end
-
+  require Alchemy.EventMacros
+  import Alchemy.EventMacros
   @doc """
-  Adds a handler that will respond to any message by passing it to this function.
+  Registers a handle triggering whenever a channel gets created.
 
-  `args` : `Alchemy.Message`
+  `args` : `Alchemy.Channel.t`
+
+  As opposed to `on_DMChannel_create`, this gets triggered when a channel gets
+  created in a guild, and not when a user starts a DM with this client.
+  ## Examples
+  ```elixir
+  Events.on_channel_create(:foo)
+  def foo(channel), do: IO.inspect channel.name
+  ```
+  """
+  defmacro on_channel_create(func) do
+    handle(:channel_create, func)
+  end
+  @doc """
+  Registers a handle triggering whenever a user starts a DM with the client.
+
+  `args` : `Alchemy.Channel.dm_channel`
+
+  As opposed to `on_channel_create`, this event gets triggered when a user
+  starts a direct message with this client.
+  ## Examples
+  ```elixir
+  Events.on_DMChannel_create(:foo)
+  def foo(%DMChannel{recipients: [user|_]}) do
+    IO.inspect user.name <> " just DMed me!"
+  end
+  ```
+  """
+  defmacro on_DMChannel_create(func) do
+    handle(:dm_channel_create, func)
+  end
+  @doc """
+  Registers a handle triggering whenever a user closes a DM with the client.
+
+  `args` : `Alchemy.Channel.dm_channel`
+  """
+  defmacro on_DMChannel_delete(func) do
+    handle(:dm_channel_delete, func)
+  end
+  @doc """
+  Registers a handle triggering whenever a guild channel gets removed.
+
+  `args` : `Alchemy.Channel.t`
+  """
+  defmacro on_channel_delete(func) do
+    handle(:channel_delete, func)
+  end
+  @doc """
+  Registers a handle triggering whenever this client joins a guild.
+
+  `args` : `Alchemy.Guild.t`
+
+  A good amount of these events fire when the client initially connects
+  to the gateway, and don't actually represent the client joining a new guild.
+  """
+  defmacro on_guild_join(func) do
+    handle(:guild_create, func)
+  end
+  @doc """
+  Registers a handle triggering whenever a guild gets updated.
+
+  `args` : `Alchemy.Guild.t`
+
+  A guild gets updated for various reasons, be it a member or role edition,
+  or something else. The guild updated with this new info will be sent to the hook.
+  """
+  defmacro on_guild_update(func) do
+    handle(:guild_update, func)
+  end
+  @doc """
+  Registers a handle triggering whenever a guild comes back online.
+
+  `args` : `Alchemy.Guild.t`
+
+  Sometimes due to outages, or other problems, guild may go offline.
+  This can be checked via `guild.unavailable`. This event gets triggered whenever
+  a guild comes back online after an outage.
+  """
+  defmacro on_guild_online(func) do
+    handle(:guild_online, func)
+  end
+  @doc """
+  Registers a handle triggering whenever the client leaves a guild.
+
+  `args` : `snowflake`
+
+  The id of the guild the client left gets sent to the hook.
+  """
+  defmacro on_guild_leave(func) do
+    handle(:guild_delete, func)
+  end
+  @doc """
+  Registers a handle triggering whenever a guild channel gets updated.
+
+  `args` : `Alchemy.Channel.t`
+  ## Examples
+  ```elixir
+  Events.on_channel_update(:foo)
+  def foo(channel) do
+    IO.inspect "\#{channel.name} was updated"
+  end
+  ```
+  """
+  defmacro on_channel_update(func) do
+    handle(:channel_update, func)
+  end
+  @doc """
+  Registers a handle triggering whenever a user gets banned from a guild.
+
+  `args` : `Alchemy.User.t, snowflake`
+  The user, as well as the id of the guild they were banned from get passed
+  to the hook.
+  ## Example
+  ```elixir
+  Events.on_user_ban(:cancel_ban)
+  def cancel_ban(user, guild) do
+    Client.unban_member(guild, user.id)
+  end
+  ```
+  """
+  defmacro on_user_ban(func) do
+    handle(:guild_ban, func)
+  end
+  @doc """
+  Registers a handle triggering whenever a user gets unbanned from a guild.
+
+  `args` : `Alchemy.User.t, snowflake`
+  Recieves the user struct, as well as the id of the guild from which the user
+  has been unbanned.
+  ## Examples
+  ```elixir
+  Events.on_user_unban(:reban)
+  def reban(user, guild) do
+    Client.ban_member(guild_id, user.id)
+  end
+  ```
+  """
+  defmacro on_user_unban(func) do
+    handle(:guild_unban, func)
+  end
+  @doc """
+  Registers a handle triggering whenever a guild's emojis get updated.
+
+  `args` : `[Alchemy.Emoji.t], snowflake`
+
+  Receives a list of the current emojis in the guild, after this event, and the
+  id of the guild itself.
+  """
+  defmacro on_emoji_update(func) do
+    handle(:emoji_update, func)
+  end
+  @doc """
+  Registers a handle triggering whenever a guild's integrations get updated.
+
+  `args` : `snowflake`
+
+  Like other guild events, the info doesn't actually come through this event,
+  but through `on_guild_update`. This hook is merely useful for reacting
+  to the event having happened.
+  """
+  defmacro on_integrations_update(func) do
+    handle(:integrations_update, func)
+  end
+  @doc """
+  Registers a handle triggering whenever a member joins a guild.
+
+  `args` : `snowflake`
+
+  The information of the member doesn't actually come through this event,
+  but through `on_guild_update`.
+  """
+  defmacro on_member_join(func) do
+    handle(:member_join, func)
+  end
+  @doc """
+  Registers a handle triggering when a member leaves a guild.
+
+  `args` : `Alchemy.User.t, snowflake`
+
+  Receives the user that left the guild, and the id of the guild they've left.
+  """
+  defmacro on_member_leave(func) do
+    handle(:member_leave, func)
+  end
+  @doc """
+  Registers a handle triggering when the status of a member changes in a guild.
+
+  `args` : `Alchemy.GuildMember.t, snowflake`
+
+  Receives the member that was updated, and the guild they belong to.
+  """
+  defmacro on_member_update(func) do
+    handle(:member_update, func)
+  end
+  @doc """
+  Registers a handle triggering whenever a role gets created in a guild.
+
+  `args` : `Alchemy.Role.t, snowflake`
+
+  Receives the new role, as well as the id of the guild that it belongs to.
+  """
+  defmacro on_role_create(func) do
+    handle(:role_create, func)
+  end
+  @doc """
+  Registers a handle triggering whenever a role gets deleted from a guild.
+
+  `args` : `snowflake, snowflake`
+
+  Receives the id of the role that was deleted, and the id of the guild it was
+  deleted from.
+  """
+  defmacro on_role_delete(func) do
+    handle(:role_delete, func)
+  end
+  @doc """
+  Registers a handle triggering whenever a message gets sent.
+
+  `args` : `Alchemy.Message.t`
 
   ### Examples
 
@@ -57,12 +266,94 @@ defmodule Alchemy.Events do
   ```
   """
   defmacro on_message(func) do
-    quote do
-      Alchemy.Events.add_handle(:message_create, unquote(func))
-    end
+    handle(:message_create, func)
   end
+  @doc """
+  Registers a handle triggering whenever a message gets edited.
 
+  `args` : `snowflake, snowflake`
 
+  Receives the id of the message that was edited, and the channel it was
+  edited in.
+  """
+  defmacro on_message_edit(func) do
+    handle(:message_update, func)
+  end
+  @doc """
+  Registers a handle triggering whenever a single message gets deleted.
+
+  `args` : `snowflake, snowflake`
+
+  Receives the id of the message that was deleted, and the channel it was deleted
+  from.
+  """
+  defmacro on_message_delete(func) do
+    handle(:message_delete, func)
+  end
+  @doc """
+  Registers a handle triggering whenever messages get bulk deleted from a channel.
+
+  `args` : `[snowflake], snowflake`
+
+  Receives a list of message ids that were deleted, and the channel they were
+  deleted from.
+  """
+  defmacro on_bulk_delete(func) do
+    handle(:message_delete_bulk, func)
+  end
+  @doc """
+  Registers a handle triggering whenever the presence of a user gets updated
+  in a guild.
+
+  `args` : `Alchemy.Presence.t`
+
+  The presence struct here may be very incomplete.
+  """
+  defmacro on_presence_update(func) do
+    handle(:presence_update, func)
+  end
+  @doc """
+  Registers a handle triggering whenever a user starts typing in a channel.
+
+  `args` : `snowflake, snowflake, Integer`
+
+  Receives the id of the user, the channel, and a timestamp (unix seconds) of
+  the typing event.
+  """
+  defmacro on_typing(func) do
+    handle(:typing_start, func)
+  end
+  @doc """
+  Registers a handle triggering whenever this user changes their settings.
+
+  `args` : `String.t, String.t`
+
+  Receives the username and avatar hash of the new settings.
+  """
+  defmacro on_settings_update(func) do
+    handle(:user_settings_update, func)
+  end
+  @doc """
+  Registers a handle triggering whenever this user changes.
+
+  `args` : `Alchemy.User.t`
+
+  Receives the new information for this user.
+  """
+  defmacro on_user_update(func) do
+    handle(:user_update, func)
+  end
+  @doc """
+  Registers a handle triggering whenever someone leaves / joins a voice
+  channel.
+
+  `args` : `Alchemy.VoiceState.t`
+
+  Receives the corresponding voice state.
+  """
+  defmacro on_voice_update(func) do
+    handle(:voice_state_update, func)
+  end
   @doc false
   # Requires and aliases this module, as well as adds a @handles attribute,
   # necessary to use the other macros

@@ -22,10 +22,6 @@ defmodule Alchemy.Discord.Events do
   end
 
 
-  def handle("CHANNEL_UPDATE", %{"is_private" => true} = dm_channel) do
-    PrivChannels.update_channel(dm_channel)
-    notify {:dm_channel_update, [to_struct(dm_channel, DMChannel)]}
-  end
   def handle("CHANNEL_UPDATE", channel) do
     notify {:channel_update, [Channel.from_map(channel)]}
   end
@@ -34,6 +30,10 @@ defmodule Alchemy.Discord.Events do
   def handle("CHANNEL_DELETE", %{"is_private" => true} = dm_channel) do
     PrivChannels.remove_channel(dm_channel["id"])
     notify {:dm_channel_delete, [to_struct(dm_channel, DMChannel)]}
+  end
+  def handle("CHANNEL_DELETE", channel) do
+    Channels.remove_channel(channel["id"])
+    notify {:channel_delete, [Channel.from_map(channel)]}
   end
 
 
@@ -45,8 +45,10 @@ defmodule Alchemy.Discord.Events do
 
 
   def handle("GUILD_UPDATE", guild) do
-    Guilds.update_guild(guild)
-    notify {:guild_update, [Guild.from_map(guild)]}
+    guild = Guilds.update_guild(guild)
+            |> Guilds.de_index
+            |> Guild.from_map
+    notify {:guild_update, [guild]}
   end
 
 

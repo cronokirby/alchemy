@@ -4,8 +4,9 @@ defmodule Alchemy.Cache.Guilds do
   use GenServer
   alias Alchemy.Cache.Guilds.GuildSupervisor
   alias Alchemy.Cache.Channels
+  alias Alchemy.Guild
   import Alchemy.Cache.Utility
-
+  import Alchemy.Cogs.EventHandler, only: [notify: 1]
 
   defmodule GuildSupervisor do
     @moduledoc false
@@ -44,23 +45,30 @@ defmodule Alchemy.Cache.Guilds do
   end
 
 
+
+  @guild_indexes [
+    {["members"], ["user", "id"]},
+    {["roles"], ["id"]},
+    {["presences"], ["user", "id"]},
+    {["voice_states"], ["user_id"]},
+    {["emojis"], ["id"]},
+    {["channels"], ["id"]}
+  ]
   # This changes the inner arrays to become maps, for easier access later
   defp guild_index(%{"unavailable" => true} = guild) do
     guild
   end
   defp guild_index(guild) do
-    inners = [
-      {["members"], ["user", "id"]},
-      {["roles"], ["id"]},
-      {["presences"], ["user", "id"]},
-      {["voice_states"], ["user_id"]},
-      {["emojis"], ["id"]}
-    ]
-    inner_index(guild, inners)
+    inner_index(guild, @guild_indexes)
+  end
+  # This version will check for null keys. Useful in the update event
+  defp safe_guild_index(guild) do
+    safe_inner_index(guild, @guild_indexes)
   end
 
+
   def de_index(guild) do
-    keys = ["members", "roles", "presences", "voice_states", "emojis"]
+    keys = ["members", "roles", "presences", "voice_states", "emojis", "channels"]
     Enum.reduce(keys, guild, fn k, g ->
       update_in(g[k], &Map.values/1)
     end)
@@ -78,10 +86,11 @@ defmodule Alchemy.Cache.Guilds do
     case Registry.lookup(:guilds, id) do
       [] ->
         start_guild(guild)
+        notify {:guild_create, [Guild.from_map(guild)]}
       [{pid, _}] ->
-        GenServer.call(pid, {:merge, guild_index(guild)})
+        guild = GenServer.call(pid, {:merge, guild_index(guild)})
+        notify {:guild_online, [Guild.from_map(guild)]}
     end
-
   end
 
 
@@ -90,12 +99,13 @@ defmodule Alchemy.Cache.Guilds do
   end
   def remove_guild(%{"id" => id}) do
     Supervisor.terminate_child(GuildSupervisor, via_guilds(id))
+    notify {:guild_delete, [id]}
   end
 
-
+  # Because this event is usually partial, we use safe_guild_index
   def update_guild(%{"id" => id} = guild) do
     Channels.add_channels(guild["channels"], id)
-    call(id, {:merge, guild_index(guild)})
+    call(id, {:merge, safe_guild_index(guild)})
   end
 
 
@@ -142,8 +152,11 @@ defmodule Alchemy.Cache.Guilds do
 
   ### Server ###
 
+  # This call returns the full info, because the partial info from the event
+  # isn't usually very useful.
   def handle_call({:merge, new_info}, _, state) do
-    {:reply, :ok, Map.merge(state, new_info)}
+    new = Map.merge(state, new_info)
+    {:reply, new, new}
   end
 
 

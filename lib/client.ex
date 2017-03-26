@@ -7,7 +7,7 @@ defmodule Alchemy.Client do
   require Logger
   alias Alchemy.Discord.{Users, Channels, Guilds, RateManager}
   alias Alchemy.Discord.Gateway.Manager, as: GatewayManager
-  alias Alchemy.{Channel, Channel.Invite, DMChannel, Reaction.Emoji,
+  alias Alchemy.{Channel, DMChannel, Reaction.Emoji,
                  Embed, Guild, GuildMember, Message, User, UserGuild, Role,
                  VoiceRegion}
   alias Alchemy.Cache.Supervisor, as: CacheSupervisor
@@ -133,7 +133,7 @@ defmodule Alchemy.Client do
    Client.get_DMs()
    ```
    """
-   @spec get_DMs :: [DMChannel.t]
+   @spec get_DMs :: [Channel.dm_channel]
    def get_DMs do
      {Users, :get_DMs, []}
      |> send_req("/users/@me/channels")
@@ -148,7 +148,7 @@ defmodule Alchemy.Client do
    end
    ```
    """
-   @spec create_DM(snowflake) :: DMChannel.t
+   @spec create_DM(snowflake) :: Channel.dm_channel
    def create_DM(user_id) do
      {Users, :create_DM, [user_id]}
      |> send_req("/users/@me/channels")
@@ -162,7 +162,7 @@ defmodule Alchemy.Client do
    ```
    """
    @spec get_channel(snowflake) :: {:ok, Channel.t}
-                                 | {:ok, DMChannel.t}
+                                 | {:ok, Channel.dm_channel}
                                  | {:error, term}
    def get_channel(channel_id) do
      {Channels, :get_channel, [channel_id]}
@@ -219,7 +219,7 @@ defmodule Alchemy.Client do
    ```
    """
    @spec delete_channel(snowflake) :: {:ok, Channel.t}
-                                    | {:ok, DMChannel.t}
+                                    | {:ok, Channel.dm_channel}
                                     | {:error, term}
    def delete_channel(channel_id) do
      {Channels, :delete_channel, [channel_id]}
@@ -529,7 +529,7 @@ defmodule Alchemy.Client do
       Cogs.say("there are #\{length(invites)\} invites active in this channel")
     end
     """
-    @spec get_invites(snowflake) :: {:ok, [Invite.t]} | {:error, term}
+    @spec get_invites(snowflake) :: {:ok, [Channel.invite]} | {:error, term}
     def get_invites(channel_id) do
       {Channels, :get_channel_invites, [channel_id]}
       |> send_req("/channels/#{channel_id}/invites")
@@ -566,7 +566,7 @@ defmodule Alchemy.Client do
                         max_age: Integer,
                         max_uses: Integer,
                         temporary: Boolean,
-                        unique: True) :: {:ok, Invite.t} | {:error, term}
+                        unique: True) :: {:ok, Channel.invite} | {:error, term}
     def create_invite(channel_id, options \\ []) do
       {Channels, :create_channel_invite, [channel_id, options]}
       |> send_req("/channels/#{channel_id}/invites")
@@ -1068,7 +1068,7 @@ defmodule Alchemy.Client do
 
     Requires the `:manage_guild` permission.
     """
-    @spec get_invites(snowflake) :: {:ok, [Invite.t]} | {:error, term}
+    @spec get_invites(snowflake) :: {:ok, [Channel.invite]} | {:error, term}
     def get_invites(guild_id) do
       {Guilds, :get_invites, [guild_id]}
       |> send_req("/guilds/#{guild_id}/invites")

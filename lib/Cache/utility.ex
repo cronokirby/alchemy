@@ -17,4 +17,14 @@ defmodule Alchemy.Cache.Utility do
     end
   end
 
+  # this will check for null keys
+  def safe_inner_index(base, inners) do
+    List.foldr inners, base, fn {field, path}, acc ->
+      case get_in(acc, field) do
+        nil -> acc
+        _ -> update_in(acc, field, &index(&1, path))
+      end
+    end
+  end
+
 end

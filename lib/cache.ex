@@ -114,7 +114,8 @@ defmodule Alchemy.Cache do
   Searches across all guild for information.
 
   The section is the type of object to search for. The possibilities are:
-  `:guilds`, `:members`, `:roles`, `:presences`, `:voice_states`, `:emojis`
+  `:guilds`, `:members`, `:roles`, `:presences`, `:voice_states`, `:emojis`,
+  `:channels`
 
   The filter is a function returning a boolean, that allows you to filter out
   elements from this list.
@@ -167,7 +168,7 @@ defmodule Alchemy.Cache do
   Takes a DMChannel id. Alternatively, `user: user_id` can be passed to find
   the private channel related to a user.
   """
-  @spec private_channel(snowflake) :: {:ok, DMChannel.t} | {:error, String.t}
+  @spec private_channel(snowflake) :: {:ok, Channel.dm_channel} | {:error, String.t}
   def private_channel(user: user_id) do
     case :ets.lookup(:priv_channels, user_id) do
       [{_, id}] -> private_channel(id)
