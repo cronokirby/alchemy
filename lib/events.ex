@@ -34,11 +34,43 @@ defmodule Alchemy.Events do
   require Alchemy.EventMacros
   import Alchemy.EventMacros
   @doc """
-  Adds a handler that will respond to any message by passing it to this function.
+  Registers a handle triggering whenever a channel gets created.
+
+  `args` : `Alchemy.Channel.t`
+
+  As opposed to `on_DMChannel_create`, this gets triggered when a channel gets
+  created in a guild, and not when a user starts a DM with this client.
+  ## Examples
+  ```elixir
+  Events.on_channel_create(:foo)
+  def foo(channel), do: IO.inspect channel.name
+  ```
+  """
+  defmacro on_channel_create(func) do
+    handle(:channel_create, func)
+  end
+  @doc """
+  Registers a handle triggering whenever a user starts a DM with the client.
+
+  `args` : `Alchemy.DMChannel.t`
+
+  As opposed to `on_channel_create`, this event gets triggered when a user
+  starts a direct message with this client.
+  ## Examples
+  ```elixir
+  Events.on_DMChannel_create(:foo)
+  def foo(%DMChannel{recipients: [user|_]}) do
+    IO.inspect user.name <> " just DMed me!"
+  end
+  ```
+  """
+  defmacro on_DMChannel_create(func) do
+    handle(:dm_channel_create, func)
+  end
+  @doc """
+  Registers a handle triggering whenever a message gets sent.
 
   `args` : `Alchemy.Message.t`
-
-  This event gets triggered anytime a message gets sent.
 
   ### Examples
 
