@@ -117,7 +117,6 @@ defmodule Alchemy.Events do
   defmacro on_guild_online(func) do
     handle(:guild_online, func)
   end
-
   @doc """
   Registers a handle triggering whenever the client leaves a guild.
 
@@ -131,7 +130,7 @@ defmodule Alchemy.Events do
   @doc """
   Registers a handle triggering whenever a guild channel gets updated.
 
-  `args` : Alchemy.Channel.t
+  `args` : `Alchemy.Channel.t`
   ## Examples
   ```elixir
   Events.on_channel_update(:foo)
@@ -142,6 +141,40 @@ defmodule Alchemy.Events do
   """
   defmacro on_channel_update(func) do
     handle(:channel_update, func)
+  end
+  @doc """
+  Registers a handle triggering whenever a user gets banned from a guild.
+
+  `args` : `Alchemy.User.t, snowflake`
+  The user, as well as the id of the guild they were banned from get passed
+  to the hook.
+  ## Example
+  ```elixir
+  Events.on_user_ban(:cancel_ban)
+  def cancel_ban(user, guild) do
+    Client.unban_member(guild, user.id)
+  end
+  ```
+  """
+  defmacro on_user_ban(func) do
+    handle(:guild_ban, func)
+  end
+  @doc """
+  Registers a handle triggering whenever a user gets unbanned from a guild.
+
+  `args` : `Alchemy.User.t, snowflake`
+  Recieves the user struct, as well as the id of the guild from which the user
+  has been unbanned.
+  ## Examples
+  ```elixir
+  Events.on_user_unban(:reban)
+  def reban(user, guild) do
+    Client.ban_member(guild_id, user.id)
+  end
+  ```
+  """
+  defmacro on_user_unban(func) do
+    handle(:guild_unban, func)
   end
   @doc """
   Registers a handle triggering whenever a message gets sent.
