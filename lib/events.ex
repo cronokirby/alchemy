@@ -91,7 +91,9 @@ defmodule Alchemy.Events do
   A good amount of these events fire when the client initially connects
   to the gateway, and don't actually represent the client joining a new guild.
   """
-
+  defmacro on_guild_join(func) do
+    handle(:guild_create, func)
+  end
 
   @doc """
   Registers a handle triggering whenever a guild channel gets updated.
