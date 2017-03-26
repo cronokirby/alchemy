@@ -68,6 +68,21 @@ defmodule Alchemy.Events do
     handle(:dm_channel_create, func)
   end
   @doc """
+  Registers a handle triggering whenever a guild channel gets updated.
+
+  `args` : Alchemy.Channel.t
+  ## Examples
+  ```elixir
+  Events.on_channel_update(:foo)
+  def foo(channel) do
+    IO.inspect "\#{channel.name} was updated"
+  end
+  ```
+  """
+  defmacro on_channel_update(func) do
+    handle(:channel_update, func)
+  end
+  @doc """
   Registers a handle triggering whenever a message gets sent.
 
   `args` : `Alchemy.Message.t`
