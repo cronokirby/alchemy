@@ -167,7 +167,7 @@ defmodule Alchemy.Cache do
   Takes a DMChannel id. Alternatively, `user: user_id` can be passed to find
   the private channel related to a user.
   """
-  @spec private_channel(snowflake) :: {:ok, DMChannel.t} | {:error, String.t}
+  @spec private_channel(snowflake) :: {:ok, Channel.dm_channel} | {:error, String.t}
   def private_channel(user: user_id) do
     case :ets.lookup(:priv_channels, user_id) do
       [{_, id}] -> private_channel(id)

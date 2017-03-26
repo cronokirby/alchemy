@@ -52,7 +52,7 @@ defmodule Alchemy.Events do
   @doc """
   Registers a handle triggering whenever a user starts a DM with the client.
 
-  `args` : `Alchemy.DMChannel.t`
+  `args` : `Alchemy.Channel.dm_channel`
 
   As opposed to `on_channel_create`, this event gets triggered when a user
   starts a direct message with this client.
@@ -67,6 +67,32 @@ defmodule Alchemy.Events do
   defmacro on_DMChannel_create(func) do
     handle(:dm_channel_create, func)
   end
+  @doc """
+  Registers a handle triggering whenever a user closes a DM with the client.
+
+  `args` : `Alchemy.Channel.dm_channel`
+  """
+  defmacro on_DMChannel_delete(func) do
+    handle(:dm_channel_delete, func)
+  end
+  @doc """
+  Registers a handle triggering whenever a guild channel gets removed.
+
+  `args` : `Alchemy.Channel.t`
+  """
+  defmacro on_channel_delete(func) do
+    handle(:channel_delete, func)
+  end
+  @doc """
+  Registers a handle triggering whenever this client joins a guild.
+
+  `args` : `Alchemy.Guild.t`
+
+  A good amount of these events fire when the client initially connects
+  to the gateway, and don't actually represent the client joining a new guild.
+  """
+
+
   @doc """
   Registers a handle triggering whenever a guild channel gets updated.
 
