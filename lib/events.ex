@@ -187,7 +187,36 @@ defmodule Alchemy.Events do
   defmacro on_emoji_update(func) do
     handle(:emoji_update, func)
   end
+  @doc """
+  Registers a handle triggering whenever a guild's integrations get updated.
 
+  `args` : `snowflake`
+
+  Like other guild events, the info doesn't actually come through this event,
+  but through `on_guild_update`. This hook is merely useful for reacting
+  to the event having happened.
+  """
+  defmacro on_integrations_update(func) do
+    handle(:integrations_update, func)
+  end
+  @doc """
+  Registers a handle triggering whenever a member joins a guild.
+
+  `args` : `snowflake`
+
+  The information of the member doesn't actually come through this event,
+  but through `on_guild_update`.
+  """
+  defmacro on_member_join(func) do
+    handle(:member_join, func)
+  end
+  @doc """
+  Registers a handle triggering when a member leaves a guild.
+
+  `args` : `Alchemy.User.t, snowflake`
+
+
+  """
   @doc """
   Registers a handle triggering whenever a message gets sent.
 
