@@ -194,5 +194,6 @@ defmodule Alchemy.Cache do
   @spec user :: User.t
   def user do
     GenServer.call(Alchemy.Cache.User, :get)
+    |> to_struct(User)
   end
 end
