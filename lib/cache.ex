@@ -9,7 +9,7 @@ defmodule Alchemy.Cache do
   to get information from the context of commands.
   """
   alias Alchemy.Cache.{Guilds, Guilds.GuildSupervisor}
-  alias Alchemy.{DMChannel, Emoji, Guild, GuildMember, Role, Users.Presence}
+  alias Alchemy.{DMChannel, Emoji, Guild, GuildMember, Role, User, Users.Presence}
   import Alchemy.Structs, only: [to_struct: 2]
 
   @type snowflake :: String.t
@@ -180,5 +180,19 @@ defmodule Alchemy.Cache do
        [{_, channel}] -> {:ok, DMChannel.from_map(channel)}
        [] ->  {:error, "Failed to find a DM channel entry for #{channel_id}."}
     end
+  end
+  @doc """
+  Gets the user struct for this client from the cache.
+
+  ## Examples
+  ```elixir
+  Cogs.def hello do
+    Cogs.say "hello, my name is \#{Cache.user().name}"
+  end
+  ```
+  """
+  @spec user :: User.t
+  def user do
+    GenServer.call(Alchemy.Cache.User, :get)
   end
 end
