@@ -22,10 +22,6 @@ defmodule Alchemy.Discord.Events do
   end
 
 
-  def handle("CHANNEL_UPDATE", %{"is_private" => true} = dm_channel) do
-    PrivChannels.update_channel(dm_channel)
-    notify {:dm_channel_update, [to_struct(dm_channel, DMChannel)]}
-  end
   def handle("CHANNEL_UPDATE", channel) do
     notify {:channel_update, [Channel.from_map(channel)]}
   end
