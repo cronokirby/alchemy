@@ -230,7 +230,27 @@ defmodule Alchemy.Events do
   defmacro on_member_update(func) do
     handle(:member_update, func)
   end
+  @doc """
+  Registers a handle triggering whenever a role gets created in a guild.
 
+  `args` : `Alchemy.Role.t, snowflake`
+
+  Receives the new role, as well as the id of the guild that it belongs to.
+  """
+  defmacro on_role_create(func) do
+    handle(:role_create, func)
+  end
+  @doc """
+  Registers a handle triggering whenever a role gets deleted from a guild.
+
+  `args` : `snowflake, snowflake`
+
+  Receives the id of the role that was deleted, and the id of the guild it was
+  deleted from.
+  """
+  defmacro on_role_delete(func) do
+    handle(:role_delete, func)
+  end
   @doc """
   Registers a handle triggering whenever a message gets sent.
 
