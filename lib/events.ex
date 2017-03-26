@@ -323,8 +323,37 @@ defmodule Alchemy.Events do
   defmacro on_typing(func) do
     handle(:typing_start, func)
   end
+  @doc """
+  Registers a handle triggering whenever this user changes their settings.
 
+  `args` : `String.t, String.t`
 
+  Receives the username and avatar hash of the new settings.
+  """
+  defmacro on_settings_update(func) do
+    handle(:user_settings_update, func)
+  end
+  @doc """
+  Registers a handle triggering whenever this user changes.
+
+  `args` : `Alchemy.User.t`
+
+  Receives the new information for this user.
+  """
+  defmacro on_user_update(func) do
+    handle(:user_update, func)
+  end
+  @doc """
+  Registers a handle triggering whenever someone leaves / joins a voice
+  channel.
+
+  `args` : `Alchemy.VoiceState.t`
+
+  Receives the corresponding voice state.
+  """
+  defmacro on_voice_update(func) do
+    handle(:voice_state_update, func)
+  end
   @doc false
   # Requires and aliases this module, as well as adds a @handles attribute,
   # necessary to use the other macros
