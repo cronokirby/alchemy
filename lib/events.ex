@@ -301,6 +301,28 @@ defmodule Alchemy.Events do
   defmacro on_bulk_delete(func) do
     handle(:message_delete_bulk, func)
   end
+  @doc """
+  Registers a handle triggering whenever the presence of a user gets updated
+  in a guild.
+
+  `args` : `Alchemy.Presence.t`
+
+  The presence struct here may be very incomplete.
+  """
+  defmacro on_presence_update(func) do
+    handle(:presence_update, func)
+  end
+  @doc """
+  Registers a handle triggering whenever a user starts typing in a channel.
+
+  `args` : `snowflake, snowflake, Integer`
+
+  Receives the id of the user, the channel, and a timestamp (unix seconds) of
+  the typing event.
+  """
+  defmacro on_typing(func) do
+    handle(:typing_start, func)
+  end
 
 
   @doc false
