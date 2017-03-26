@@ -20,11 +20,21 @@ defmodule Alchemy.Cache.Channels do
   end
 
 
-  def handle_call({:add, channels, guild_id}, _, state) do
-    for channel <- channels do
-      :ets.insert(:channels, {channel["id"], guild_id})
-    end
-    {:reply, :ok, state}
+  def remove_channel(id) do
+    GenServer.call(__MODULE__, {:remove, id})
   end
 
+
+  def handle_call({:add, channels, guild_id}, _, table) do
+    for channel <- channels do
+      :ets.insert(table, {channel["id"], guild_id})
+    end
+    {:reply, :ok, table}
+  end
+
+
+  def handle_call({:remove, id}, _, table) do
+    :ets.delete(table, id)
+    {:repy, :ok, table}
+  end
 end

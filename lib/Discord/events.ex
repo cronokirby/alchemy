@@ -31,6 +31,10 @@ defmodule Alchemy.Discord.Events do
     PrivChannels.remove_channel(dm_channel["id"])
     notify {:dm_channel_delete, [to_struct(dm_channel, DMChannel)]}
   end
+  def handle("CHANNEL_DELETE", channel) do
+    Channels.remove_channel(channel["id"])
+    notify {:channel_delete, [Channel.from_map(channel)]}
+  end
 
 
   # The Cache manager is tasked of notifying, if, and only if this guild is new,

@@ -51,7 +51,8 @@ defmodule Alchemy.Cache.Guilds do
     {["roles"], ["id"]},
     {["presences"], ["user", "id"]},
     {["voice_states"], ["user_id"]},
-    {["emojis"], ["id"]}
+    {["emojis"], ["id"]},
+    {["channels"], ["id"]}
   ]
   # This changes the inner arrays to become maps, for easier access later
   defp guild_index(%{"unavailable" => true} = guild) do
@@ -67,7 +68,7 @@ defmodule Alchemy.Cache.Guilds do
 
 
   def de_index(guild) do
-    keys = ["members", "roles", "presences", "voice_states", "emojis"]
+    keys = ["members", "roles", "presences", "voice_states", "emojis", "channels"]
     Enum.reduce(keys, guild, fn k, g ->
       update_in(g[k], &Map.values/1)
     end)
