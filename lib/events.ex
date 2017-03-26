@@ -181,7 +181,7 @@ defmodule Alchemy.Events do
 
   `args` : `[Alchemy.Emoji.t], snowflake`
 
-  Recieves a list of the current emojis in the guild, after this event, and the
+  Receives a list of the current emojis in the guild, after this event, and the
   id of the guild itself.
   """
   defmacro on_emoji_update(func) do
@@ -215,8 +215,22 @@ defmodule Alchemy.Events do
 
   `args` : `Alchemy.User.t, snowflake`
 
-
+  Receives the user that left the guild, and the id of the guild they've left.
   """
+  defmacro on_member_leave(func) do
+    handle(:member_leave, func)
+  end
+  @doc """
+  Registers a handle triggering when the status of a member changes in a guild.
+
+  `args` : `Alchemy.GuildMember.t, snowflake`
+
+  Receives the member that was updated, and the guild they belong to.
+  """
+  defmacro on_member_update(func) do
+    handle(:member_update, func)
+  end
+
   @doc """
   Registers a handle triggering whenever a message gets sent.
 
