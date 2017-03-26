@@ -177,6 +177,18 @@ defmodule Alchemy.Events do
     handle(:guild_unban, func)
   end
   @doc """
+  Registers a handle triggering whenever a guild's emojis get updated.
+
+  `args` : `[Alchemy.Emoji.t], snowflake`
+
+  Recieves a list of the current emojis in the guild, after this event, and the
+  id of the guild itself.
+  """
+  defmacro on_emoji_update(func) do
+    handle(:emoji_update, func)
+  end
+
+  @doc """
   Registers a handle triggering whenever a message gets sent.
 
   `args` : `Alchemy.Message.t`
