@@ -94,7 +94,40 @@ defmodule Alchemy.Events do
   defmacro on_guild_join(func) do
     handle(:guild_create, func)
   end
+  @doc """
+  Registers a handle triggering whenever a guild gets updated.
 
+  `args` : `Alchemy.Guild.t`
+
+  A guild gets updated for various reasons, be it a member or role edition,
+  or something else. The guild updated with this new info will be sent to the hook.
+  """
+  defmacro on_guild_update(func) do
+    handle(:guild_update, func)
+  end
+  @doc """
+  Registers a handle triggering whenever a guild comes back online.
+
+  `args` : `Alchemy.Guild.t`
+
+  Sometimes due to outages, or other problems, guild may go offline.
+  This can be checked via `guild.unavailable`. This event gets triggered whenever
+  a guild comes back online after an outage.
+  """
+  defmacro on_guild_online(func) do
+    handle(:guild_online, func)
+  end
+
+  @doc """
+  Registers a handle triggering whenever the client leaves a guild.
+
+  `args` : `snowflake`
+
+  The id of the guild the client left gets sent to the hook.
+  """
+  defmacro on_guild_leave(func) do
+    handle(:guild_delete, func)
+  end
   @doc """
   Registers a handle triggering whenever a guild channel gets updated.
 
