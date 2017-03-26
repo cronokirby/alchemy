@@ -114,7 +114,8 @@ defmodule Alchemy.Cache do
   Searches across all guild for information.
 
   The section is the type of object to search for. The possibilities are:
-  `:guilds`, `:members`, `:roles`, `:presences`, `:voice_states`, `:emojis`
+  `:guilds`, `:members`, `:roles`, `:presences`, `:voice_states`, `:emojis`,
+  `:channels`
 
   The filter is a function returning a boolean, that allows you to filter out
   elements from this list.

@@ -268,6 +268,40 @@ defmodule Alchemy.Events do
   defmacro on_message(func) do
     handle(:message_create, func)
   end
+  @doc """
+  Registers a handle triggering whenever a message gets edited.
+
+  `args` : `snowflake, snowflake`
+
+  Receives the id of the message that was edited, and the channel it was
+  edited in.
+  """
+  defmacro on_message_edit(func) do
+    handle(:message_update, func)
+  end
+  @doc """
+  Registers a handle triggering whenever a single message gets deleted.
+
+  `args` : `snowflake, snowflake`
+
+  Receives the id of the message that was deleted, and the channel it was deleted
+  from.
+  """
+  defmacro on_message_delete(func) do
+    handle(:message_delete, func)
+  end
+  @doc """
+  Registers a handle triggering whenever messages get bulk deleted from a channel.
+
+  `args` : `[snowflake], snowflake`
+
+  Receives a list of message ids that were deleted, and the channel they were
+  deleted from.
+  """
+  defmacro on_bulk_delete(func) do
+    handle(:message_delete_bulk, func)
+  end
+
 
   @doc false
   # Requires and aliases this module, as well as adds a @handles attribute,
