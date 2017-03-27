@@ -94,7 +94,8 @@ defmodule Alchemy.Cogs do
 
   If you want to remove a whole module from the cogs, use `Cogs.unload/1`.
 
-  This will stop a command from being triggered.
+  This will stop a command from being triggered. The only way to reenable the
+  command is to reload the module with `use`.
   ## Examples
   ```elixir
   defmodule Example do
@@ -111,10 +112,14 @@ defmodule Alchemy.Cogs do
   Cogs.disable(:foo)
   ```
   Only `ping` will be triggerable now.
+  ```elixir
+  use Example
+  ```
+  At runtime this will add `foo` back in, given it's still in the module.
   """
   @spec disable(atom) :: :ok
   def disable(command) do
-    CommandHandle.disable(command)
+    CommandHandler.disable(command)
     Logger.info "Command *#{command}* disabled"
   end
   @doc """
