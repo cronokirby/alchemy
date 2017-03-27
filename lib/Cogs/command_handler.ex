@@ -19,15 +19,21 @@ defmodule Alchemy.Cogs.CommandHandler do
   end
 
 
+  def disable(func) do
+    GenServer.call(Commands, {:disable, func})
+  end
+
+
   def dispatch(message) do
     GenServer.cast(Commands, {:dispatch, message})
   end
 
-
   ### Server ###
 
   def start_link(options) do
-    GenServer.start_link(__MODULE__, %{prefix: "!", options: options}, name: Commands)
+    # String keys to avoid conflict with functions
+    GenServer.start_link(__MODULE__, %{"prefix" => "!", "options" => options},
+                         name: Commands)
   end
 
 
@@ -37,11 +43,17 @@ defmodule Alchemy.Cogs.CommandHandler do
 
 
   def handle_call({:unload, module}, _from, state) do
-    new = Enum.filter(state, fn
+    new = Stream.filter(state, fn
       {_k, {^module, _, _}} -> false
       {_k, {^module, _}} -> false
       _ -> true
     end) |> Enum.into(%{})
+    {:reply, :ok, new}
+  end
+
+
+  def handle_call({:disable, func}, _from, state) do
+    {_pop, new} = Map.pop(state, func)
     {:reply, :ok, new}
   end
 
@@ -57,7 +69,7 @@ defmodule Alchemy.Cogs.CommandHandler do
   end
 
 
-  def handle_cast({:dispatch, message}, %{options: [selfbot: id]} = state) do
+  def handle_cast({:dispatch, message}, %{"options" => [selfbot: id]} = state) do
     if message.author.id == id do
       Task.start(fn -> dispatch(message, state) end)
     end
@@ -70,11 +82,11 @@ defmodule Alchemy.Cogs.CommandHandler do
 
 
   defp dispatch(message, state) do
-     prefix = state.prefix
-
-     destructure([_, command, rest], message.content
-                                     |> String.split([prefix, " "], parts: 3)
-                                     |> Enum.concat(["", ""]))
+     prefix = state["prefix"]
+     destructure([_, command, rest],
+                 message.content
+                 |> String.split([prefix, " "], parts: 3)
+                 |> Enum.concat(["", ""]))
      command = String.to_atom(command)
      case state[command] do
        {mod, arity} ->

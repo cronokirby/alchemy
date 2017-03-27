@@ -6,6 +6,10 @@ defmodule Alchemy.Cogs do
   `__using__` macro for that module, which will then allow these commands
   to be loaded in the main application via `use`
 
+  # Note
+  Be careful not to define multiple commands with the same name. The last module
+  loaded will have their version active.
+
   ## Example Usage
 
   ```elixir
@@ -23,8 +27,20 @@ defmodule Alchemy.Cogs do
     Cogs.def echo(word) do
       Cogs.say word
     end
-
   end
+  ```
+  Then you can load this cog in at runtime, or anytime after starting the client
+  ```elixir
+  use Example
+  ```
+  If you need to remove this cog from the handler:
+  ```elixir
+  Cogs.unload(Example)
+  ```
+  Or you just want to disable a single function:
+  ```elixir
+  Cogs.disable(:ping)
+  ```
   """
   require Logger
   alias Alchemy.Cogs.CommandHandler
@@ -49,6 +65,8 @@ defmodule Alchemy.Cogs do
   @doc """
   Unloads a module from the handler.
 
+  If you just want to disable a single command, use `Cogs.disable/1`
+
   ## Examples
   ```elixir
   Client.start(@token)
@@ -70,6 +88,34 @@ defmodule Alchemy.Cogs do
   def unload(module) do
     CommandHandler.unload(module)
     Logger.info "*#{Macro.to_string module}* unloaded from cogs"
+  end
+  @doc """
+  Disables a command.
+
+  If you want to remove a whole module from the cogs, use `Cogs.unload/1`.
+
+  This will stop a command from being triggered.
+  ## Examples
+  ```elixir
+  defmodule Example do
+    use Alchemy.Cogs
+
+    Cogs.def ping, do: Cogs.say "pong"
+
+    Cogs.def foo, do: Cogs.say "bar"
+  end
+  ```
+  ```elixir
+  Client.start(@token)
+  use Example
+  Cogs.disable(:foo)
+  ```
+  Only `ping` will be triggerable now.
+  """
+  @spec disable(atom) :: :ok
+  def disable(command) do
+    CommandHandle.disable(command)
+    Logger.info "Command *#{command}* disabled"
   end
   @doc """
   Sends a message to the same channel as the message triggering a command.
