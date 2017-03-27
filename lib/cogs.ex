@@ -26,6 +26,7 @@ defmodule Alchemy.Cogs do
 
   end
   """
+  require Logger
   alias Alchemy.Cogs.CommandHandler
   alias Alchemy.Embed
   alias Alchemy.Cache
@@ -33,10 +34,42 @@ defmodule Alchemy.Cogs do
 
   @doc """
   Sets the client's command prefix to a specific string.
+
+  This will only work after the client has been started
+  # Example
+  ```elixir
+  Client.start(@token)
+  Cogs.set_prefix("!!")
+  ```
   """
   @spec set_prefix(String.t) :: :ok
   def set_prefix(prefix) do
     CommandHandler.set_prefix(prefix)
+  end
+  @doc """
+  Unloads a module from the handler.
+
+  ## Examples
+  ```elixir
+  Client.start(@token)
+  use Commands2
+  ```
+  Turns out we want to stop using `Commands2` commands in our bot, so we
+  can simply unload the module:
+  ```elixir
+  Cogs.unload(Commands2)
+  ```
+  Now none of the commands defined in that module will be accessible. If
+  we want to reverse that, we can merely do:
+  ```elixir
+  use Commands2
+  ```
+  and reload them back in.
+  """
+  @spec unload(atom) :: :ok
+  def unload(module) do
+    CommandHandler.unload(module)
+    Logger.info "*#{Macro.to_string module}* unloaded from cogs"
   end
   @doc """
   Sends a message to the same channel as the message triggering a command.

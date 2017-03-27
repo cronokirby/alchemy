@@ -14,6 +14,11 @@ defmodule Alchemy.Cogs.CommandHandler do
   end
 
 
+  def unload(module) do
+    GenServer.call(Commands, {:unload, module})
+  end
+
+
   def dispatch(message) do
     GenServer.cast(Commands, {:dispatch, message})
   end
@@ -26,8 +31,18 @@ defmodule Alchemy.Cogs.CommandHandler do
   end
 
 
-  def handle_call(_, _from, state) do
+  def handle_call(:list, _from, state) do
     {:reply, state, state}
+  end
+
+
+  def handle_call({:unload, module}, _from, state) do
+    new = Enum.filter(state, fn
+      {_k, {^module, _, _}} -> false
+      {_k, {^module, _}} -> false
+      _ -> true
+    end) |> Enum.into(%{})
+    {:reply, :ok, new}
   end
 
 
