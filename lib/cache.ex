@@ -49,10 +49,12 @@ defmodule Alchemy.Cache do
     end
   end
   def guild(guild_id) do
-    g = Guilds.call(guild_id, :show)
-        |> Guilds.de_index
-        |> Guild.from_map
-    {:ok, g}
+    case Guilds.call(guild_id, :show) do
+      nil ->
+        {:error, "This guild hasn't been loaded in the cache yet"}
+      guild ->
+        {:ok, guild |> Guilds.de_index |> Guild.from_map}
+    end
   end
 
 

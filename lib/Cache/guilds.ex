@@ -76,16 +76,19 @@ defmodule Alchemy.Cache.Guilds do
 
 
   defp start_guild(guild) do
-    Supervisor.start_child(GuildSupervisor, [guild_index(guild)])
+    Supervisor.start_child(GuildSupervisor, [guild])
   end
 
 
   # The guild is either new, or partial info for an existing guild
+  def add_guild(%{"id" => id, "unavailable" => true} = guild) do
+    start_guild(guild)
+  end
   def add_guild(%{"id" => id} = guild) do
     Channels.add_channels(guild["channels"], id)
     case Registry.lookup(:guilds, id) do
       [] ->
-        start_guild(guild)
+        start_guild(guild_index(guild))
         notify {:guild_create, [Guild.from_map(guild)]}
       [{pid, _}] ->
         guild = GenServer.call(pid, {:merge, guild_index(guild)})
