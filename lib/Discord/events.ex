@@ -3,8 +3,7 @@ defmodule Alchemy.Discord.Events do
   # Used to generate events, and notify the main EventManager
   alias Alchemy.{Channel, DMChannel, Emoji, Guild, GuildMember, OverWrite,
                  Message, Role, User, Users.Presence, VoiceState}
-  alias Alchemy.Cache.Guilds
-  alias Alchemy.Cache.PrivChannels
+  alias Alchemy.Cache.{Channels, Guilds, PrivChannels}
   alias Alchemy.Cogs.CommandHandler, as: Commands
   import Alchemy.Structs
   import Alchemy.Cogs.EventHandler, only: [notify: 1]
@@ -18,7 +17,7 @@ defmodule Alchemy.Discord.Events do
   end
   def handle("CHANNEL_CREATE", channel) do
     struct = Channel.from_map(channel)
-    {:channel_create, [struct]}
+    notify {:channel_create, [struct]}
   end
 
 
