@@ -17,7 +17,7 @@ defmodule Alchemy.Discord.Events do
   end
   def handle("CHANNEL_CREATE", channel) do
     struct = Channel.from_map(channel)
-    {:channel_create, [struct]}
+    notify {:channel_create, [struct]}
   end
 
 

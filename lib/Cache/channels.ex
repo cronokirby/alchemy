@@ -35,6 +35,6 @@ defmodule Alchemy.Cache.Channels do
 
   def handle_call({:remove, id}, _, table) do
     :ets.delete(table, id)
-    {:repy, :ok, table}
+    {:reply, :ok, table}
   end
 end

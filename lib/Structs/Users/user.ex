@@ -81,7 +81,7 @@ defmodule Alchemy.User do
      base = "https://cdn.discordapp.com/avatars/#{user.id}/#{user.avatar}."
      base <> "#{type}?size=#{size}"
   end
-  def avatar_url(user, type, size \\ 0) do
+  def avatar_url(_user, _type, _size) do
     raise ArgumentError, message: "invalid type and/or size"
   end
 end

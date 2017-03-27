@@ -20,7 +20,7 @@ defmodule Alchemy.Discord.Gateway.Manager do
 
   ### Private Utility ###
 
-  defp get_url(token, selfbot: _) do
+  defp get_url(_token, selfbot: _) do
     {:ok, json} = Api._get("https://discordapp.com/api/v6/gateway").body
                   |> Poison.Parser.parse
     {json["url"] <> "?v=6&encoding=json", 1}
@@ -47,7 +47,7 @@ defmodule Alchemy.Discord.Gateway.Manager do
 
 
   def start_link(token, options) do
-    run = GenServer.start_link(__MODULE__, {token, options}, name: GatewayManager)
+    GenServer.start_link(__MODULE__, {token, options}, name: GatewayManager)
   end
 
 
