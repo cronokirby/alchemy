@@ -4,8 +4,8 @@ defmodule Alchemy.Cogs.CommandHandler do
   use GenServer
 
 
-  def add_commands(commands) do
-    GenServer.cast(Commands, {:add_commands, commands})
+  def add_commands(module, commands) do
+    GenServer.cast(Commands, {:add_commands, module, commands})
   end
 
 
@@ -36,8 +36,8 @@ defmodule Alchemy.Cogs.CommandHandler do
   end
 
 
-  def handle_cast({:add_commands, commands}, state) do
-    Logger.debug "adding commands"
+  def handle_cast({:add_commands, module, commands}, state) do
+    Logger.info "*#{Macro.to_string module}* loaded as a command cog"
     {:noreply, Map.merge(state, commands)}
   end
 

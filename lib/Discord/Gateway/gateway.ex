@@ -19,6 +19,7 @@ defmodule Alchemy.Discord.Gateway do
      :ssl.start
      # request_url will return a protocol to execute
      url = Manager.request_url().()
+     Logger.info "Shard #{Macro.to_string shard} connecting to the gateway"
      :websocket_client.start_link(url, __MODULE__, %State{token: token, shard: shard})
   end
 
@@ -29,7 +30,6 @@ defmodule Alchemy.Discord.Gateway do
 
 
   def onconnect(_ws_req, state) do
-    Logger.debug "Shard #{Macro.to_string state.shard} Connected to the gateway"
     {:ok, state}
   end
 

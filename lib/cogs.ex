@@ -203,8 +203,9 @@ defmodule Alchemy.Cogs do
     quote do
       defmacro __using__(_opts) do
         commands = Macro.escape(@commands)
+        module = __MODULE__
         quote do
-          Alchemy.Cogs.CommandHandler.add_commands(
+          Alchemy.Cogs.CommandHandler.add_commands(unquote(module),
             unquote(commands) |> Enum.map(fn
               {k, {mod, arity, string}} ->
                 {eval, _} = Code.eval_string(string)
