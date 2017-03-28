@@ -87,7 +87,7 @@ defmodule Alchemy.Cogs do
   @spec unload(atom) :: :ok
   def unload(module) do
     CommandHandler.unload(module)
-    Logger.info "*#{Macro.to_string module}* unloaded from cogs"
+    Logger.info "*#{inspect module}* unloaded from cogs"
   end
   @doc """
   Disables a command.

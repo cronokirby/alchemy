@@ -12,6 +12,10 @@ defmodule Alchemy.Cogs.EventHandler do
   end
 
 
+  def unload(module) do
+    GenServer.call(Events, {:unload, module})
+  end
+
   # Used at the beginning of the application to add said handles
   def add_handler(handle) do
     GenServer.cast(Events, {:add_handle, handle})
@@ -25,10 +29,17 @@ defmodule Alchemy.Cogs.EventHandler do
   end
 
 
+  def handle_call({:unload, module}, _from, state) do
+    new = Enum.map(state, fn {k, v} ->
+      {k, Enum.filter(v, &!match?({^module, _}, &1))}
+    end) |> Enum.into(%{})
+    {:reply, :ok, new}
+  end
+
   # Adds a new handler to the map, indexed by type
   def handle_cast({:add_handle, {type, handle}}, state) do
     {:noreply,
-     update_in(state, [type], fn maybe ->
+     update_in(state[type], fn maybe ->
        case maybe do
          nil -> [handle]
          val -> [handle | val]
