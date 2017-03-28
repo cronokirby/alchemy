@@ -12,6 +12,11 @@ defmodule Alchemy.Cogs.EventHandler do
   end
 
 
+  def disable(module, function) do
+    GenServer.call(Events, {:disable, module, function})
+  end
+
+
   def unload(module) do
     GenServer.call(Events, {:unload, module})
   end
@@ -26,6 +31,14 @@ defmodule Alchemy.Cogs.EventHandler do
 
   def start_link do
     GenServer.start_link(__MODULE__, %{}, name: Events)
+  end
+
+
+  def handle_call({:disable, module, function}, _from, state) do
+    new = Enum.map(state, fn {k, v} ->
+      {k, Enum.filter(v, &!match?({^module, ^function}, &1))}
+    end) |> Enum.into(%{})
+    {:reply, :ok, new}
   end
 
 

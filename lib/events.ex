@@ -54,9 +54,40 @@ defmodule Alchemy.Events do
   use MyEvents
   ```
   """
+  @spec unload(atom) :: :ok
   def unload(module) do
     EventHandler.unload(module)
     Logger.info "*#{inspect module}* removed from the event handler"
+  end
+  @doc """
+  Unhooks a function from the event handler.
+
+  If you want to unhook all the functions in a module, see `Events.unload/1`.
+  Because you can have multiple hooks with the same name, this function takes
+  both the module and the function name.
+
+  ## Examples
+  ```elixir
+  defmodule Annoying do
+    use Alchemy.Events
+
+    Events.on_message(:inspect)
+    def inspect(message), do: IO.inspect message.content
+  end
+  ```
+  This function is annoying us, so we can easily disable it:
+  ```elixir
+  Events.disable(Annoying, :inspect)
+  ```
+  If we want to turn it back on, we can of course do
+  ```elixir
+  use Annoying
+  ```
+  """
+  @spec disable(atom, atom) :: :ok
+  def disable(module, function) do
+    EventHandler.disable(module, function)
+    Logger.info "*#{module}.#{function}* unhooked from the event handler"
   end
   @doc """
   Registers a handle triggering whenever a channel gets created.
