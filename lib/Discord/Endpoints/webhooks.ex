@@ -17,4 +17,16 @@ defmodule Alchemy.Discord.Webhooks do
     @root <> "channels/" <> channel_id <> "/webhooks"
     |> Api.post(token, options, %Webhook{})
   end
+
+
+  def channel_webhooks(token, channel_id) do
+    @root <> "channels/" <> channel_id <> "/webhooks"
+    |> Api.get(token, [%Webhook{}])
+  end
+
+
+  def guild_webhooks(token, guild_id) do
+    @root <> "guilds/" <> guild_id <> "/webhooks"
+    |> Api.get(token, [%Webhook{}])
+  end
 end
