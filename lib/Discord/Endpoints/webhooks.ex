@@ -29,4 +29,17 @@ defmodule Alchemy.Discord.Webhooks do
     @root <> "guilds/" <> guild_id <> "/webhooks"
     |> Api.get(token, [%Webhook{}])
   end
+
+
+  def modify_webhook(token, id, wh_token, options) do
+    options = case options do
+      [{:avatar, url}|rest] ->
+        [{:avatar, Api.image_data(url)}|rest]
+      other ->
+        other
+    end
+    |> Api.encode
+    @root <> "/webhooks/" <> id <> "/" <> wh_token
+    |> Api.patch(token, options, %Webhook{})
+  end
 end

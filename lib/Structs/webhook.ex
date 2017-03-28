@@ -72,4 +72,10 @@ defmodule Alchemy.Webhook do
     |> send_req("/guilds/webhooks")
   end
 
+
+  def edit(webhook, options) do
+    {Webhooks, :modify_webhook, [webhook.id, webhook.token, options]}
+    |> send_req("/webhooks")
+  end
+
 end
