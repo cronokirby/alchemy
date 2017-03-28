@@ -1,8 +1,9 @@
-defmodule Alchemy.Webhooks do
+defmodule Alchemy.Webhook do
   @moduledoc """
   """
+  alias Alchemy.Discord.Webhooks
   alias Alchemy.User
-
+  import Alchemy.Discord.RateManager, only: [send_req: 2]
 
   @type snowflake :: String.t
 
@@ -27,5 +28,9 @@ defmodule Alchemy.Webhooks do
              :token]
 
 
+  def create(channel_id, name, options \\ []) do
+    {Webhooks, :create_webhook, [channel_id, name, options]}
+    |> send_req("/channels/webhooks")
+  end
 
 end

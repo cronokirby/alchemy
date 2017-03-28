@@ -9,7 +9,8 @@ defmodule Alchemy.Cache do
   to get information from the context of commands.
   """
   alias Alchemy.Cache.{Guilds, Guilds.GuildSupervisor}
-  alias Alchemy.{DMChannel, Emoji, Guild, GuildMember, Role, User, Users.Presence}
+  alias Alchemy.{DMChannel, Channel, Emoji,
+                 Guild, GuildMember, Role, User, Users.Presence}
   import Alchemy.Structs, only: [to_struct: 2]
 
   @type snowflake :: String.t
@@ -110,7 +111,8 @@ defmodule Alchemy.Cache do
       roles: {"roles", &to_struct(&1, Role)},
       presences: {"presences", &Presence.from_map/1},
       voice_states: {"voice_states", &to_struct(&1, VoiceState)},
-      emojis: {"emojis", &to_struct(&1, Emoji)}}[key]
+      emojis: {"emojis", &to_struct(&1, Emoji)},
+      channels: {"channels", &Channel.from_map/1}}[key]
   end
   @doc """
   Searches across all guild for information.
