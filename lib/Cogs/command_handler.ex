@@ -59,7 +59,7 @@ defmodule Alchemy.Cogs.CommandHandler do
 
 
   def handle_cast({:set_prefix, prefix}, state) do
-    {:noreply, %{state | prefix: prefix}}
+    {:noreply, %{state | "prefix" => prefix}}
   end
 
 
