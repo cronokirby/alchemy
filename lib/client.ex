@@ -5,7 +5,7 @@ defmodule Alchemy.Client do
   """
   use Supervisor
   require Logger
-  alias Alchemy.Discord.{Users, Channels, Guilds, RateManager}
+  alias Alchemy.Discord.{Users, Channels, Guilds, Invites, RateManager}
   alias Alchemy.Discord.Gateway.Manager, as: GatewayManager
   alias Alchemy.{Channel, DMChannel, Reaction.Emoji,
                  Embed, Guild, GuildMember, Message, User, UserGuild, Role,
@@ -1130,5 +1130,17 @@ defmodule Alchemy.Client do
     def list_voice_regions do
       {Guilds, :get_all_regions, []}
       |> send_req("voice/regions")
+    end
+    @doc """
+    Gets the information for a single invite.
+
+    Not to be confused with `get_invites/1`, which lists out the invites
+    in a guild. This merely gets the information relating to a single invite,
+    accessed by its code.
+    """
+    @spec get_invite(String.t) :: {:ok, Channel.invite} | {:error, term}
+    def get_invite(invite_code) do
+      {Invites, :get_invite, [invite_code]}
+      |> send_req("/invites")
     end
 end
