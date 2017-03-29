@@ -31,8 +31,64 @@ defmodule Alchemy.Events do
   end
   ```
   """
+  require Logger
+  alias Alchemy.Cogs.EventHandler
   require Alchemy.EventMacros
   import Alchemy.EventMacros
+  @doc """
+  Unloads all the hooks in a module from the handler.
+
+  If you just want to disable a single function from triggering,
+  see `Events.disable/1`.
+  ## Examples
+  ```elixir
+  Client.start(@token)
+  use MyEvents
+  ```
+  If we want to remove this hooks at any point, we can simply do
+  ```elixir
+  Events.unload(MyEvents)
+  ```
+  And, to set hook the module back up, all we need to do is:
+  ```elixir
+  use MyEvents
+  ```
+  """
+  @spec unload(atom) :: :ok
+  def unload(module) do
+    EventHandler.unload(module)
+    Logger.info "*#{inspect module}* removed from the event handler"
+  end
+  @doc """
+  Unhooks a function from the event handler.
+
+  If you want to unhook all the functions in a module, see `Events.unload/1`.
+  Because you can have multiple hooks with the same name, this function takes
+  both the module and the function name.
+
+  ## Examples
+  ```elixir
+  defmodule Annoying do
+    use Alchemy.Events
+
+    Events.on_message(:inspect)
+    def inspect(message), do: IO.inspect message.content
+  end
+  ```
+  This function is annoying us, so we can easily disable it:
+  ```elixir
+  Events.disable(Annoying, :inspect)
+  ```
+  If we want to turn it back on, we can of course do
+  ```elixir
+  use Annoying
+  ```
+  """
+  @spec disable(atom, atom) :: :ok
+  def disable(module, function) do
+    EventHandler.disable(module, function)
+    Logger.info "*#{module}.#{function}* unhooked from the event handler"
+  end
   @doc """
   Registers a handle triggering whenever a channel gets created.
 

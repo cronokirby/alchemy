@@ -6,6 +6,10 @@ defmodule Alchemy.Cogs do
   `__using__` macro for that module, which will then allow these commands
   to be loaded in the main application via `use`
 
+  # Note
+  Be careful not to define multiple commands with the same name. The last module
+  loaded will have their version active.
+
   ## Example Usage
 
   ```elixir
@@ -23,9 +27,22 @@ defmodule Alchemy.Cogs do
     Cogs.def echo(word) do
       Cogs.say word
     end
-
   end
+  ```
+  Then you can load this cog in at runtime, or anytime after starting the client
+  ```elixir
+  use Example
+  ```
+  If you need to remove this cog from the handler:
+  ```elixir
+  Cogs.unload(Example)
+  ```
+  Or you just want to disable a single function:
+  ```elixir
+  Cogs.disable(:ping)
+  ```
   """
+  require Logger
   alias Alchemy.Cogs.CommandHandler
   alias Alchemy.Embed
   alias Alchemy.Cache
@@ -33,10 +50,77 @@ defmodule Alchemy.Cogs do
 
   @doc """
   Sets the client's command prefix to a specific string.
+
+  This will only work after the client has been started
+  # Example
+  ```elixir
+  Client.start(@token)
+  Cogs.set_prefix("!!")
+  ```
   """
   @spec set_prefix(String.t) :: :ok
   def set_prefix(prefix) do
     CommandHandler.set_prefix(prefix)
+  end
+  @doc """
+  Unloads a module from the handler.
+
+  If you just want to disable a single command, use `Cogs.disable/1`
+
+  ## Examples
+  ```elixir
+  Client.start(@token)
+  use Commands2
+  ```
+  Turns out we want to stop using `Commands2` commands in our bot, so we
+  can simply unload the module:
+  ```elixir
+  Cogs.unload(Commands2)
+  ```
+  Now none of the commands defined in that module will be accessible. If
+  we want to reverse that, we can merely do:
+  ```elixir
+  use Commands2
+  ```
+  and reload them back in.
+  """
+  @spec unload(atom) :: :ok
+  def unload(module) do
+    CommandHandler.unload(module)
+    Logger.info "*#{inspect module}* unloaded from cogs"
+  end
+  @doc """
+  Disables a command.
+
+  If you want to remove a whole module from the cogs, use `Cogs.unload/1`.
+
+  This will stop a command from being triggered. The only way to reenable the
+  command is to reload the module with `use`.
+  ## Examples
+  ```elixir
+  defmodule Example do
+    use Alchemy.Cogs
+
+    Cogs.def ping, do: Cogs.say "pong"
+
+    Cogs.def foo, do: Cogs.say "bar"
+  end
+  ```
+  ```elixir
+  Client.start(@token)
+  use Example
+  Cogs.disable(:foo)
+  ```
+  Only `ping` will be triggerable now.
+  ```elixir
+  use Example
+  ```
+  At runtime this will add `foo` back in, given it's still in the module.
+  """
+  @spec disable(atom) :: :ok
+  def disable(command) do
+    CommandHandler.disable(command)
+    Logger.info "Command *#{command}* disabled"
   end
   @doc """
   Sends a message to the same channel as the message triggering a command.
@@ -203,8 +287,9 @@ defmodule Alchemy.Cogs do
     quote do
       defmacro __using__(_opts) do
         commands = Macro.escape(@commands)
+        module = __MODULE__
         quote do
-          Alchemy.Cogs.CommandHandler.add_commands(
+          Alchemy.Cogs.CommandHandler.add_commands(unquote(module),
             unquote(commands) |> Enum.map(fn
               {k, {mod, arity, string}} ->
                 {eval, _} = Code.eval_string(string)

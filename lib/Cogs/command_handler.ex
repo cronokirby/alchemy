@@ -4,8 +4,8 @@ defmodule Alchemy.Cogs.CommandHandler do
   use GenServer
 
 
-  def add_commands(commands) do
-    GenServer.cast(Commands, {:add_commands, commands})
+  def add_commands(module, commands) do
+    GenServer.cast(Commands, {:add_commands, module, commands})
   end
 
 
@@ -14,35 +14,62 @@ defmodule Alchemy.Cogs.CommandHandler do
   end
 
 
+  def unload(module) do
+    GenServer.call(Commands, {:unload, module})
+  end
+
+
+  def disable(func) do
+    GenServer.call(Commands, {:disable, func})
+  end
+
+
   def dispatch(message) do
     GenServer.cast(Commands, {:dispatch, message})
   end
 
-
   ### Server ###
 
   def start_link(options) do
-    GenServer.start_link(__MODULE__, %{prefix: "!", options: options}, name: Commands)
+    # String keys to avoid conflict with functions
+    GenServer.start_link(__MODULE__, %{"prefix" => "!", "options" => options},
+                         name: Commands)
   end
 
 
-  def handle_call(_, _from, state) do
+  def handle_call(:list, _from, state) do
     {:reply, state, state}
   end
 
 
-  def handle_cast({:set_prefix, prefix}, state) do
-    {:noreply, %{state | prefix: prefix}}
+  def handle_call({:unload, module}, _from, state) do
+    new = Stream.filter(state, fn
+      {_k, {^module, _, _}} -> false
+      {_k, {^module, _}} -> false
+      _ -> true
+    end) |> Enum.into(%{})
+    {:reply, :ok, new}
   end
 
 
-  def handle_cast({:add_commands, commands}, state) do
-    Logger.debug "adding commands"
+  def handle_call({:disable, func}, _from, state) do
+    {_pop, new} = Map.pop(state, func)
+    {:reply, :ok, new}
+  end
+
+
+  def handle_cast({:set_prefix, prefix}, state) do
+    {:noreply, %{state | "prefix" => prefix}}
+  end
+
+
+  def handle_cast({:add_commands, module, commands}, state) do
+    Logger.info "*#{Macro.to_string module}* loaded as a command cog"
     {:noreply, Map.merge(state, commands)}
   end
 
 
-  def handle_cast({:dispatch, message}, %{options: [selfbot: id]} = state) do
+  def handle_cast({:dispatch, message}, %{"options" => [selfbot: id]} = state) do
     if message.author.id == id do
       Task.start(fn -> dispatch(message, state) end)
     end
@@ -55,11 +82,11 @@ defmodule Alchemy.Cogs.CommandHandler do
 
 
   defp dispatch(message, state) do
-     prefix = state.prefix
-
-     destructure([_, command, rest], message.content
-                                     |> String.split([prefix, " "], parts: 3)
-                                     |> Enum.concat(["", ""]))
+     prefix = state["prefix"]
+     destructure([_, command, rest],
+                 message.content
+                 |> String.split([prefix, " "], parts: 3)
+                 |> Enum.concat(["", ""]))
      command = String.to_atom(command)
      case state[command] do
        {mod, arity} ->

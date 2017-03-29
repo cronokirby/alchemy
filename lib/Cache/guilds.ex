@@ -91,7 +91,7 @@ defmodule Alchemy.Cache.Guilds do
         start_guild(guild_index(guild))
         notify {:guild_create, [Guild.from_map(guild)]}
       [{pid, _}] ->
-        guild = GenServer.call(pid, {:merge, guild_index(guild)})
+        GenServer.call(pid, {:merge, guild_index(guild)})
         notify {:guild_online, [Guild.from_map(guild)]}
     end
   end

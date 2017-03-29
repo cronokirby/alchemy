@@ -13,7 +13,6 @@ defmodule Alchemy.Discord.Gateway.Manager do
   ### Public ###
 
   def request_url do
-    Logger.debug "requesting url"
     GenServer.call(GatewayManager, :url_req)
   end
 
@@ -53,7 +52,7 @@ defmodule Alchemy.Discord.Gateway.Manager do
 
   def init({token, options}) do
     {url, shards} = get_url(token, options)
-    Logger.debug "Starting up #{shards} shards"
+    Logger.info "Starting up #{shards} shards"
     {:ok, sup} = start_supervisor()
     state = %{url: url,
               url_reset: now(),
@@ -89,7 +88,7 @@ defmodule Alchemy.Discord.Gateway.Manager do
   def handle_cast({:start_shard, num}, state) do
     args = [state.token, [num, state.shards]]
     Task.start(fn -> Supervisor.start_child(state.supervisor, args) end)
-    Logger.debug "starting shard #{num}..."
+    Logger.debug "Starting shard [#{num}, #{state.shards}]"
     {:noreply, state}
   end
 
