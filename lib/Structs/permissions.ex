@@ -5,6 +5,7 @@ defmodule Alchemy.Permissions do
 
   To combine the permissions of an overwrite
   with the permissions of a role, the bitwise `|||` can be used.
+
   ## Example Usage
   ```elixir
   Cogs.def perms(role_name) do
@@ -14,6 +15,63 @@ defmodule Alchemy.Permissions do
   end
   ```
   This simple command prints out the list of permissions a role has avaiable.
+
+  ## Permission List
+  - `:create_instant_invite`
+    Allows the creation of instant invites.
+  - `:kick_members`
+    Allows the kicking of members.
+  - `:ban_members`
+    Allows the banning of members.
+  - `:administrator`
+    Allows all permissions, and bypasses channel overwrites.
+  - `:manage_channels`
+    Allows management and editing of channels.
+  - `:manage_guild`
+    Allows management and editing of the guild.
+  - `:add_reactions`
+    Allows adding reactions to message.
+  - `:read_messages`
+    Allows reading messages in a channel. Without this, the user won't
+    even see the channel.
+  - `:send_messages`
+    Allows sending messages in a channel.
+  - `:send_tts_messages`
+    Allows sending text to speech messages.
+  - `:manage_messages`
+    Allows for deletion of other user messages.
+  - `:embed_links`
+    Links sent with this permission will be embedded automatically
+  - `:attach_files`
+    Allows the user to send files, and images
+  - `:read_message_history`
+    Allows the user to read the message history of a channel
+  - `:mention_everyone`
+    Allows the user to mention the special `@everyone` and `@here` tags
+  - `:use_external_emojis`
+    Allows the user to use emojis from other servers.
+  - `:connect`
+    Allows the user to connect to a voice channel.
+  - `:speak`
+    Allows the user to speak in a voice channel.
+  - `:mute_members`
+    Allows the user to mute members in a voice channel.
+  - `:deafen_members`
+    Allows the user to deafen members in a voice channel.
+  - `:move_members`
+    Allows the user to move members between voice channels.
+  - `:use_vad`
+    Allows the user to use voice activity detection in a voice channel
+  - `:change_nickname`
+    Allows the user to change his own nickname.
+  - `:manage_nicknames`
+    Allows for modification of other user nicknames.
+  - `:manage_roles`
+    Allows for management and editing of roles.
+  - `:manage_webhooks`
+    Allows for management and editing of webhooks.
+  - `:manage_emojis`
+    Allows for management and editing of emojis.
   """
   use Bitwise
 
@@ -36,12 +94,34 @@ defmodule Alchemy.Permissions do
     :mention_everyone,
     :use_external_emojis,
     :connect,
-    :speak
+    :speak,
+    :mute_members,
+    :deafen_members,
+    :move_members,
+    :use_vad,
+    :change_nickname,
+    :manage_nicknames,
+    :manage_roles,
+    :manage_webhooks,
+    :manage_emojis
   ]
 
   @perm_map Stream.zip(@perms, Enum.map(0..17, &(1 <<< &1)))
             |> Enum.into(%{})
 
+  @type permission :: atom
+
+  @doc """
+  Converts a permission bitset into a legible list of atoms.
+
+  For checking if a specific permission is in that list, use `contains?/2`
+  instead.
+  ## Examples
+  ```elixir
+  permissions = Permissions.to_list(role.permissions)
+  ```
+  """
+  @spec to_list(Integer) :: [permission]
   def to_list(bitset) do
     bitset
     |> Integer.to_charlist(2)
@@ -53,8 +133,18 @@ defmodule Alchemy.Permissions do
       {48, _}, acc -> acc
     end)
   end
+  @doc """
+  Checks for the presence of a permission in a permission bitset.
 
-
+  This should be preferred over using `:perm in Permissions.to_list(x)`
+  because this works directly using bitwise operations, and is much
+  more efficient then going through the permissions.
+  ## Examples
+  ```elixir
+  Permissions.contains?(role.permissions, :manage_roles)
+  ```
+  """
+  @spec contains?(Integer, permission) :: Boolean
   def contains?(bitset, permission) when permission in @perms do
     (bitset &&& @perm_map[permission]) != 0
   end
