@@ -48,4 +48,17 @@ defmodule Alchemy.Discord.Webhooks do
     @root <> "/webhooks/" <> id <> "/" <> wh_token
     |> Api.delete(token)
   end
+
+
+  def execute_webhook(token, id, wh_token, options) do
+    options = case options do
+      [{:avatar, url}|rest] ->
+        [{:avatar, Api.image_data(url)}|rest]
+      other ->
+        other
+    end
+    |> Api.encode
+    @root <> "/webhooks/" <> id <> "/" <> wh_token
+    |> Api.post(token, options)
+  end
 end

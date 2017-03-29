@@ -2,7 +2,7 @@ defmodule Alchemy.Webhook do
   @moduledoc """
   """
   alias Alchemy.Discord.Webhooks
-  alias Alchemy.User
+  alias Alchemy.{Embed, User}
   import Alchemy.Discord.RateManager, only: [send_req: 2]
 
   @type snowflake :: String.t
@@ -109,6 +109,19 @@ defmodule Alchemy.Webhook do
   @spec delete(__MODULE__.t) :: {:ok, __MODULE__.t} | {:error, term}
   def delete(%__MODULE__{id: id, token: token}) do
     {Webhooks, :delete_webhook, [id, token]}
+    |> send_req("/webhooks")
+  end
+
+
+  def send(%__MODULE__{id: id, token: token}, {type, content}, options \\ []) do
+    {type, content} = case {type, content} do
+      {:embed, em} ->
+        {:embeds, [Embed.build(em)]}
+      {t, c} ->
+        {t, c}
+    end
+    options = Keyword.put(options, type, content)
+    {Webhooks, :execute_webhook, [id, token, options]}
     |> send_req("/webhooks")
   end
 end
