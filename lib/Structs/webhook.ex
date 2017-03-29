@@ -111,14 +111,42 @@ defmodule Alchemy.Webhook do
     {Webhooks, :delete_webhook, [id, token]}
     |> send_req("/webhooks")
   end
+  @doc """
+  Sends a message to a webhook.
 
-
+  `type` must be one of `:embed, :content`; `:embed` requiring an `Embed.t`
+  struct, and `:content` requiring a string.
+  ## Options
+  - `avatar_url`
+    A link to an image to replace the one the hook has, for this message.
+  - `username`
+    The username to override to hook's, for this message.
+  - `tts`
+    When set to true, will make the message TTS
+  ## Examples
+  ```elixir
+  {:ok, hook} = Task.await Webhook.create("66", "Captain Hook")
+  Webhook.send(hook, {content: "ARRRRRGH!"})
+  ```
+  For a more elaborate example:
+  ```elixir
+  user = Cache.user()
+  embed = %Embed{}
+          |> description("I'm commandeering this vessel!!!")
+          |> color(0x3a83b8)
+  Webhook.send(hook, {:embed, embed},
+               avatar_url: User.avatar_url(user),
+               username: user.username)
+  ```
+  """
+  @spec send(__MODULE__.t, {:embed, Embed.t} | {:content, String.t},
+             avatar_url: String.t, username: String.t, tts: Boolean) ::
+             {:ok, nil} | {:error, term}
   def send(%__MODULE__{id: id, token: token}, {type, content}, options \\ []) do
     {type, content} = case {type, content} do
       {:embed, em} ->
         {:embeds, [Embed.build(em)]}
-      {t, c} ->
-        {t, c}
+      x -> x
     end
     options = Keyword.put(options, type, content)
     {Webhooks, :execute_webhook, [id, token, options]}
