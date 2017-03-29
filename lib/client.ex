@@ -1143,4 +1143,15 @@ defmodule Alchemy.Client do
       {Invites, :get_invite, [invite_code]}
       |> send_req("/invites")
     end
+    @doc """
+    Deletes an invite.
+
+    After deletion the invite can no longer be used, as you might expect.
+    """
+    @spec delete_invite(String.t) :: {:ok, nil} | {:error, term}
+    def delete_invite(invite_code) do
+      {Invites, :delete_invite, [invite_code]}
+      |> send_req("/invites")
+    end
+
 end
