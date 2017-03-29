@@ -74,6 +74,8 @@ defmodule Alchemy.Webhook do
   @doc """
   Modifies the settings of a webhook.
 
+  Note that the user field of the webhook will be missing.
+
   ## Options
   - `name`
     The name of the webhook.
@@ -87,13 +89,24 @@ defmodule Alchemy.Webhook do
   Webhook.edit(hook, name: "Captain Hook")
   ```
   """
-
+  @spec edit(__MODULE__.t,
+             [name: String.t, avatar: String.t]) :: {:ok, __MODULE__.t}
+                                                  | {:error, term}
   def edit(%__MODULE__{id: id, token: token}, options) do
     {Webhooks, :modify_webhook, [id, token, options]}
     |> send_req("/webhooks")
   end
+  @doc """
+  Deletes a webhook.
 
-
+  All you need for this is the webhook itself.
+  ## Examples
+  ```elixir
+  {:ok, wh} = Task.await Webhook.create("666", "Captain Hook")
+  Webhook.delete(wh)
+  ```
+  """
+  @spec delete(__MODULE__.t) :: {:ok, __MODULE__.t} | {:error, term}
   def delete(%__MODULE__{id: id, token: token}) do
     {Webhooks, :delete_webhook, [id, token]}
     |> send_req("/webhooks")
