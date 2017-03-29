@@ -42,4 +42,10 @@ defmodule Alchemy.Discord.Webhooks do
     @root <> "/webhooks/" <> id <> "/" <> wh_token
     |> Api.patch(token, options, %Webhook{})
   end
+
+
+  def delete_webhook(token, id, wh_token) do
+    @root <> "/webhooks/" <> id <> "/" <> wh_token
+    |> Api.delete(token)
+  end
 end

@@ -71,11 +71,31 @@ defmodule Alchemy.Webhook do
     {Webhooks, :guild_webhooks, [guild_id]}
     |> send_req("/guilds/webhooks")
   end
+  @doc """
+  Modifies the settings of a webhook.
 
+  ## Options
+  - `name`
+    The name of the webhook.
+  - `avatar`
+    A link to a 128x128 icon image.
 
-  def edit(webhook, options) do
-    {Webhooks, :modify_webhook, [webhook.id, webhook.token, options]}
+  ## Examples
+  ```elixir
+  {:ok, hook} = Task.await Webhook.create("6666", "Captian Hook")
+  # Let's fix that typo:
+  Webhook.edit(hook, name: "Captain Hook")
+  ```
+  """
+
+  def edit(%__MODULE__{id: id, token: token}, options) do
+    {Webhooks, :modify_webhook, [id, token, options]}
     |> send_req("/webhooks")
   end
 
+
+  def delete(%__MODULE__{id: id, token: token}) do
+    {Webhooks, :delete_webhook, [id, token]}
+    |> send_req("/webhooks")
+  end
 end
