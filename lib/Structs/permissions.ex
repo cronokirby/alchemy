@@ -1,5 +1,19 @@
 defmodule Alchemy.Permissions do
   @moduledoc """
+  This module contains useful functions for working for the permission
+  bitsets discord provides.
+
+  To combine the permissions of an overwrite
+  with the permissions of a role, the bitwise `|||` can be used.
+  ## Example Usage
+  ```elixir
+  Cogs.def perms(role_name) do
+    {:ok, guild} = Cogs.guild()
+    role = hd Enum.filter(guild.roles, & &1.name == role_name)
+    Cogs.say(inspect Permissions.to_list(role.permission))
+  end
+  ```
+  This simple command prints out the list of permissions a role has avaiable.
   """
   use Bitwise
 
@@ -31,6 +45,7 @@ defmodule Alchemy.Permissions do
   def to_list(bitset) do
     bitset
     |> Integer.to_charlist(2)
+    |> Enum.reverse
     |> Stream.zip(@perms)
     |> Enum.reduce([], fn
       # 49 represents 1, 48 represents 0. CharLists are weird...
