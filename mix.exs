@@ -8,6 +8,8 @@ defmodule Alchemy.Mixfile do
      elixir: "~> 1.4",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
+     description: description(),
+     package: package(),
      deps: deps()]
   end
 
@@ -25,5 +27,23 @@ defmodule Alchemy.Mixfile do
      {:websocket_client, "~> 1.2"},
      {:ex_doc, "~> 0.11", only: :dev},
      {:poison, "~> 3.0"}]
+  end
+
+  defp description do
+    """
+    A Discord wrapper / framework for elixir.
+
+    This package intends to provide a solid foundation for interacting
+    with the Discord API, as well as a very easy command and event hook system.
+    """
+  end
+
+  defp package do
+    [name: :discord_alchemy,
+     files: ["lib", "mix.exs", "README.md", "LICENSE.md"],
+     maintainers: ["Lúcás Meier"],
+     licenses: ["MIT"],
+     links: %{"GitHub" => "https://github.com/cronokirby/alchemy"}
+    ]
   end
 end

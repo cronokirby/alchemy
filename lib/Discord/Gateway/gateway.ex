@@ -34,7 +34,7 @@ defmodule Alchemy.Discord.Gateway do
   end
 
 
-  def ondisconnect(reason, state) do
+  def ondisconnect(_reason, state) do
     {:reconnect, state}
   end
 
@@ -68,7 +68,7 @@ defmodule Alchemy.Discord.Gateway do
   end
 
 
-  def websocket_terminate(why, _conn_state, state) do
+  def websocket_terminate(why, _conn_state, _state) do
     Logger.debug "Websocket terminated, reason: #{Macro.to_string why}"
     :ok
   end

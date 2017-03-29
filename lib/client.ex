@@ -529,8 +529,8 @@ defmodule Alchemy.Client do
       Cogs.say("there are #\{length(invites)\} invites active in this channel")
     end
     """
-    @spec get_invites(snowflake) :: {:ok, [Channel.invite]} | {:error, term}
-    def get_invites(channel_id) do
+    @spec get_channel_invites(snowflake) :: {:ok, [Channel.invite]} | {:error, term}
+    def get_channel_invites(channel_id) do
       {Channels, :get_channel_invites, [channel_id]}
       |> send_req("/channels/#{channel_id}/invites")
     end

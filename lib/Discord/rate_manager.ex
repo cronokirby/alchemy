@@ -5,7 +5,6 @@ defmodule Alchemy.Discord.RateManager do
   use GenServer
   require Logger
   import Alchemy.Discord.RateLimits
-  alias ALchemy.Discord.RateLimits.RateInfo
 
 
   def start_link(token) do
@@ -24,9 +23,6 @@ defmodule Alchemy.Discord.RateManager do
     GenServer.call(API, {:apply, route})
   end
 
-
-
-
   # Applies for a bucket, waiting and retrying if it fails to get a slot
   def request(req, route) do
     case apply(route) do
@@ -37,7 +33,6 @@ defmodule Alchemy.Discord.RateManager do
         process_req(req, token, route)
     end
   end
-
 
   # Wrapper method around processing an API response
   def process(result, route) do

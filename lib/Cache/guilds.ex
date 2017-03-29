@@ -81,7 +81,7 @@ defmodule Alchemy.Cache.Guilds do
 
 
   # The guild is either new, or partial info for an existing guild
-  def add_guild(%{"id" => id, "unavailable" => true} = guild) do
+  def add_guild(%{"unavailable" => true} = guild) do
     start_guild(guild)
   end
   def add_guild(%{"id" => id} = guild) do
@@ -97,7 +97,7 @@ defmodule Alchemy.Cache.Guilds do
   end
 
 
-  def remove_guild(%{"id" => id, "unavailable" => true} = guild) do
+  def remove_guild(%{"id" => id, "unavailable" => true}) do
     call(id, :set_unavailable)
   end
   def remove_guild(%{"id" => id}) do

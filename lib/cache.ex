@@ -152,7 +152,7 @@ defmodule Alchemy.Cache do
     |> Enum.filter(filter)
   end
   def search(:private_channels, filter) do
-    fold = fn {id, val}, acc ->
+    fold = fn {_id, val}, acc ->
       if filter.(val) do [val | acc] else acc end
     end
     :ets.foldr(fold, [], :priv_channels)

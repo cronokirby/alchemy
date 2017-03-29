@@ -44,7 +44,6 @@ defmodule Alchemy.Cogs do
   """
   require Logger
   alias Alchemy.Cogs.CommandHandler
-  alias Alchemy.Embed
   alias Alchemy.Cache
 
 

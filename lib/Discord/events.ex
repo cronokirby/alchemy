@@ -1,7 +1,7 @@
 defmodule Alchemy.Discord.Events do
   @moduledoc false
   # Used to generate events, and notify the main EventManager
-  alias Alchemy.{Channel, DMChannel, Emoji, Guild, GuildMember, OverWrite,
+  alias Alchemy.{Channel, DMChannel, Emoji, Guild, GuildMember,
                  Message, Role, User, Users.Presence, VoiceState}
   alias Alchemy.Cache.{Channels, Guilds, PrivChannels}
   alias Alchemy.Cogs.CommandHandler, as: Commands
@@ -130,7 +130,7 @@ defmodule Alchemy.Discord.Events do
   end
 
 
-  def handle("PRESENCE_UPDATE", %{"guild_id" => id} = presence) do
+  def handle("PRESENCE_UPDATE", %{"guild_id" => _id} = presence) do
     Guilds.update_presence(presence)
     notify {:presence_update, [Presence.from_map(presence)]}
   end

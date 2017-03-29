@@ -1,6 +1,5 @@
 defmodule Alchemy.Channel.Invite do
   @moduledoc false
-  alias Alchemy.User
   alias Alchemy.Channel.Invite.{InviteChannel, InviteGuild}
   import Alchemy.Structs
 

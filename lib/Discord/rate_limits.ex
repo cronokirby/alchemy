@@ -17,7 +17,7 @@ defmodule Alchemy.Discord.RateLimits do
     {limit, _} = Integer.parse headers["x-ratelimit-limit"]
     %RateInfo{limit: limit, remaining: remaining, reset_time: reset_time}
   end
-  defp parse_headers(none) do
+  defp parse_headers(_none) do
     nil
   end
 
