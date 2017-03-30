@@ -118,7 +118,7 @@ defmodule Alchemy.Cache.Guilds do
 
 
   def update_member(guild_id, %{"user" => %{"id" => id}} = member) do
-    call(guild_id, {:update, ["members", id], member})
+    call(guild_id, {:update, "members", id, member})
   end
 
 
