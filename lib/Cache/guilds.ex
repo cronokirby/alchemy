@@ -145,7 +145,7 @@ defmodule Alchemy.Cache.Guilds do
   def update_presence(presence) do
     guild_id = presence["guild_id"]
     pres_id = presence["user"]["id"]
-    call(guild_id, {:put, "presences", pres_id, presence})
+    call(guild_id, {:update, "presences", pres_id, presence})
   end
 
 
