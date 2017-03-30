@@ -2,7 +2,7 @@ defmodule Alchemy.Discord.Protocol do
   @moduledoc false
   require Logger
   alias Alchemy.Cache.Supervisor, as: Cache
-  alias Alchemy.Discord.Events
+  alias Alchemy.Discord.{Events, Gateway}
   import Alchemy.Discord.Payloads
 
 
@@ -73,6 +73,9 @@ defmodule Alchemy.Discord.Protocol do
 
   # Generic events are handled unlinked, to prevent potential crashes
   def dispatch(%{"t" => type, "d" => payload, "s" => seq}, state) do
+    if type == "GUILD_CREATE" do
+      Logger.debug(inspect payload)
+    end
     Task.start(fn -> Events.handle(type, payload) end)
     {:ok, %{state | seq: seq}}
   end

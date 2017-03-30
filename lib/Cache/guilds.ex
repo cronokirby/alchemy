@@ -118,7 +118,7 @@ defmodule Alchemy.Cache.Guilds do
 
 
   def update_member(guild_id, %{"user" => %{"id" => id}} = member) do
-    call(guild_id, {:put, "members", id, member})
+    call(guild_id, {:update, ["members", id], member})
   end
 
 
@@ -185,6 +185,12 @@ defmodule Alchemy.Cache.Guilds do
 
   def handle_call({:put, section, key, node}, _, state) do
     {:reply, :ok, put_in(state, [section, key], node)}
+  end
+
+
+  def handle_call({:update, section, key, data}, _, state) do
+    new = update_in(state, [section, key], &Map.merge(&1, data))
+    {:reply, :ok, new}
   end
 
 

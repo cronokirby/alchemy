@@ -59,8 +59,10 @@ defmodule Alchemy.Cache do
   end
 
 
-
-  defp access(guild_id, section, id, module) do
+  defp access(guild_id, section, id, module) when is_atom(module) do
+    access(guild_id, section, id, &module.from_map/1)
+  end
+  defp access(guild_id, section, id, function) do
     maybe_val =
       guild_id
       |> Guilds.call({:section, section})
@@ -69,7 +71,7 @@ defmodule Alchemy.Cache do
       nil ->
         {:error, "Failed to find an entry for #{id} in section #{section}"}
       some ->
-        {:ok, module.from_map(some)}
+        {:ok, function.(some)}
     end
   end
   @doc """
@@ -84,7 +86,7 @@ defmodule Alchemy.Cache do
   """
   @spec role(snowflake, snowflake) :: {:ok, Role.t} | {:error, String.t}
   def role(guild_id, role_id) do
-    access(guild_id, "roles", role_id, Role)
+    access(guild_id, "roles", role_id, &to_struct(&1, Role))
   end
   @doc """
   Gets the presence of a user in a certain guild.
