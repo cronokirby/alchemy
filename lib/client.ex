@@ -1156,9 +1156,27 @@ defmodule Alchemy.Client do
       {Invites, :delete_invite, [invite_code]}
       |> send_req("/invites")
     end
+    @doc """
+    Updates the status of the client.
 
+    The status displays a "playing Game" message under the client, as well
+    setting an inactivity based on idleness.
 
-    def update_status(idle_since, game_name) do
+    `game_name` specifies the name to update the game_status to, `nil`
+    will clear that status. `idle_since` can be specified, using
+    unix time, in milliseconds, to indicate for how long the client has been idle.
+
+    # Note on ratelimiting
+    This functionality is *heavily* ratelimited, at a rate of 1 req / 12s.
+    Because of this, this function will automatically error after 24s of
+    waiting. Keep this in mind when waiting for the task this function returns.
+    ## Examples
+    ```elixir
+    Task.await Client.update_status("Alchemy")
+    ```
+    """
+    @spec update_status(Integer, String.t) :: :ok, {:error, String.t}
+    def update_status(game_name, idle_since \\ nil) do
       Task.async fn ->
         pids = Supervisor.which_children(GatewayRates)
         |> Stream.map(fn {_, pid, _, _} -> pid end)
