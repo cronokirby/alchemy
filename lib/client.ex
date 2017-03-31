@@ -7,6 +7,8 @@ defmodule Alchemy.Client do
   require Logger
   alias Alchemy.Discord.{Users, Channels, Guilds, Invites, RateManager}
   alias Alchemy.Discord.Gateway.Manager, as: GatewayManager
+  alias Alchemy.Discord.Gateway.RateLimiter.RateSupervisor, as: GatewayRates
+  alias Alchemy.Discord.Gateway.RateLimiter, as: GatewayLimiter
   alias Alchemy.{Channel, DMChannel, Reaction.Emoji,
                  Embed, Guild, GuildMember, Message, User, UserGuild, Role,
                  VoiceRegion}
@@ -43,6 +45,7 @@ defmodule Alchemy.Client do
       worker(EventHandler, []),
       worker(CommandHandler, [options]),
       worker(GatewayManager, [token, options]),
+      supervisor(GatewayRates, []),
       supervisor(CacheSupervisor, [])
     ]
     supervise(children, strategy: :one_for_one)
@@ -1152,6 +1155,25 @@ defmodule Alchemy.Client do
     def delete_invite(invite_code) do
       {Invites, :delete_invite, [invite_code]}
       |> send_req("/invites")
+    end
+
+
+    def update_status(idle_since, game_name) do
+      Task.async fn ->
+        pids = Supervisor.which_children(GatewayRates)
+        |> Stream.map(fn {_, pid, _, _} -> pid end)
+        try do
+          Enum.map(pids, fn pid ->
+            GatewayLimiter.status_update(pid, idle_since, game_name)
+            |> Task.await(24_000)
+          end)
+          :ok
+        catch
+         :exit, _ -> {:error, "Took longer than 24s to update statuses. " <>
+                              "You might be using the function too often; " <>
+                              "it has a ratelimit of 1 req / 12s."}
+        end
+      end
     end
 
 end

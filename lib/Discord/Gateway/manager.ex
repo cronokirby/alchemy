@@ -6,6 +6,7 @@ defmodule Alchemy.Discord.Gateway.Manager do
   use GenServer
   require Logger
   alias Alchemy.Discord.Gateway
+  alias Alchemy.Discord.Gateway.RateLimiter
   alias Alchemy.Discord.Api
   import Supervisor.Spec
 
@@ -87,7 +88,11 @@ defmodule Alchemy.Discord.Gateway.Manager do
   end
   def handle_cast({:start_shard, num}, state) do
     args = [state.token, [num, state.shards]]
-    Task.start(fn -> Supervisor.start_child(state.supervisor, args) end)
+    # We don't want to block the server waiting for url requests and whatnot.
+    Task.start(fn ->
+      {:ok, pid} = Supervisor.start_child(state.supervisor, args)
+      RateLimiter.add_handler(pid)
+    end)
     Logger.debug "Starting shard [#{num}, #{state.shards}]"
     {:noreply, state}
   end

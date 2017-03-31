@@ -67,6 +67,10 @@ defmodule Alchemy.Discord.Gateway do
      {:reply, {:text, resume_msg(state)}, state}
   end
 
+  # RateLimiting has been handled prior
+  def websocket_info({:status_update, data}, _, state) do
+    {:reply, {:text, data}, state}
+  end
 
   def websocket_terminate(why, _conn_state, _state) do
     Logger.debug "Websocket terminated, reason: #{Macro.to_string why}"

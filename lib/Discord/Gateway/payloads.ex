@@ -59,4 +59,12 @@ defmodule Alchemy.Discord.Payloads do
      build_payload(:heartbeat, seq)
   end
 
+
+  def status_update(idle_since, nil) do
+    build_payload(:status_update, %{idle_since: idle_since, game: nil})
+  end
+  def status_update(idle_since, game_name) do
+    payload = %{idle_since: idle_since, game: %{name: game_name}}
+    build_payload(:status_update, payload)
+  end
 end
