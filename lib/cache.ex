@@ -9,7 +9,7 @@ defmodule Alchemy.Cache do
   to get information from the context of commands.
   """
   alias Alchemy.Cache.{Guilds, Guilds.GuildSupervisor}
-  alias Alchemy.{DMChannel, Channel, Guild, User, Users.Presence}
+  alias Alchemy.{DMChannel, Channel, Guild, User, Users.Presence, VoiceState}
   alias Alchemy.Guild.{Emoji, GuildMember, Role}
   import Alchemy.Structs, only: [to_struct: 2]
 
