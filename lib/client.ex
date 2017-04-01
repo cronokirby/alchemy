@@ -2,6 +2,21 @@ defmodule Alchemy.Client do
   @moduledoc """
   Represents a Client connection to the Discord API. This is the main public
   interface for the REST API.
+
+  As you might have seen in other examples, this module is the main entry
+  point for `Alchemy`. `start/2` will start up the necessary modules and caches
+  necessary to hook into discord. You generally want to do this before
+  you do any other work in your bot really.
+
+  ## Tasks
+  Most functions in this module return a `Task` unless specified otherwise.
+  to get the value out of the task, you need to use `Task.await/2` or
+  `Task.yield/2`.
+
+  ## Caching
+  In general, you should try and use the functions provided by `Alchemy.Cache`
+  over the requests in this module, because the cache functions will be much faster,
+  and avoid excess API requests.
   """
   use Supervisor
   require Logger
@@ -20,9 +35,14 @@ defmodule Alchemy.Client do
 
   @doc """
   Starts up a new Client with the given token.
+
+  An optional `selfbot: id` can be passed, indiciating that you're
+  using a user token instead of a normal bot token. SelfBots will only
+  respond to themselves, and certain functionalities of the API may
+  not work as well as for normal bots.
   """
   @spec start(token, selfbot: snowflake) :: {:ok, pid}
-  def start(token) do
+  def start(token, options \\ []) do
     start_link(token, [])
   end
   def start(token, selfbot: id) do

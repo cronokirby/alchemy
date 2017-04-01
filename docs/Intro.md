@@ -1,4 +1,5 @@
 # Getting Started
+After installing your dependancies and whatnot, it's time to write your bot!
 
 The first thing we need to do is define some kind of application for our bot.
 Thankfully, the `Application` module encapsulates this need.
@@ -50,3 +51,13 @@ Now, to run this project, we have 2 options:
 
 Starting the application in the repl is very advantageous, as it allows
  you to interact with the bot live.
+
+
+### Where to go now
+I'd recommend taking a look at the `Alchemy.Cogs` module for more examples
+of defining commands, and how to make use of pattern matching in them.
+
+If you want to learn about event hooks, check out the `Alchemy.Events` module.
+
+If you want to dig through the many api functions available, check out
+`Alchemy.Client`.

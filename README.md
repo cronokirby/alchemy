@@ -69,3 +69,7 @@ Now, to run this project, we have 2 options:
 
 Starting the application in the repl is very advantageous, as it allows
  you to interact with the bot live.
+
+# Other Examples
+If you'd like to see a larger example of a bot using `Alchemy`,
+checkout out [Viviani](https://github.com/cronokirby/viviani).
