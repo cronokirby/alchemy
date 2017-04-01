@@ -403,7 +403,7 @@ defmodule Alchemy.Events do
   Registers a handle triggering whenever someone leaves / joins a voice
   channel.
 
-  `args` : `Alchemy.VoiceState.t`
+  `args` : `Alchemy.Voice.state`
 
   Receives the corresponding voice state.
   """

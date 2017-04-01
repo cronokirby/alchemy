@@ -1,5 +1,5 @@
 defmodule Alchemy.Guild do
-  alias Alchemy.{Channel, User, VoiceState}
+  alias Alchemy.{Channel, User, Voice}
   alias Alchemy.Guild.{Emoji, GuildMember, Integration, Role}
   alias Alchemy.Users.Presence
   import Alchemy.Structs
@@ -88,7 +88,7 @@ defmodule Alchemy.Guild do
     large: Boolean,
     unavailable: Boolean,
     member_count: Integer,
-    voice_states: [VoiceState.t],
+    voice_states: [Voice.state],
     members: [member],
     channels: [Channel.t],
     presences: [Presence.t]

@@ -1,17 +1,6 @@
 defmodule Alchemy.VoiceState do
-  @moduledoc """
-  """
-  @type t :: %__MODULE__{
-    guild_id: String.t,
-    channel_id: String.t,
-    user_id: String.t,
-    session_id: String.t,
-    deaf: Boolean,
-    mute: Boolean,
-    self_deaf: Boolean,
-    self_mute: Boolean,
-    suppress: Boolean
-  }
+  @moduledoc false
+
   @derive Poison.Encoder
   defstruct [:guild_id,
              :channel_id,
