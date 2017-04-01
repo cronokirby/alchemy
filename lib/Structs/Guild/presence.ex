@@ -1,4 +1,4 @@
-defmodule Alchemy.Users.Presence do
+defmodule Alchemy.Guild.Presence do
   import Alchemy.Structs
   alias Alchemy.User
   @moduledoc """

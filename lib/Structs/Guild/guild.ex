@@ -1,7 +1,6 @@
 defmodule Alchemy.Guild do
   alias Alchemy.{Channel, User, Voice}
-  alias Alchemy.Guild.{Emoji, GuildMember, Integration, Role}
-  alias Alchemy.Users.Presence
+  alias Alchemy.Guild.{Emoji, GuildMember, Integration, Presence, Role}
   import Alchemy.Structs
   @moduledoc """
   Guilds represent a collection of users in a "server". This module contains
@@ -249,6 +248,28 @@ defmodule Alchemy.Guild do
     managed: Boolean,
     mentionable: Boolean,
   }
+  @typedoc """
+  Represents the presence of a user in a guild.
+
+  - `user`
+    The user this presence is for.
+  - `roles`
+    A list of role ids this user belongs to.
+  - `game`
+    The current activity of the user, or `nil`.
+  - `guild_id`
+    The id of the guild this presences is in.
+  - `status`
+    "idle", "online", or "offline"
+  """
+  @type presence :: %Presence{
+    user: User.t,
+    roles: [snowflake],
+    game: String.t | nil,
+    guild_id: snowflake,
+    status: String.t
+  }
+
   def from_map(map) do
     map
     |> field_map("roles", &(map_struct &1, Role))

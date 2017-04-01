@@ -153,7 +153,7 @@ defmodule Alchemy.Cogs do
   Gets the id of the guild from which a command was triggered.
 
   This is to be used when the guild_id is necessary for an operation,
-  but the fuill guild struct isn't needed.
+  but the full guild struct isn't needed.
   """
   defmacro guild_id do
     quote do
