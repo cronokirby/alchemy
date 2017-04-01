@@ -218,6 +218,37 @@ defmodule Alchemy.Guild do
     synced_at: timestamp
   }
 
+  @typedoc """
+  Represents a role in a guild.
+
+  - `id`
+    The id of the role.
+  - `name`
+    The name of the role.
+  - `color`
+    The color of the role.
+  - `hoist`
+    Whether the role is "hoisted" above others in the sidebar.
+  - `position`
+    The position of the role in a guild.
+  - `permission`
+    The bitset of permissions for this role. See the `Permissions` module
+    for more information.
+  - `managed`
+    Whether this role is managed by an integration.
+  - `mentionable`
+    Whether this role is mentionable.
+  """
+  @type role :: %Role{
+    id: snowflake,
+    name: String.t,
+    color: Integer,
+    hoist: Boolean,
+    position: Integer,
+    permissions: Integer,
+    managed: Boolean,
+    mentionable: Boolean,
+  }
   def from_map(map) do
     map
     |> field_map("roles", &(map_struct &1, Role))

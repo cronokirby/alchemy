@@ -1,16 +1,6 @@
 defmodule Alchemy.Guild.Role do
-  @moduledoc """
-  """
-  @type t :: %__MODULE__{
-    id: String.t,
-    name: String.t,
-    color: Integer,
-    hoist: Boolean,
-    position: Integer,
-    permissions: Integer,
-    managed: Boolean,
-    mentionable: Boolean,
-  }
+  @moduledoc false
+
   @derive Poison.Encoder
   defstruct [:id,
              :name,
