@@ -1175,7 +1175,7 @@ defmodule Alchemy.Client do
     Task.await Client.update_status("Alchemy")
     ```
     """
-    @spec update_status(Integer, String.t) :: :ok, {:error, String.t}
+    @spec update_status(Integer, String.t) :: :ok | {:error, String.t}
     def update_status(game_name, idle_since \\ nil) do
       Task.async fn ->
         pids = Supervisor.which_children(GatewayRates)
