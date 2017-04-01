@@ -1,8 +1,9 @@
 defmodule Alchemy.Discord.Events do
   @moduledoc false
   # Used to generate events, and notify the main EventManager
-  alias Alchemy.{Channel, DMChannel, Emoji, Guild, Guild.GuildMember,
-                 Message, Role, User, Users.Presence, VoiceState}
+  alias Alchemy.{Channel, DMChannel, Emoji, Guild,
+                 Message, User, Users.Presence, VoiceState}
+  alias Alchemy.Guild.{GuildMember, Role}
   alias Alchemy.Cache.{Channels, Guilds, PrivChannels}
   alias Alchemy.Cogs.CommandHandler, as: Commands
   import Alchemy.Structs

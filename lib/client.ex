@@ -10,8 +10,9 @@ defmodule Alchemy.Client do
   alias Alchemy.Discord.Gateway.RateLimiter.RateSupervisor, as: GatewayRates
   alias Alchemy.Discord.Gateway.RateLimiter, as: GatewayLimiter
   alias Alchemy.{Channel, DMChannel, Reaction.Emoji,
-                 Embed, Guild, GuildMember, Message, User, UserGuild, Role,
+                 Embed, Guild, Message, User, UserGuild,
                  VoiceRegion}
+  alias Alchemy.Guild.{GuildMember, Role}
   alias Alchemy.Cache.Supervisor, as: CacheSupervisor
   alias Alchemy.Cogs.{CommandHandler, EventHandler}
   import Alchemy.Discord.RateManager, only: [send_req: 2]

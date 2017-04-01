@@ -1,8 +1,8 @@
 defmodule Alchemy.Discord.Guilds do
   @moduledoc false
   alias Alchemy.Discord.Api
-  alias Alchemy.{Channel, Invite, Guild, GuildMember,
-                 User, Role, VoiceRegion, Guild.Integration}
+  alias Alchemy.{Channel, Invite, Guild, User, VoiceRegion}
+  alias Alchemy.Guild.{GuildMember, Integration, Role}
 
   @root "https://discordapp.com/api/v6/guilds/"
 

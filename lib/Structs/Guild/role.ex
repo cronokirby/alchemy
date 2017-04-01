@@ -1,4 +1,4 @@
-defmodule Alchemy.Role do
+defmodule Alchemy.Guild.Role do
   @moduledoc """
   """
   @type t :: %__MODULE__{
