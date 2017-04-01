@@ -3,9 +3,12 @@ defmodule Alchemy.Message do
   alias Alchemy.{User, Attachment, Embed, Reaction}
   @moduledoc """
   """
+
+  @type snowflake :: String.t
+
   @type t :: %__MODULE__{
-    id: String.t,
-    channel_id: String.t,
+    id: snowflake,
+    channel_id: snowflake,
     author: User.t,
     content: String,
     timestamp: String,
@@ -13,15 +16,15 @@ defmodule Alchemy.Message do
     tts: Boolean,
     mention_everyone: Boolean,
     mentions: [User.t],
-    mention_roles: [String.t],
+    mention_roles: [snowflake],
     attachments: [Attachment.t],
     embeds: [Embed.t],
     reactions: [Reaction.t],
     nonce: String.t,
     pinned: Boolean,
-    webhook_id: String.t
+    webhook_id: String.t | nil
   }
-  @derive Poison.Encoder
+
   defstruct [:id,
              :channel_id,
              :author,
@@ -39,6 +42,35 @@ defmodule Alchemy.Message do
              :pinned,
              :webhook_id
              ]
+
+  @typedoc """
+  Represents a reaction to a message.
+
+  - `count`
+    Times this specific emoji reaction has been used.
+  - `me`
+    Whether this client reacted to the message.
+  - `emoji`
+    Information about the emoji used.
+  """
+  @type reaction :: %Reaction{
+    count: Integer,
+    me: Boolean,
+    emoji: Emoji.t
+  }
+  @typedoc """
+  Represents an emoji used to react to a message.
+
+  - `id`
+    The id of this emoji. `nil` if this isn't a custom emoji.
+  - `name`
+    The name of this emoji.
+  """
+  @type emoji :: %Emoji{
+    id: String.t | nil,
+    name: String.t
+  }
+
   @doc false
   def from_map(map) do
     map

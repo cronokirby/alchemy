@@ -1,15 +1,8 @@
 defmodule Alchemy.Guild.Presence do
   import Alchemy.Structs
   alias Alchemy.User
-  @moduledoc """
-  """
-  @type t :: %__MODULE__{
-    user: User.t,
-    roles: [String.t],
-    game: String.t | nil,
-    guild_id: String.t,
-    status: String.t
-  }
+  @moduledoc false
+
   @derive Poison.Encoder
   defstruct [:user,
              :roles,

@@ -1,10 +1,6 @@
 defmodule Alchemy.Reaction.Emoji do
-  @moduledoc """
-  """
-  @type t :: %__MODULE__{
-    id: String.t,
-    name: String.t
-  }
+  @moduledoc false
+
   @derive Poison.Encoder
   defstruct [:id,
              :name]
