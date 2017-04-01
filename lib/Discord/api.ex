@@ -145,7 +145,7 @@ defmodule Alchemy.Discord.Api do
   def auth_headers(token) do
     client_type = Application.get_env(:alchemy, :self_bot, "Bot ")
     ["Authorization": client_type <> "#{token}",
-     "User-Agent": "AlchemyDiscordBot"]
+     "User-Agent": "DiscordBot (https://github.com/cronokirby/alchemy, 0.1.9)"]
   end
   # Performs a `get` request for a url, using the provided token as authorization.
   def _get(url) do
