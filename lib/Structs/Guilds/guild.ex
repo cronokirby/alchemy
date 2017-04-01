@@ -142,6 +142,27 @@ defmodule Alchemy.Guild do
     deaf: Boolean,
     mute: Boolean
   }
+  @typedoc """
+  Represents a custom emoji in a guild.
+
+  - `id`
+    The id of this emoji.
+  - `name`
+    The name of this emoji.
+  - `roles`
+    A list of role ids who can use this role.
+  - `require_colons`
+    Whether or not this emoji must be wrapped in colons.
+  - `managed`
+    Whether or not this emoji is managed.
+  """
+  @type emoji :: %Emoji{
+    id: String.t,
+    name: String.t,
+    roles: [String.t],
+    require_colons: Boolean,
+    managed: Boolean
+  }
 
   def from_map(map) do
     map
