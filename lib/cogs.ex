@@ -6,7 +6,7 @@ defmodule Alchemy.Cogs do
   `__using__` macro for that module, which will then allow these commands
   to be loaded in the main application via `use`
 
-  # Note
+  ## Note
   Be careful not to define multiple commands with the same name. The last module
   loaded will have their version active.
 
