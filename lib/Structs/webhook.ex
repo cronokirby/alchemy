@@ -49,7 +49,8 @@ defmodule Alchemy.Webhook do
   end
   @doc """
   Returns a list of all webhooks in a channel.
-  ## Example
+
+  ## Examples
   ```elixir
   {:ok, [%Webhook{} | _]} = Task.await Webhook.in_channel("6666")
   ```
@@ -61,7 +62,8 @@ defmodule Alchemy.Webhook do
   end
   @doc """
   Returns a list of all webhooks in a guild.
-  ## Example
+
+  ## Examples
   ```elixir
   {:ok, [%Webhook{} | _]} = Task.await Webhook.in_guild("99999")
   ```

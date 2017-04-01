@@ -5,6 +5,7 @@ defmodule Alchemy.Discord.Gateway.RateLimiter do
 
 
   defmodule RateSupervisor do
+    @moduledoc false
     alias Alchemy.Discord.Gateway.RateLimiter
     use Supervisor
 
