@@ -80,7 +80,7 @@ defmodule Alchemy.Guild do
     embed_enabled: Boolean,
     verification_level: Integer,
     default_message_notifications: Integer,
-    roles: [Role.t],
+    roles: [Guild.role],
     emojis: [emoji],
     features: [String.t],
     mfa_level: Integer,

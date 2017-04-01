@@ -289,7 +289,7 @@ defmodule Alchemy.Events do
   @doc """
   Registers a handle triggering whenever a role gets created in a guild.
 
-  `args` : `Alchemy.Role.t, snowflake`
+  `args` : `Alchemy.Guild.role, snowflake`
 
   Receives the new role, as well as the id of the guild that it belongs to.
   """

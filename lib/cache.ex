@@ -84,7 +84,7 @@ defmodule Alchemy.Cache do
   @doc """
   Gets a specific role in a guild.
   """
-  @spec role(snowflake, snowflake) :: {:ok, Role.t} | {:error, String.t}
+  @spec role(snowflake, snowflake) :: {:ok, Guild.role} | {:error, String.t}
   def role(guild_id, role_id) do
     access(guild_id, "roles", role_id, &to_struct(&1, Role))
   end

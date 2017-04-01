@@ -952,7 +952,7 @@ defmodule Alchemy.Client do
     Client.get_roles(guild_id)
     ```
     """
-    @spec get_roles(snowflake) :: {:ok, [Role.t]} | {:error, term}
+    @spec get_roles(snowflake) :: {:ok, [Guild.role]} | {:error, term}
     def get_roles(guild_id) do
       {Guilds, :get_roles, [guild_id]}
       |> send_req("/guilds/#{guild_id}/roles")
@@ -983,7 +983,7 @@ defmodule Alchemy.Client do
                       permissions: Integer,
                       color: Integer,
                       hoist: Booean,
-                      mentionable: Boolean) :: {:ok, Role.t} | {:error, term}
+                      mentionable: Boolean) :: {:ok, Guild.role} | {:error, term}
     def create_role(guild_id, options) do
       {Guilds, :create_role, [guild_id, options]}
       |> send_req("/guilds/#{guild_id}/roles")
@@ -999,7 +999,7 @@ defmodule Alchemy.Client do
                     permissions: Integer,
                     color: Integer,
                     hoist: Booean,
-                    mentionable: Boolean) :: {:ok, Role.t} | {:error, term}
+                    mentionable: Boolean) :: {:ok, Guild.role} | {:error, term}
     def edit_role(guild_id, role_id, options) do
       {Guilds, :modify_role, [guild_id, role_id, options]}
       |> send_req("/guilds/#{guild_id}/roles")
@@ -1024,7 +1024,7 @@ defmodule Alchemy.Client do
 
     Requires the `:manage_roles` permission.
     """
-    @spec move_roles(snowflake, [{snowflake, Integer}]) :: {:ok, [Role.t]}
+    @spec move_roles(snowflake, [{snowflake, Integer}]) :: {:ok, [Guild.role]}
                                                          | {:error, term}
     def move_roles(guild_id, pairs) do
       {Guilds, :move_roles, [guild_id, pairs]}
