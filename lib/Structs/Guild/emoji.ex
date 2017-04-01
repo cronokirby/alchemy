@@ -9,6 +9,6 @@ defmodule Alchemy.Guild.Emoji do
              :managed]
 
   defimpl String.Chars, for: __MODULE__ do
-    def to_String(emoji), do: "<:#{emoji.name}:#{emoji.id}>"
+    def to_string(emoji), do: "<:#{emoji.name}:#{emoji.id}>"
   end
 end

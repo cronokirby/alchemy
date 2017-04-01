@@ -10,7 +10,8 @@ defmodule Alchemy.Mixfile do
      start_permanent: Mix.env == :prod,
      description: description(),
      package: package(),
-     deps: deps()]
+     deps: deps(),
+     docs: docs()]
   end
 
 
@@ -36,6 +37,10 @@ defmodule Alchemy.Mixfile do
     This package intends to provide a solid foundation for interacting
     with the Discord API, as well as a very easy command and event hook system.
     """
+  end
+
+  defp docs do
+    [main: "intro", extras: ["docs/Intro.md"]]
   end
 
   defp package do
