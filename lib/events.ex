@@ -279,7 +279,7 @@ defmodule Alchemy.Events do
   @doc """
   Registers a handle triggering when the status of a member changes in a guild.
 
-  `args` : `Alchemy.GuildMember.t, snowflake`
+  `args` : `Alchemy.Guild.GuildMember.t, snowflake`
 
   Receives the member that was updated, and the guild they belong to.
   """

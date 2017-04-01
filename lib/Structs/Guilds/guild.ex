@@ -1,9 +1,6 @@
 defmodule Alchemy.Guild do
-  alias Alchemy.Role
-  alias Alchemy.Emoji
-  alias Alchemy.Channel
-  alias Alchemy.GuildMember
-  alias Alchemy.VoiceState
+  alias Alchemy.{Channel, Role, User, VoiceState}
+  alias Alchemy.Guild.{Emoji, GuildMember}
   alias Alchemy.Users.Presence
   import Alchemy.Structs
   @moduledoc """
@@ -69,6 +66,7 @@ defmodule Alchemy.Guild do
     A list of channels in the guild.
   - `presences`
     A list of presences in the guild.
+
   """
   @type t :: %__MODULE__{
     id: snowflake,
@@ -120,6 +118,30 @@ defmodule Alchemy.Guild do
              :channels,
              :presences
              ]
+  @typedoc """
+  Represents a member in a guild.
+
+  - `user`
+    A user struct containing information about the underlying user.
+  - `nick`
+    An optional nickname for this member.
+  - `roles`
+    A list of ids corresponding to roles the member has.
+  - `joined_at`
+    The timestamp of when this member joined the guild.
+  - `deaf`
+    Whether the user is currently deafened.
+  - `mute`
+    Whether the user is currently muted.
+  """
+  @type member :: %GuildMember{
+    user: User.t,
+    nick: String.t | nil,
+    roles: [snowflake],
+    joined_at: timestamp,
+    deaf: Boolean,
+    mute: Boolean
+  }
 
   def from_map(map) do
     map

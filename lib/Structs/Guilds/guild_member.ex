@@ -1,18 +1,8 @@
-defmodule Alchemy.GuildMember do
+defmodule Alchemy.Guild.GuildMember do
   alias Alchemy.User
-  alias Alchemy.Role
   import Alchemy.Structs
-  @moduledoc """
-  """
-  @type t :: %__MODULE__{
-    user: User.t,
-    nick: String.t | nil,
-    roles: [Role.t],
-    joined_at: String.t | nil,
-    deaf: Boolean,
-    mute: Boolean
-  }
-  @derive Poison.Encoder
+  @moduledoc false
+
   defstruct [:user,
              :nick,
              :roles,

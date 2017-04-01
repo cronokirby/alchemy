@@ -1,4 +1,4 @@
-defmodule Alchemy.Emoji do
+defmodule Alchemy.Guild.Emoji do
   @moduledoc """
   """
   @type t :: %__MODULE__{
