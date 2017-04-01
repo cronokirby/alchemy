@@ -1,6 +1,6 @@
 defmodule Alchemy.Message do
   import Alchemy.Structs
-  alias Alchemy.{User, Attachment, Embed, Reaction}
+  alias Alchemy.{User, Attachment, Embed, Reaction, Reaction.Emoji}
   @moduledoc """
   This module contains the types and functions related to messages in discord.
   """

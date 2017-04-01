@@ -9,10 +9,8 @@ defmodule Alchemy.Client do
   alias Alchemy.Discord.Gateway.Manager, as: GatewayManager
   alias Alchemy.Discord.Gateway.RateLimiter.RateSupervisor, as: GatewayRates
   alias Alchemy.Discord.Gateway.RateLimiter, as: GatewayLimiter
-  alias Alchemy.{Channel, DMChannel, Reaction.Emoji,
-                 Embed, Guild, Message, User, UserGuild,
-                 VoiceRegion}
-  alias Alchemy.Guild.{GuildMember, Role}
+  alias Alchemy.{Channel, Reaction.Emoji, Embed,
+                 Guild, Message, User, VoiceRegion}
   alias Alchemy.Cache.Supervisor, as: CacheSupervisor
   alias Alchemy.Cogs.{CommandHandler, EventHandler}
   import Alchemy.Discord.RateManager, only: [send_req: 2]
@@ -110,7 +108,7 @@ defmodule Alchemy.Client do
    {:ok, guilds} = Task.await Client.current_guilds
    ```
    """
-   @spec get_current_guilds() :: {:ok, [UserGuild.t]} | {:error, term}
+   @spec get_current_guilds() :: {:ok, [User.user_guild]} | {:error, term}
    def get_current_guilds do
      {Users, :get_current_guilds, []}
      |> send_req("/users/@me/guilds")

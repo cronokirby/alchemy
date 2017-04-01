@@ -1,14 +1,18 @@
 defmodule Alchemy.User do
-  use Alchemy.Discord.Types
   @moduledoc """
-  Represents a discord user. The default values exist to cover missing fields.
+  This module contains functions and types related to discord users.
+  """
+  alias Alchemy.UserGuild
+  use Alchemy.Discord.Types
+  @typedoc """
+  Represents a discord User. The default values exist to cover missing fields.
 
   - `id`
 
-    represents a unique client id
+    represents a unique user id
   - `username`
 
-    represents a client's current username
+    represents a user's current username
   - `discriminator`
 
     4 digit tag to differenciate usernames
@@ -48,7 +52,32 @@ defmodule Alchemy.User do
              email: :hidden
              ]
 
+  @typedoc """
+  A shortened version of a Guild struct, through the view of a User.
 
+  - `id`
+
+    Represents the guild's id.
+  - `name`
+
+    Represents the guild's name.
+  - `icon`
+
+    A string representing the guild's icon hash.
+  - `owner`
+
+    Whether the user linked to the guild owns it.
+  - `permissions`
+
+    Bitwise of the user's enabled/disabled permissions.
+  """
+  @type user_guild :: %UserGuild{
+    id: snowflake,
+    name: String.t,
+    icon: String.t,
+    owner: Boolean,
+    permissions: Integer
+  }
   defimpl String.Chars, for: __MODULE__ do
     def to_string(user), do: user.username <> "#" <> user.discriminator
   end
