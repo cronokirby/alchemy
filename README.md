@@ -17,7 +17,7 @@ def deps do
 end
 ```
 
-### [Docs](https://hexdocs.pm/discord_alchemy/0.2.0/Alchemy.Client.html)
+### [Docs](https://hexdocs.pm/discord_alchemy/0.2.0)
 
 This is the stable documentation for the library, I highly recommend going
 through it, as most of the relevant information resides there.
