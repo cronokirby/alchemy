@@ -7,4 +7,8 @@ defmodule Alchemy.Guild.Emoji do
              :roles,
              :require_colons,
              :managed]
+
+  defimpl String.Chars, for: __MODULE__ do
+    def to_String(emoji), do: "<:#{emoji.name}:#{emoji.id}>"
+  end
 end

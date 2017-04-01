@@ -77,7 +77,7 @@ defmodule Alchemy.Cache do
   @doc """
   Gets a member from a cache, by guild and member id.
   """
-  @spec member(snowflake, snowflake) :: {:ok, GuildMember.t} | {:error, String.t}
+  @spec member(snowflake, snowflake) :: {:ok, Guild.member} | {:error, String.t}
   def member(guild_id, member_id) do
     access(guild_id, "members", member_id, GuildMember)
   end
@@ -100,7 +100,7 @@ defmodule Alchemy.Cache do
   @doc """
   Retrieves a custom emoji by id in a guild.
   """
-  @spec emoji(snowflake, snowflake) :: {:ok, Emoji.t} | {:error, String.t}
+  @spec emoji(snowflake, snowflake) :: {:ok, Guild.emoji} | {:error, String.t}
   def emoji(guild_id, emoji_id) do
     access(guild_id, "emojis", emoji_id, Emoji)
   end

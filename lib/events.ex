@@ -235,7 +235,7 @@ defmodule Alchemy.Events do
   @doc """
   Registers a handle triggering whenever a guild's emojis get updated.
 
-  `args` : `[Alchemy.Emoji.t], snowflake`
+  `args` : `[Guild.emoji], snowflake`
 
   Receives a list of the current emojis in the guild, after this event, and the
   id of the guild itself.
@@ -279,7 +279,7 @@ defmodule Alchemy.Events do
   @doc """
   Registers a handle triggering when the status of a member changes in a guild.
 
-  `args` : `Alchemy.Guild.GuildMember.t, snowflake`
+  `args` : `Alchemy.Guild.Guild.member, snowflake`
 
   Receives the member that was updated, and the guild they belong to.
   """

@@ -1,6 +1,6 @@
 defmodule Alchemy.Guild do
   alias Alchemy.{Channel, Role, User, VoiceState}
-  alias Alchemy.Guild.{Emoji, GuildMember}
+  alias Alchemy.Guild.{Emoji, GuildMember, Integration}
   alias Alchemy.Users.Presence
   import Alchemy.Structs
   @moduledoc """
@@ -81,7 +81,7 @@ defmodule Alchemy.Guild do
     verification_level: Integer,
     default_message_notifications: Integer,
     roles: [Role.t],
-    emojis: [Emoji.t],
+    emojis: [emoji],
     features: [String.t],
     mfa_level: Integer,
     joined_at: timestamp,
@@ -89,7 +89,7 @@ defmodule Alchemy.Guild do
     unavailable: Boolean,
     member_count: Integer,
     voice_states: [VoiceState.t],
-    members: [GuildMember.t],
+    members: [member],
     channels: [Channel.t],
     presences: [Presence.t]
   }
@@ -145,6 +145,9 @@ defmodule Alchemy.Guild do
   @typedoc """
   Represents a custom emoji in a guild.
 
+  The string representation of this struct will be the markdown
+  necessary to use it. i.e. `Cogs.say("\#{emoji}")` will send the emoji.
+
   - `id`
     The id of this emoji.
   - `name`
@@ -162,6 +165,57 @@ defmodule Alchemy.Guild do
     roles: [String.t],
     require_colons: Boolean,
     managed: Boolean
+  }
+  @typedoc """
+  Represents the account of an integration.
+
+  - `id`
+    The id of the account.
+  - `name`
+    The name of the account.
+  """
+  @type integration_account :: %Integration.Account{
+    id: snowflake,
+    name: String.t
+  }
+  @typedoc """
+  Represents an guild's integration with a service, (i.e. twitch)
+
+  - `id`
+    The id of the integration.
+  - `name`
+    The name of the integration.
+  - `type`
+    Integration type; youtube, twitch, etc.
+  - `enabled`
+    Whether or not the integration is enabled.
+  - `syncing`
+    Whether or not the integration is syncing.
+  - `role_id`
+    The id of the role associated with "subscribers" to this integration.
+  - `expire_behaviour`
+    The behaviour of expiring subscribers.
+  - `expire_grace_period`
+    The grace period before expiring subscribers.
+  - `user`
+    The user for this integration.
+  - `account`
+    The integration's account information.
+  - `synced_at`
+    When this integration was last synced.
+  """
+  @type integration :: %Integration{
+    id: snowflake,
+    name: String.t,
+    type: String.t,
+    enabled: Boolean,
+    syncing: Boolean,
+    role_id: snowflake,
+    expire_behaviour: Integer,
+    expire_grace_period: Integer,
+    user: User.t,
+    account: integration_account,
+    synced_at: timestamp
   }
 
   def from_map(map) do

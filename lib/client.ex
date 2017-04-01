@@ -778,7 +778,7 @@ defmodule Alchemy.Client do
     Client.get_member(guild_id, user_id)
     ```
     """
-    @spec get_member(snowflake, snowflake) :: {:ok, GuildMember.t} | {:error, term}
+    @spec get_member(snowflake, snowflake) :: {:ok, Guild.member} | {:error, term}
     def get_member(guild_id, user_id) do
       {Guilds, :get_member, [guild_id, user_id]}
       |> send_req("/guilds/#{guild_id}/members")
@@ -798,7 +798,7 @@ defmodule Alchemy.Client do
     ```
     """
     @spec get_member_list(snowflake,
-                          limit: Integer, after: snowflake) :: {:ok, [GuildMember.t]}
+                          limit: Integer, after: snowflake) :: {:ok, [Guild.member]}
                                                              | {:error, term}
     def get_member_list(guild_id, options \\ []) do
       {Guilds, :get_member_list, [guild_id, options]}
@@ -832,7 +832,7 @@ defmodule Alchemy.Client do
                       roles: [snowflake],
                       mute: Boolean,
                       deaf: Boolean,
-                      channel_id: snowflake) :: {:ok, GuildMember.t} | {:error, term}
+                      channel_id: snowflake) :: {:ok, Guild.member} | {:error, term}
     def edit_member(guild_id, user_id, options) do
       {Guilds, :modify_member, [guild_id, user_id, options]}
       |> send_req("/guilds/#{guild_id}/members")
