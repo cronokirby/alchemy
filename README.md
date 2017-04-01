@@ -10,7 +10,7 @@ as defining a function!
 
 
 ### Installation
-Simply add *Alchemy* to your dependancies in your `mix.exs` file:
+Simply add *Alchemy* to your dependencies in your `mix.exs` file:
 ```elixir
 def deps do
   [{:alchemy, "~> 0.2.0", hex: :discord_alchemy}]
