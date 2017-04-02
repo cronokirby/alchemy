@@ -216,12 +216,8 @@ defmodule Alchemy.Cogs do
   to deal with potentially missing arguments, pattern matching should be used.
   So, in this case, when a 2nd argument isn't given, an error message is sent back.
   """
-  defmacro def({name, ctx, args} = func, do: body) do
-    args = args || []
-    arity = length(args)
-    arg_ctx = Keyword.get(ctx, :context)
-    injected = [{:message, [], arg_ctx} | args]
-    new_func = {:def, ctx, [{name, ctx, injected}, [do: body]]}
+  defmacro def(func, body) do
+    {name, arity, new_func} = inject(func, body)
     quote do
       arity = unquote(arity)
       @commands update_in(@commands, [unquote(name)], fn
@@ -236,6 +232,23 @@ defmodule Alchemy.Cogs do
       end)
       unquote(new_func)
     end
+  end
+
+  defp inject({:when, ctx, [{name, _, args} | func_rest]} = guard, body) do
+    args = args || []
+    injected = [{:message, [], ctx[:context]} | args]
+    new_guard =
+      guard
+      |> Tuple.delete_at(2)
+      |> Tuple.insert_at(2, [{name, ctx, injected} | func_rest])
+    new_func = {:def, ctx, [new_guard, body]}
+    {name, length(args), new_func}
+  end
+  defp inject({name, ctx, args}, body) do
+    args = args || []
+    injected = [{:message, [], ctx[:context]} | args]
+    new_func = {:def, ctx, [{name, ctx, injected}, body]}
+    {name, length(args), new_func}
   end
   @doc """
   Allows you to register a custom message parser for a command.
