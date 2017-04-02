@@ -196,7 +196,17 @@ defmodule Alchemy.Cache.Guilds do
   # this event is special enough to warrant its own special handling
   def handle_call({:update_presence, key, data}, _, state) do
     new = if Map.has_key?(state["presences"], key) do
-      update_in(state, ["presences", key], &Map.merge(&1, data))
+      update_in(state, ["presences", key], fn presence ->
+        case {data, presence} do
+          {%{"user" => new}, %{"user" => old}} ->
+            new_user = Map.merge(new, old)
+            presence
+            |> Map.merge(data)
+            |> Map.put("user", new_user)
+          _ ->
+            Map.merge(presence, data)
+        end
+      end)
     else
       put_in(state, ["presences", key], data)
     end
