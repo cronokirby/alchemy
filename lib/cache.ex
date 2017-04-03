@@ -9,7 +9,7 @@ defmodule Alchemy.Cache do
   to get information from the context of commands.
   """
   alias Alchemy.Cache.{Guilds, Guilds.GuildSupervisor}
-  alias Alchemy.{DMChannel, Channel, Guild, User, VoiceState}
+  alias Alchemy.{DMChannel, Channel, Guild, User, VoiceState, Voice}
   alias Alchemy.Guild.{Emoji, GuildMember, Presence, Role}
   import Alchemy.Structs, only: [to_struct: 2]
 
@@ -102,9 +102,22 @@ defmodule Alchemy.Cache do
   """
   @spec emoji(snowflake, snowflake) :: {:ok, Guild.emoji} | {:error, String.t}
   def emoji(guild_id, emoji_id) do
-    access(guild_id, "emojis", emoji_id, Emoji)
+    access(guild_id, "emojis", emoji_id, &to_struct(&1, Emoji))
   end
-
+  @doc """
+  Retrieves a user's voice state by id in a guild.
+  """
+  @spec voice_state(snowflake, snowflake) :: {:ok, Voice.state} | {:error, String.t}
+  def voice_state(guild_id, user_id) do
+    access(guild_id, "voice_states", user_id, &to_struct(&1, VoiceState))
+  end
+  @doc """
+  Retrieves a specific channel in a guild.
+  """
+  @spec channel(snowflake, snowflake) :: {:ok, Channel.t} | {:error, String.t}
+  def channel(guild_id, channel_id) do
+    access(guild_id, "channels", channel_id, Channel)
+  end
 
   # Returns the corresponding protocol for an atom key.
   # This is mainly needed for `search/2`
