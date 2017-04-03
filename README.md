@@ -57,8 +57,7 @@ of `Client.start` in a variable.
 Now all we need to do to wire up this application, is to add it to our `mix.exs`:
 ```elixir
 def application do
-  [mod: {Mybot, []},
-   extra_applications: [:logger]]
+  [mod: {Mybot, []}]
 end
 ```
 This makes our bot automatically start when we run our project.
