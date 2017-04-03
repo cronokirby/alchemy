@@ -6,30 +6,66 @@ defmodule Alchemy.Cogs do
   `__using__` macro for that module, which will then allow these commands
   to be loaded in the main application via `use`
 
-  ## Note
-  Be careful not to define multiple commands with the same name. The last module
-  loaded will have their version active.
-
-  ## Example Usage
-
+  ## Example Module
   ```elixir
   defmodule Example do
     use Alchemy.Cogs
 
-    Cogs.def ping, do: Cogs.say "pong!"
+    Cogs.def ping do
+      Cogs.say "pong"
+    end
 
     Cogs.def echo do
       Cogs.say "please give me a word to echo"
-    end
-    Cogs.def echo("foo") do
-      Cogs.say "foo are you?"
     end
     Cogs.def echo(word) do
       Cogs.say word
     end
   end
   ```
-  Then you can load this cog in at runtime, or anytime after starting the client
+  This defines a basic Cog, that can now be loaded into our application via `use`.
+  The command created from this module are "!ping", and "!echo",
+  ("!" is merely the default prefix, it could be anything from "?", to "SHARKNADO").
+  The `ping` command is straight forward, but as you can see, the `echo` command
+  takes in an argument. When you define a command, the handler will
+  try and get arguments up to the max arity of that command;
+  in this case, `echo` has a max arity of one, so the parser will pass up to
+  one argument to the function. In the case that the parser can't get enough
+  arguments, it will pass a lower amount. We explicitly handle this case
+  here, in this case sending a useful error message back.
+
+  ### Shared names across multiple modules
+  If I define a command `ping` in module `A`, and a `ping` in module `B`,
+  which `ping` should become the command? In general, you should avoid doing
+  this, but the module used last will override previously loaded commands
+  with a matching name.
+
+
+  ## Parsing
+  The way the parser works is simple: a message is first decomposed into
+  parts:
+  ```
+  prefix <> command <> " " <> rest
+  ```
+  If the prefix doesn't match, the message is ignored. If it does match,
+  a new Task is started to handle this event. This task will try and find
+  the function corresponding to the command called, and will return preemptively
+  if no such function is found. After that, `rest` is passed to the parser,
+  which will try and extract arguments to pass to the function. The default
+  parsing method is simply splitting by whitespace. Thankfully,
+  you can define a custom parser for a command via `Cogs.set_parser/2`. This
+  parser will act upong `rest`, and parse out the relevant arguments.
+
+  ## The `message` argument
+  When you define a function with `Cogs.def` the function gets expanded
+  to take an extra `message` parameter, which is the message triggering
+  the command. This contains a lot of useful information, and is what
+  enables a lot of the other macros to work. Because of this,
+  be wary of naming something else `message`.
+
+  ## Loading and Unloading
+
+  Loading a cog merely requires having started the client:
   ```elixir
   use Example
   ```
