@@ -42,13 +42,16 @@ defmodule Alchemy.Client do
   not work as well as for normal bots.
   """
   @spec start(token, selfbot: snowflake) :: {:ok, pid}
-  def start(token, options \\ []) do
+  def start(token, options \\ [])
+  def start(token, []) do
     start_link(token, [])
   end
   def start(token, selfbot: id) do
     Application.put_env(:alchemy, :self_bot, " ")
     start_link(token, selfbot: id)
   end
+
+
 
   @doc false
   defp start_link(token, options) do

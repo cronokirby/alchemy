@@ -1,5 +1,5 @@
 defmodule Alchemy.Guild do
-  alias Alchemy.{Channel, User, Voice}
+  alias Alchemy.{Channel, User, Voice, VoiceState}
   alias Alchemy.Guild.{Emoji, GuildMember, Integration, Presence, Role}
   import Alchemy.Structs
   @moduledoc """
