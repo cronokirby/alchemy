@@ -189,7 +189,11 @@ defmodule Alchemy.Cache.Guilds do
 
 
   def handle_call({:update, section, key, data}, _, state) do
-    new = update_in(state, [section, key], &Map.merge(&1, data))
+    new = update_in(state, [section, key], fn
+      # Need to figure out why members sometimes become nil.
+      nil -> data
+      there -> Map.merge(there, data)
+    end)
     {:reply, :ok, new}
   end
 
