@@ -256,13 +256,13 @@ defmodule Alchemy.Cogs do
     {name, arity, new_func} = inject(func, body)
     quote do
       arity = unquote(arity)
-      @commands update_in(@commands, [unquote(name)], fn
+      @commands update_in(@commands, [Atom.to_string(unquote(name))], fn
         nil ->
-          {__MODULE__, arity}
-        {mod, x} when x < arity ->
-          {mod, arity}
-        {mod, x, parser} when x < arity ->
-          {mod, arity, parser}
+          {__MODULE__, arity, unquote(name)}
+        {mod, x, name} when x < arity ->
+          {mod, arity, name}
+        {mod, x, name, parser} when x < arity ->
+          {mod, arity, name, parser}
         val ->
           val
       end)
@@ -306,11 +306,11 @@ defmodule Alchemy.Cogs do
   defmacro set_parser(name, parser) do
     parser = Macro.to_string(parser)
     quote do
-      @commands update_in(@commands, [unquote(name)], fn
+      @commands update_in(@commands, [Atom.to_string(unquote(name))], fn
         nil ->
-          {__MODULE__, 0, unquote(parser)}
-        {mod, x} ->
-          {mod, x, unquote(parser)}
+          {__MODULE__, 0, unquote(name), unquote(parser)}
+        {mod, x, name} ->
+          {mod, x, name, unquote(parser)}
         full ->
           full
       end)
@@ -339,9 +339,9 @@ defmodule Alchemy.Cogs do
         quote do
           Alchemy.Cogs.CommandHandler.add_commands(unquote(module),
             unquote(commands) |> Enum.map(fn
-              {k, {mod, arity, string}} ->
+              {k, {mod, arity, name, string}} ->
                 {eval, _} = Code.eval_string(string)
-                {k, {mod, arity, eval}}
+                {k, {mod, arity, name, eval}}
               {k, v} ->
                 {k, v}
             end)

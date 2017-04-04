@@ -87,12 +87,11 @@ defmodule Alchemy.Cogs.CommandHandler do
                  message.content
                  |> String.split([prefix, " "], parts: 3)
                  |> Enum.concat(["", ""]))
-     command = String.to_atom(command)
      case state[command] do
-       {mod, arity} ->
-         run_command(mod, command, arity, &String.split(&1), message, rest)
-       {mod, arity, parser} ->
-         run_command(mod, command, arity, parser, message, rest)
+       {mod, arity, method} ->
+         run_command(mod, method, arity, &String.split(&1), message, rest)
+       {mod, arity, method, parser} ->
+         run_command(mod, method, arity, parser, message, rest)
          _ -> nil
      end
   end
