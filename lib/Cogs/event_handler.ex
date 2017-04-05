@@ -4,6 +4,7 @@ defmodule Alchemy.Cogs.EventHandler do
   # to call to handle those casts.
   # This server is intended to be unique.
   use GenServer
+  alias Alchemy.Cogs.EventRegistry
 
 
   # Starts up a task for handle registered for that event
@@ -65,6 +66,7 @@ defmodule Alchemy.Cogs.EventHandler do
     Enum.each(Map.get(state, type, []), fn {m, f} ->
       Task.start(fn -> apply(m, f, args) end)
     end)
+    EventRegistry.dispatch({type, args})
     {:noreply, state}
   end
 
