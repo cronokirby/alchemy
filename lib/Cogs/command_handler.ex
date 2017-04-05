@@ -83,16 +83,18 @@ defmodule Alchemy.Cogs.CommandHandler do
 
   defp dispatch(message, state) do
      prefix = state["prefix"]
-     destructure([_, command, rest],
-                 message.content
-                 |> String.split([prefix, " "], parts: 3)
-                 |> Enum.concat(["", ""]))
-     case state[command] do
-       {mod, arity, method} ->
-         run_command(mod, method, arity, &String.split(&1), message, rest)
-       {mod, arity, method, parser} ->
-         run_command(mod, method, arity, parser, message, rest)
-         _ -> nil
+     if String.starts_with?(message.content, prefix) do
+       destructure([_, command, rest],
+                   message.content
+                   |> String.split([prefix, " "], parts: 3)
+                   |> Enum.concat(["", ""]))
+       case state[command] do
+         {mod, arity, method} ->
+           run_command(mod, method, arity, &String.split(&1), message, rest)
+         {mod, arity, method, parser} ->
+           run_command(mod, method, arity, parser, message, rest)
+           _ -> nil
+       end
      end
   end
 
