@@ -269,6 +269,9 @@ defmodule Alchemy.Cogs do
   The `:message` event is a bit special, as it will specifically wait for
   a message not triggered by a bot, in that specific channel, unlike other events,
   which trigger generically across the entire bot.
+
+  The process will kill itself if it doesn't receive any such event
+  for 20s.
   ## Examples
   ```elixir
   Cogs.def color do
@@ -295,6 +298,8 @@ defmodule Alchemy.Cogs do
         {:discord_event, {:message_create,
          [%{author: %{bot: false}, channel_id: ^cCcChannelCCid}] = args}} ->
           apply(unquote(func), args)
+      after
+        20_000 -> Process.exit(self(), :kill)
       end
     end
   end
@@ -318,6 +323,8 @@ defmodule Alchemy.Cogs do
       receive do
         {:discord_event, {unquote(type), args}} ->
           apply(unquote(func), args)
+      after
+        20_000 -> Process.exit(self(), :kill)
       end
     end
   end
@@ -333,6 +340,22 @@ defmodule Alchemy.Cogs do
     Cogs.wait_for(:message, & &1.content == "foo", fn _msg ->
       Cogs.say "Nice foo man!"
     end)
+  ```
+  Note that, if no message of the given type is received after 20s, the process
+  will kill itself, it's possible that this will never get met, but
+  no event satisfying the condition will ever arrive, essentially rendering
+  the process a waste. To circumvent this, it might be smart to send
+  a preemptive kill message:
+  ```elixir
+  self = self()
+  Task.start(fn ->
+    Process.sleep(20_000)
+    Process.exit(self, :kill)
+  )
+  Cogs.wait_for(:message, fn x -> false end, fn _msg ->
+    Cogs.say "If you hear this, logic itself is falling apart!!!"
+  end)
+  ```
   """
   defmacro wait_for(:message, condition, func) do
     m = __MODULE__
@@ -373,6 +396,8 @@ defmodule Alchemy.Cogs do
         else
           wait(:message, condition, func, channel_id)
         end
+     after
+       20_000 -> Process.exit(self(), :kill)
     end
   end
   @doc false
@@ -384,6 +409,8 @@ defmodule Alchemy.Cogs do
         else
           wait(type, condition, func)
         end
+    after
+      20_000 -> Process.exit(self(), :kill)
     end
   end
   @doc """
