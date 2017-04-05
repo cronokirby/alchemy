@@ -1,4 +1,6 @@
 defmodule Alchemy.Cogs do
+  alias Alchemy.Cogs.EventRegistry
+  alias Alchemy.Events
   @moduledoc """
   This module provides quite a bit of sugar for registering commands.
 
@@ -228,6 +230,167 @@ defmodule Alchemy.Cogs do
     end
   end
   @doc """
+  Allows you to register a custom message parser for a command.
+
+  The parser will be applied to part of the message not used for command matching.
+  ```elixir
+  prefix <> command <> " " <> rest
+  ```
+
+  ## Examples
+  ```elixir
+  Cogs.set_parser(:echo, &List.wrap/1)
+  Cogs.def echo(rest) do
+    Cogs.say(rest)
+  end
+  ```
+  """
+  @type parser :: (String.t -> Enum.t)
+  defmacro set_parser(name, parser) do
+    parser = Macro.to_string(parser)
+    quote do
+      @commands update_in(@commands, [Atom.to_string(unquote(name))], fn
+        nil ->
+          {__MODULE__, 0, unquote(name), unquote(parser)}
+        {mod, x, name} ->
+          {mod, x, name, unquote(parser)}
+        full ->
+          full
+      end)
+    end
+  end
+  @doc """
+  Halts the current command until an event is received.
+
+  The event type is an item corresponding to the events in `Alchemy.Events`,
+  i.e. `on_message_edit` -> `Cogs.wait_for(:message_edit, ...)`. The `fun`
+  is the function that gets called with the relevant event arguments; see
+  `Alchemy.Events` for more info on what events have what arguments.
+
+  The `:message` event is a bit special, as it will specifically wait for
+  a message not triggered by a bot, in that specific channel, unlike other events,
+  which trigger generically across the entire bot.
+
+  The process will kill itself if it doesn't receive any such event
+  for 20s.
+  ## Examples
+  ```elixir
+  Cogs.def color do
+    Cogs.say "What's your favorite color?"
+    Cogs.wait_for :message, fn msg ->
+      Cogs.say "\#{msg.content} is my favorite color too!"
+    end
+  end
+  ```
+  ```elixir
+  Cogs.def typing do
+    Cogs.say "I'm waiting for someone to type.."
+    Cogs.wait_for :typing, fn _,_,_ ->
+      Cogs.say "Someone somewhere started typing..."
+    end
+  ```
+  """
+  # messages need special treatment, to ignore bots
+  defmacro wait_for(:message, func) do
+    quote do
+      EventRegistry.subscribe()
+      cCcChannelCCid = var!(message).channel_id
+      receive do
+        {:discord_event, {:message_create,
+         [%{author: %{bot: false}, channel_id: ^cCcChannelCCid}] = args}} ->
+          apply(unquote(func), args)
+      after
+        20_000 -> Process.exit(self(), :kill)
+      end
+    end
+  end
+  defmacro wait_for(type, func) do
+    # convert the special cases we set in the Events module
+    type = Events.convert_type(type)
+    quote do
+      EventRegistry.subscribe()
+      receive do
+        {:discord_event, {unquote(type), args}} ->
+          apply(unquote(func), args)
+      after
+        20_000 -> Process.exit(self(), :kill)
+      end
+    end
+  end
+  @doc """
+  Waits for a specific event satisfying a condition.
+
+  Same as `wait_for/2`, except this takes an extra condition that needs to be
+  met for the waiting to handle to trigger.
+  ## Examples
+  ```elixir
+  Cogs.def foo do
+    Cogs.say "Send me foo"
+    Cogs.wait_for(:message, & &1.content == "foo", fn _msg ->
+      Cogs.say "Nice foo man!"
+    end)
+  ```
+  Note that, if no message of the given type is received after 20s, the process
+  will kill itself, it's possible that this will never get met, but
+  no event satisfying the condition will ever arrive, essentially rendering
+  the process a waste. To circumvent this, it might be smart to send
+  a preemptive kill message:
+  ```elixir
+  self = self()
+  Task.start(fn ->
+    Process.sleep(20_000)
+    Process.exit(self, :kill)
+  )
+  Cogs.wait_for(:message, fn x -> false end, fn _msg ->
+    Cogs.say "If you hear this, logic itself is falling apart!!!"
+  end)
+  ```
+  """
+  defmacro wait_for(:message, condition, func) do
+    m = __MODULE__
+    quote do
+      EventRegistry.subscribe()
+      unquote(m).wait(:message, unquote(condition),
+                                unquote(func), var!(message).channel_id)
+    end
+  end
+  defmacro wait_for(type, condition, func) do
+    type = Events.convert_type(type)
+    m = __MODULE__
+    quote do
+      EventRegistry.subscribe()
+      unquote(m).wait(unquote(type), unquote(condition), unquote(func))
+    end
+  end
+  # Loops until the correct command is received
+  @doc false
+  def wait(:message, condition, func, channel_id) do
+    receive do
+      {:discord_event, {:message_create,
+       [%{author: %{bot: false}, channel_id: ^channel_id}] = args}} ->
+        if apply(condition, args) do
+          apply(func, args)
+        else
+          wait(:message, condition, func, channel_id)
+        end
+     after
+       20_000 -> Process.exit(self(), :kill)
+    end
+  end
+  @doc false
+  def wait(type, condition, func) do
+    receive do
+      {:discord_event, {^type, args}} ->
+        if apply(condition, args) do
+          apply(func, args)
+        else
+          wait(type, condition, func)
+        end
+    after
+      20_000 -> Process.exit(self(), :kill)
+    end
+  end
+  @doc """
   Registers a new command, under the name of the function.
 
   This macro modifies the function definition, to accept an extra
@@ -286,36 +449,7 @@ defmodule Alchemy.Cogs do
     new_func = {:def, ctx, [{name, ctx, injected}, body]}
     {name, length(args), new_func}
   end
-  @doc """
-  Allows you to register a custom message parser for a command.
 
-  The parser will be applied to part of the message not used for command matching.
-  ```elixir
-  prefix <> command <> " " <> rest
-  ```
-
-  ## Examples
-  ```elixir
-  Cogs.set_parser(:echo, &List.wrap/1)
-  Cogs.def echo(rest) do
-    Cogs.say(rest)
-  end
-  ```
-  """
-  @type parser :: (String.t -> Enum.t)
-  defmacro set_parser(name, parser) do
-    parser = Macro.to_string(parser)
-    quote do
-      @commands update_in(@commands, [Atom.to_string(unquote(name))], fn
-        nil ->
-          {__MODULE__, 0, unquote(name), unquote(parser)}
-        {mod, x, name} ->
-          {mod, x, name, unquote(parser)}
-        full ->
-          full
-      end)
-    end
-  end
 
 
   @doc false

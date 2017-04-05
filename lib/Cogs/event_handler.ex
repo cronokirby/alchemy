@@ -4,33 +4,34 @@ defmodule Alchemy.Cogs.EventHandler do
   # to call to handle those casts.
   # This server is intended to be unique.
   use GenServer
+  alias Alchemy.Cogs.EventRegistry
 
 
   # Starts up a task for handle registered for that event
   def notify(msg) do
-    GenServer.cast(Events, {:notify, msg})
+    GenServer.cast(__MODULE__, {:notify, msg})
   end
 
 
   def disable(module, function) do
-    GenServer.call(Events, {:disable, module, function})
+    GenServer.call(__MODULE__, {:disable, module, function})
   end
 
 
   def unload(module) do
-    GenServer.call(Events, {:unload, module})
+    GenServer.call(__MODULE__, {:unload, module})
   end
 
   # Used at the beginning of the application to add said handles
   def add_handler(handle) do
-    GenServer.cast(Events, {:add_handle, handle})
+    GenServer.cast(__MODULE__, {:add_handle, handle})
   end
 
 
   ### Server ###
 
   def start_link do
-    GenServer.start_link(__MODULE__, %{}, name: Events)
+    GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
   end
 
 
@@ -65,6 +66,7 @@ defmodule Alchemy.Cogs.EventHandler do
     Enum.each(Map.get(state, type, []), fn {m, f} ->
       Task.start(fn -> apply(m, f, args) end)
     end)
+    EventRegistry.dispatch({type, args})
     {:noreply, state}
   end
 

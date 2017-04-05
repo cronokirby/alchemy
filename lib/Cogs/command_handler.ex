@@ -5,27 +5,27 @@ defmodule Alchemy.Cogs.CommandHandler do
 
 
   def add_commands(module, commands) do
-    GenServer.cast(Commands, {:add_commands, module, commands})
+    GenServer.cast(__MODULE__, {:add_commands, module, commands})
   end
 
 
   def set_prefix(new) do
-    GenServer.cast(Commands, {:set_prefix, new})
+    GenServer.cast(__MODULE__, {:set_prefix, new})
   end
 
 
   def unload(module) do
-    GenServer.call(Commands, {:unload, module})
+    GenServer.call(__MODULE__, {:unload, module})
   end
 
 
   def disable(func) do
-    GenServer.call(Commands, {:disable, func})
+    GenServer.call(__MODULE__, {:disable, func})
   end
 
 
   def dispatch(message) do
-    GenServer.cast(Commands, {:dispatch, message})
+    GenServer.cast(__MODULE__, {:dispatch, message})
   end
 
   ### Server ###
@@ -33,7 +33,7 @@ defmodule Alchemy.Cogs.CommandHandler do
   def start_link(options) do
     # String keys to avoid conflict with functions
     GenServer.start_link(__MODULE__, %{"prefix" => "!", "options" => options},
-                         name: Commands)
+                         name: __MODULE__)
   end
 
 
@@ -83,16 +83,18 @@ defmodule Alchemy.Cogs.CommandHandler do
 
   defp dispatch(message, state) do
      prefix = state["prefix"]
-     destructure([_, command, rest],
-                 message.content
-                 |> String.split([prefix, " "], parts: 3)
-                 |> Enum.concat(["", ""]))
-     case state[command] do
-       {mod, arity, method} ->
-         run_command(mod, method, arity, &String.split(&1), message, rest)
-       {mod, arity, method, parser} ->
-         run_command(mod, method, arity, parser, message, rest)
-         _ -> nil
+     if String.starts_with?(message.content, prefix) do
+       destructure([_, command, rest],
+                   message.content
+                   |> String.split([prefix, " "], parts: 3)
+                   |> Enum.concat(["", ""]))
+       case state[command] do
+         {mod, arity, method} ->
+           run_command(mod, method, arity, &String.split(&1), message, rest)
+         {mod, arity, method, parser} ->
+           run_command(mod, method, arity, parser, message, rest)
+           _ -> nil
+       end
      end
   end
 

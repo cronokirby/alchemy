@@ -439,4 +439,22 @@ defmodule Alchemy.Events do
     end
   end
 
+  @doc false
+  # This is useful in a few places, converts "aliases" made here, into the internal
+  # event
+  def convert_type(type) do
+    case type do
+      :DM_channel_create -> :dm_channel_create
+      :DM_channel_delete -> :dm_channel_delete
+      :guild_join -> :guild_create
+      :user_ban -> :guild_ban
+      :user_unban -> :guild_unban
+      :message_edit -> :message_update
+      :bulk_delete -> :message_delete_bulk
+      :typing -> :typing_start
+      :settings_update -> :user_settings_update
+      :voice_update -> :voice_state_update
+      x -> x
+    end
+  end
 end
