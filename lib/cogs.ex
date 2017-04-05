@@ -1,5 +1,6 @@
 defmodule Alchemy.Cogs do
   alias Alchemy.Cogs.EventRegistry
+  alias Alchemy.Events
   @moduledoc """
   This module provides quite a bit of sugar for registering commands.
 
@@ -305,19 +306,7 @@ defmodule Alchemy.Cogs do
   end
   defmacro wait_for(type, func) do
     # convert the special cases we set in the Events module
-    type = case type do
-      :DM_channel_create -> :dm_channel_create
-      :DM_channel_delete -> :dm_channel_delete
-      :guild_join -> :guild_create
-      :user_ban -> :guild_ban
-      :user_unban -> :guild_unban
-      :message_edit -> :message_update
-      :bulk_delete -> :message_delete_bulk
-      :typing -> :typing_start
-      :settings_update -> :user_settings_update
-      :voice_update -> :voice_state_update
-      x -> x
-    end
+    type = Events.convert_type(type)
     quote do
       EventRegistry.subscribe()
       receive do
@@ -366,19 +355,7 @@ defmodule Alchemy.Cogs do
     end
   end
   defmacro wait_for(type, condition, func) do
-    type = case type do
-      :DM_channel_create -> :dm_channel_create
-      :DM_channel_delete -> :dm_channel_delete
-      :guild_join -> :guild_create
-      :user_ban -> :guild_ban
-      :user_unban -> :guild_unban
-      :message_edit -> :message_update
-      :bulk_delete -> :message_delete_bulk
-      :typing -> :typing_start
-      :settings_update -> :user_settings_update
-      :voice_update -> :voice_state_update
-      x -> x
-    end
+    type = Events.convert_type(type)
     m = __MODULE__
     quote do
       EventRegistry.subscribe()

@@ -5,27 +5,27 @@ defmodule Alchemy.Cogs.CommandHandler do
 
 
   def add_commands(module, commands) do
-    GenServer.cast(Commands, {:add_commands, module, commands})
+    GenServer.cast(__MODULE__, {:add_commands, module, commands})
   end
 
 
   def set_prefix(new) do
-    GenServer.cast(Commands, {:set_prefix, new})
+    GenServer.cast(__MODULE__, {:set_prefix, new})
   end
 
 
   def unload(module) do
-    GenServer.call(Commands, {:unload, module})
+    GenServer.call(__MODULE__, {:unload, module})
   end
 
 
   def disable(func) do
-    GenServer.call(Commands, {:disable, func})
+    GenServer.call(__MODULE__, {:disable, func})
   end
 
 
   def dispatch(message) do
-    GenServer.cast(Commands, {:dispatch, message})
+    GenServer.cast(__MODULE__, {:dispatch, message})
   end
 
   ### Server ###
@@ -33,7 +33,7 @@ defmodule Alchemy.Cogs.CommandHandler do
   def start_link(options) do
     # String keys to avoid conflict with functions
     GenServer.start_link(__MODULE__, %{"prefix" => "!", "options" => options},
-                         name: Commands)
+                         name: __MODULE__)
   end
 
 
