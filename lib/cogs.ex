@@ -291,27 +291,27 @@ defmodule Alchemy.Cogs do
   ```
   """
   # messages need special treatment, to ignore bots
-  defmacro wait_for(:message, func) do
+  defmacro wait_for(:message, fun) do
     quote do
       EventRegistry.subscribe()
       cCcChannelCCid = var!(message).channel_id
       receive do
         {:discord_event, {:message_create,
          [%{author: %{bot: false}, channel_id: ^cCcChannelCCid}] = args}} ->
-          apply(unquote(func), args)
+          apply(unquote(fun), args)
       after
         20_000 -> Process.exit(self(), :kill)
       end
     end
   end
-  defmacro wait_for(type, func) do
+  defmacro wait_for(type, fun) do
     # convert the special cases we set in the Events module
     type = Events.convert_type(type)
     quote do
       EventRegistry.subscribe()
       receive do
         {:discord_event, {unquote(type), args}} ->
-          apply(unquote(func), args)
+          apply(unquote(fun), args)
       after
         20_000 -> Process.exit(self(), :kill)
       end
@@ -346,45 +346,45 @@ defmodule Alchemy.Cogs do
   end)
   ```
   """
-  defmacro wait_for(:message, condition, func) do
+  defmacro wait_for(:message, condition, fun) do
     m = __MODULE__
     quote do
       EventRegistry.subscribe()
       unquote(m).wait(:message, unquote(condition),
-                                unquote(func), var!(message).channel_id)
+                                unquote(fun), var!(message).channel_id)
     end
   end
-  defmacro wait_for(type, condition, func) do
+  defmacro wait_for(type, condition, fun) do
     type = Events.convert_type(type)
     m = __MODULE__
     quote do
       EventRegistry.subscribe()
-      unquote(m).wait(unquote(type), unquote(condition), unquote(func))
+      unquote(m).wait(unquote(type), unquote(condition), unquote(fun))
     end
   end
   # Loops until the correct command is received
   @doc false
-  def wait(:message, condition, func, channel_id) do
+  def wait(:message, condition, fun, channel_id) do
     receive do
       {:discord_event, {:message_create,
        [%{author: %{bot: false}, channel_id: ^channel_id}] = args}} ->
         if apply(condition, args) do
-          apply(func, args)
+          apply(fun, args)
         else
-          wait(:message, condition, func, channel_id)
+          wait(:message, condition, fun, channel_id)
         end
      after
        20_000 -> Process.exit(self(), :kill)
     end
   end
   @doc false
-  def wait(type, condition, func) do
+  def wait(type, condition, fun) do
     receive do
       {:discord_event, {^type, args}} ->
         if apply(condition, args) do
-          apply(func, args)
+          apply(fun, args)
         else
-          wait(type, condition, func)
+          wait(type, condition, fun)
         end
     after
       20_000 -> Process.exit(self(), :kill)
