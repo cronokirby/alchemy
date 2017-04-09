@@ -19,7 +19,7 @@ defmodule Alchemy.Discord.Users do
       nil -> :pop
       some -> {some, Api.fetch_avatar(some)}
     end)
-    Api.patch(@root <> "@me", Api.encode(options), token, %User{})
+    Api.patch(@root <> "@me", token, Api.encode(options), %User{})
   end
 
 

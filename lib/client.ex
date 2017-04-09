@@ -42,19 +42,16 @@ defmodule Alchemy.Client do
   not work as well as for normal bots.
   """
   @spec start(token, selfbot: snowflake) :: {:ok, pid}
-  def start(token, options \\ [])
-  def start(token, []) do
-    start_link(token, [])
+  def start(token, options \\ []) do
+    start_link(token, options)
   end
-  def start(token, selfbot: id) do
-    Application.put_env(:alchemy, :self_bot, " ")
-    start_link(token, selfbot: id)
-  end
-
-
 
   @doc false
-  defp start_link(token, options) do
+  def start_link(token, options) do
+    # fails if the key isn't present
+    if options[:selfbot] do
+      Application.put_env(:alchemy, :self_bot, " ")
+    end
     Supervisor.start_link(__MODULE__, {token, options}, name: Client)
   end
 
@@ -1187,7 +1184,7 @@ defmodule Alchemy.Client do
     will clear that status. `idle_since` can be specified, using
     unix time, in milliseconds, to indicate for how long the client has been idle.
 
-    # Note on ratelimiting
+    ## Note on ratelimiting
     This functionality is *heavily* ratelimited, at a rate of 1 req / 12s.
     Because of this, this function will automatically error after 24s of
     waiting. Keep this in mind when waiting for the task this function returns.
