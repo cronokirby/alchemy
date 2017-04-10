@@ -11,7 +11,7 @@ defmodule Alchemy.Discord.Webhooks do
       [] ->
         [name: name]
       [avatar: url] ->
-        [name: name, avatar: Api.image_data(url)]
+        [name: name, avatar: Api.fetch_avatar(url)]
     end
     |> Api.encode
     @root <> "channels/" <> channel_id <> "/webhooks"
@@ -34,7 +34,7 @@ defmodule Alchemy.Discord.Webhooks do
   def modify_webhook(token, id, wh_token, options) do
     options = case options do
       [{:avatar, url}|rest] ->
-        [{:avatar, Api.image_data(url)}|rest]
+        [{:avatar, Api.fetch_avatar(url)}|rest]
       other ->
         other
     end
@@ -51,14 +51,7 @@ defmodule Alchemy.Discord.Webhooks do
 
 
   def execute_webhook(token, id, wh_token, options) do
-    options = case options do
-      [{:avatar, url}|rest] ->
-        [{:avatar, Api.image_data(url)}|rest]
-      other ->
-        other
-    end
-    |> Api.encode
     @root <> "/webhooks/" <> id <> "/" <> wh_token
-    |> Api.post(token, options)
+    |> Api.post(token, Api.encode(options))
   end
 end
