@@ -32,7 +32,7 @@ defmodule Alchemy.Cogs.CommandHandler do
 
   def start_link(options) do
     # String keys to avoid conflict with functions
-    GenServer.start_link(__MODULE__, %{"prefix" => "!", "options" => options},
+    GenServer.start_link(__MODULE__, %{prefix: "!", options: options},
                          name: __MODULE__)
   end
 
@@ -59,7 +59,7 @@ defmodule Alchemy.Cogs.CommandHandler do
 
 
   def handle_cast({:set_prefix, prefix}, state) do
-    {:noreply, %{state | "prefix" => prefix}}
+    {:noreply, %{state | prefix: prefix}}
   end
 
 
@@ -69,32 +69,33 @@ defmodule Alchemy.Cogs.CommandHandler do
   end
 
 
-  def handle_cast({:dispatch, message}, %{"options" => [selfbot: id]} = state) do
+  def handle_cast({:dispatch, message}, %{options: [selfbot: id]} = state) do
     if message.author.id == id do
       Task.start(fn -> dispatch(message, state) end)
     end
     {:noreply, state}
   end
   def handle_cast({:dispatch, message}, state) do
-    Task.start(fn -> dispatch(message, state) end)
+    # Perhaps make a more general filtering pipeline
+    if String.starts_with?(message.content, state.prefix) do
+      Task.start(fn -> dispatch(message, state) end)
+    end
     {:noreply, state}
   end
 
 
   defp dispatch(message, state) do
-     prefix = state["prefix"]
-     if String.starts_with?(message.content, prefix) do
-       destructure([_, command, rest],
-                   message.content
-                   |> String.split([prefix, " "], parts: 3)
-                   |> Enum.concat(["", ""]))
-       case state[command] do
-         {mod, arity, method} ->
-           run_command(mod, method, arity, &String.split(&1), message, rest)
-         {mod, arity, method, parser} ->
-           run_command(mod, method, arity, parser, message, rest)
-           _ -> nil
-       end
+     prefix = state.prefix
+     destructure([_, command, rest],
+                 message.content
+                 |> String.split([prefix, " "], parts: 3)
+                 |> Enum.concat(["", ""]))
+     case state[command] do
+       {mod, arity, method} ->
+         run_command(mod, method, arity, &String.split(&1), message, rest)
+       {mod, arity, method, parser} ->
+         run_command(mod, method, arity, parser, message, rest)
+       _ -> nil
      end
   end
 
