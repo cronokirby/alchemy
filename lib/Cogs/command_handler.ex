@@ -25,7 +25,10 @@ defmodule Alchemy.Cogs.CommandHandler do
 
 
   def dispatch(message) do
-    GenServer.cast(__MODULE__, {:dispatch, message})
+    case GenServer.call(__MODULE__, {:dispatch, message}) do
+      nil -> nil
+      callback -> callback.()
+    end
   end
 
   ### Server ###
@@ -69,18 +72,22 @@ defmodule Alchemy.Cogs.CommandHandler do
   end
 
 
-  def handle_cast({:dispatch, message}, %{options: [selfbot: id]} = state) do
-    if message.author.id == id do
-      Task.start(fn -> dispatch(message, state) end)
-    end
-    {:noreply, state}
+  def handle_call({:dispatch, message}, _,
+                  %{options: [selfbot: id]} = state) do
+    callback =
+      if message.author.id == id &&
+         String.starts_with?(message.content, state.prefix) do
+         fn -> dispatch(message, state) end
+      end
+    {:reply, callback, state}
   end
-  def handle_cast({:dispatch, message}, state) do
+  def handle_call({:dispatch, message}, _, state) do
     # Perhaps make a more general filtering pipeline
-    if String.starts_with?(message.content, state.prefix) do
-      Task.start(fn -> dispatch(message, state) end)
-    end
-    {:noreply, state}
+    callback =
+      if String.starts_with?(message.content, state.prefix) do
+        fn -> dispatch(message, state) end
+      end
+    {:reply, callback, state}
   end
 
 

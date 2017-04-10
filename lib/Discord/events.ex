@@ -111,8 +111,8 @@ defmodule Alchemy.Discord.Events do
 
   def handle("MESSAGE_CREATE", message) do
     struct = Message.from_map(message)
-    Commands.dispatch(struct)
     notify {:message_create, [struct]}
+    Commands.dispatch(struct)
   end
 
 

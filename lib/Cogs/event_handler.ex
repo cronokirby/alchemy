@@ -55,7 +55,7 @@ defmodule Alchemy.Cogs.EventHandler do
     {:noreply,
      update_in(state[type], fn maybe ->
        case maybe do
-         nil -> [handle]
+         nil -> [handle]  # nil because the type doesn't have a func yet
          val -> [handle | val]
        end
      end)}
