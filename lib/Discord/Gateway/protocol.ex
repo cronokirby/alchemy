@@ -22,14 +22,14 @@ defmodule Alchemy.Discord.Protocol do
 
   # Disconnection warning
   def dispatch(%{"op" => 7}, state) do
-    Logger.debug("Shard " <> Macro.to_string(state.shard)
+    Logger.debug("Shard " <> inspect(state.shard)
                  <> " Disconnected from the Gateway; restarting the Gateway")
   end
 
 
   # Invalid session_id. This is quite fatal.
   def dispatch(%{"op" => 9}, state) do
-    Logger.debug("Shard #{Macro.to_string state.shard} "
+    Logger.debug("Shard #{inspect state.shard} "
                  <> "connected with an invalid session id")
     Process.exit(self(), :invalid_session)
   end
@@ -57,7 +57,7 @@ defmodule Alchemy.Discord.Protocol do
                   payload["private_channels"],
                   payload["guilds"])
     end)
-    Logger.debug "Shard #{Macro.to_string state.shard} received READY"
+    Logger.debug "Shard #{inspect state.shard} received READY"
     {:ok, %{state | seq: seq,
                     session_id: payload["session_id"],
                     trace: payload["_trace"]}}
@@ -66,7 +66,7 @@ defmodule Alchemy.Discord.Protocol do
 
   # Sent after resuming to the gateway
   def dispatch(%{"t" => "RESUMED", "d" => payload}, state) do
-    Logger.debug "Shard #{Macro.to_string state.shard} resumed gateway connection"
+    Logger.debug "Shard #{inspect state.shard} resumed gateway connection"
     {:ok, %{state | trace: payload["_trace"]}}
   end
 

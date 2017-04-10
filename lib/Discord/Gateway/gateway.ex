@@ -19,7 +19,7 @@ defmodule Alchemy.Discord.Gateway do
      :ssl.start
      # request_url will return a protocol to execute
      url = Manager.request_url().()
-     Logger.info "Shard #{Macro.to_string shard} connecting to the gateway"
+     Logger.info "Shard #{inspect shard} connecting to the gateway"
      :websocket_client.start_link(url, __MODULE__, %State{token: token, shard: shard})
   end
 
@@ -73,7 +73,7 @@ defmodule Alchemy.Discord.Gateway do
   end
 
   def websocket_terminate(why, _conn_state, _state) do
-    Logger.debug "Websocket terminated, reason: #{Macro.to_string why}"
+    Logger.debug "Websocket terminated, reason: #{inspect why}"
     :ok
   end
 

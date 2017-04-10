@@ -64,7 +64,7 @@ defmodule Alchemy.Cogs.CommandHandler do
 
 
   def handle_cast({:add_commands, module, commands}, state) do
-    Logger.info "*#{Macro.to_string module}* loaded as a command cog"
+    Logger.info "*#{inspect module}* loaded as a command cog"
     {:noreply, Map.merge(state, commands)}
   end
 
