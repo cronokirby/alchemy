@@ -302,12 +302,13 @@ defmodule Alchemy.Client do
                       embed: Embed.t) :: {:ok, Message.t}
                                        | {:error, term}
    def send_message(channel_id, content, options \\ []) do
-     {_, options} = options
-                  |> Keyword.put(:content, "#{content}")
-                  |> Keyword.get_and_update(:embed, fn
-                    nil -> :pop
-                    some -> {some, Embed.build(some)}
-                  end)
+     {_, options} =
+       options
+       |> Keyword.put(:content, "#{content}")
+       |> Keyword.get_and_update(:embed, fn
+         nil -> :pop
+         some -> {some, Embed.build(some)}
+       end)
      {Channels, :create_message, [channel_id, options]}
      |> send_req("/channels/#{channel_id}/messages")
    end
