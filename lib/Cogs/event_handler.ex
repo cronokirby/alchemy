@@ -1,16 +1,8 @@
 defmodule Alchemy.Cogs.EventHandler do
-  @moduledoc false
-  # This server will recieve casts from the gateway, and decide which functions
-  # to call to handle those casts.
-  # This server is intended to be unique.
+  @moduledoc false # This server keeps tracks of the various handler
+  # functions subscribed to different events. The EventStage uses
+  # this server to figure out how to dispatch commands
   use GenServer
-  alias Alchemy.Cogs.EventRegistry
-
-
-  # Starts up a task for handle registered for that event
-  def notify(msg) do
-    GenServer.cast(__MODULE__, {:notify, msg})
-  end
 
 
   def disable(module, function) do
@@ -24,9 +16,20 @@ defmodule Alchemy.Cogs.EventHandler do
 
   # Used at the beginning of the application to add said handles
   def add_handler(handle) do
-    GenServer.cast(__MODULE__, {:add_handle, handle})
+    GenServer.call(__MODULE__, {:add_handle, handle})
   end
 
+  def find_handles(events) do
+    state = GenServer.call(__MODULE__, :copy)
+    Enum.flat_map(events, fn {type, args} ->
+      case state[type] do
+        nil ->
+          []
+        handles ->
+          Enum.map(handles, fn {m, f} -> {m, f, args} end)
+      end
+    end)
+  end
 
   ### Server ###
 
@@ -51,8 +54,9 @@ defmodule Alchemy.Cogs.EventHandler do
   end
 
   # Adds a new handler to the map, indexed by type
-  def handle_cast({:add_handle, {type, handle}}, state) do
-    {:noreply,
+  def handle_call({:add_handle, {type, handle}}, _from, state) do
+    {:reply,
+     :ok,
      update_in(state[type], fn maybe ->
        case maybe do
          nil -> [handle]  # nil because the type doesn't have a func yet
@@ -62,12 +66,7 @@ defmodule Alchemy.Cogs.EventHandler do
   end
 
 
-  def handle_cast({:notify, {type, args}}, state) do
-    Enum.each(Map.get(state, type, []), fn {m, f} ->
-      Task.start(fn -> apply(m, f, args) end)
-    end)
-    EventRegistry.dispatch({type, args})
-    {:noreply, state}
+  def handle_call(:copy, _from, state) do
+    {:reply, state, state}
   end
-
 end

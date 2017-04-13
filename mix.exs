@@ -4,7 +4,7 @@ defmodule Alchemy.Mixfile do
 
   def project do
     [app: :alchemy,
-     version: "0.2.2",
+     version: "0.3.0",
      elixir: "~> 1.4",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
@@ -27,7 +27,8 @@ defmodule Alchemy.Mixfile do
      {:earmark, "~> 0.1", only: :dev},
      {:websocket_client, "~> 1.2"},
      {:ex_doc, "~> 0.11", only: :dev},
-     {:poison, "~> 3.0"}]
+     {:poison, "~> 3.0"},
+     {:gen_stage, "~> 0.11"}]
   end
 
   defp description do

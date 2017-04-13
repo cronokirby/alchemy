@@ -27,7 +27,7 @@ defmodule Alchemy.Client do
   alias Alchemy.{Channel, Reaction.Emoji, Embed,
                  Guild, Message, User, VoiceRegion}
   alias Alchemy.Cache.Supervisor, as: CacheSupervisor
-  alias Alchemy.Cogs.CogSupervisor
+  alias Alchemy.EventStage.StageSupervisor
   import Alchemy.Discord.RateManager, only: [send_req: 2]
   use Alchemy.Discord.Types
 
@@ -64,7 +64,7 @@ defmodule Alchemy.Client do
       worker(GatewayManager, [token, options]),
       supervisor(GatewayRates, []),
       supervisor(CacheSupervisor, []),
-      supervisor(CogSupervisor, [options])
+      supervisor(StageSupervisor, [options])
     ]
     supervise(children, strategy: :one_for_one)
   end

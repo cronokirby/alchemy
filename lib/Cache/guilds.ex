@@ -6,7 +6,6 @@ defmodule Alchemy.Cache.Guilds do
   alias Alchemy.Cache.Channels
   alias Alchemy.Guild
   import Alchemy.Cache.Utility
-  import Alchemy.Cogs.EventHandler, only: [notify: 1]
 
   defmodule GuildSupervisor do
     @moduledoc false
@@ -77,6 +76,7 @@ defmodule Alchemy.Cache.Guilds do
 
   defp start_guild(guild) do
     Supervisor.start_child(GuildSupervisor, [guild])
+    {:unavailable_guild, []}
   end
 
 
@@ -89,10 +89,10 @@ defmodule Alchemy.Cache.Guilds do
     case Registry.lookup(:guilds, id) do
       [] ->
         start_guild(guild_index(guild))
-        notify {:guild_create, [Guild.from_map(guild)]}
+        {:guild_create, [Guild.from_map(guild)]}
       [{pid, _}] ->
         GenServer.call(pid, {:merge, guild_index(guild)})
-        notify {:guild_online, [Guild.from_map(guild)]}
+        {:guild_online, [Guild.from_map(guild)]}
     end
   end
 
@@ -102,7 +102,7 @@ defmodule Alchemy.Cache.Guilds do
   end
   def remove_guild(%{"id" => id}) do
     Supervisor.terminate_child(GuildSupervisor, via_guilds(id))
-    notify {:guild_delete, [id]}
+    {:guild_delete, [id]}
   end
 
   # Because this event is usually partial, we use safe_guild_index
