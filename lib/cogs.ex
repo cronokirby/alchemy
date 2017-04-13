@@ -330,7 +330,7 @@ defmodule Alchemy.Cogs do
       Cogs.say "Nice foo man!"
     end)
   ```
-  Note that, if no message of the given type is received after 20s, the process
+  Note that, if no event of the given type is received after 20s, the process
   will kill itself, it's possible that this will never get met, but
   no event satisfying the condition will ever arrive, essentially rendering
   the process a waste. To circumvent this, it might be smart to send
