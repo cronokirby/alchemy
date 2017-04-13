@@ -14,9 +14,11 @@ defmodule Alchemy.Cogs.EventRegistry do
   end
 
 
-  def dispatch(event) do
+  def dispatch(events) do
     Registry.dispatch(__MODULE__, :subscribed, fn entries ->
-      Enum.each(entries, fn {pid, _} -> send(pid, {:discord_event, event}) end)
+      Enum.each(entries, fn {pid, _} ->
+        Enum.each(events, &send(pid, {:discord_event, &1}))
+      end)
     end)
   end
 end

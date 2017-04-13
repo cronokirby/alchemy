@@ -3,10 +3,10 @@ defmodule Alchemy.EventStage.Cacher do
   # before passing events on.
   # To leverage the concurrent cache, this module
   # is intended to be duplicated for each scheduler.
-  # After that, it broadcasts split over the command and event dispatchers
+  # After that, it broadcasts split over the command and event dispatcher
   use GenStage
-  alias Alchemy.EventStage
-  alias Alchemy.Discordo.Events
+  alias Alchemy.EventStage.EventBuffer
+  alias Alchemy.Discord.Events
 
   # Each of the instances gets a specific id
   def start_link(id) do
@@ -17,8 +17,7 @@ defmodule Alchemy.EventStage.Cacher do
   def init(:ok) do
     # no state to keep track of, subscribe to the event source
     {:producer_consumer, :ok,
-     subscribe_to: [EventBuffer],
-     dispatcher: GenStage.BroadcastDispatcher}
+     [subscribe_to: [EventBuffer], dispatcher: GenStage.BroadcastDispatcher]}
   end
 
   def handle_events(events, _from, state) do

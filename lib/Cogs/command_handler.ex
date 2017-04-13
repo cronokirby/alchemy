@@ -5,12 +5,12 @@ defmodule Alchemy.Cogs.CommandHandler do
 
 
   def add_commands(module, commands) do
-    GenServer.cast(__MODULE__, {:add_commands, module, commands})
+    GenServer.call(__MODULE__, {:add_commands, module, commands})
   end
 
 
   def set_prefix(new) do
-    GenServer.cast(__MODULE__, {:set_prefix, new})
+    GenServer.call(__MODULE__, {:set_prefix, new})
   end
 
 
@@ -24,11 +24,47 @@ defmodule Alchemy.Cogs.CommandHandler do
   end
 
 
-  def dispatch(message) do
-    case GenServer.call(__MODULE__, {:dispatch, message}) do
-      nil -> nil
-      callback -> callback.()
+  # Filters through a list of messages, trying to find a command
+  def find_commands(events) do
+    state = GenServer.call(__MODULE__, :copy)
+    predicate = case state.options do
+      [{:selfbot, id}|_] ->
+        &(&1.author.id == id
+          && String.starts_with?(&1.content, state.prefix))
+      _ ->
+        &(String.starts_with?(&1.content, state.prefix))
     end
+    events
+    |> Stream.filter(fn {_type, [message]} ->
+       predicate.(message)
+    end)
+    |> Stream.map(fn {_type, [message]} ->
+      get_command(message, state)
+    end)
+    |> Enum.filter(&(&1 != nil))
+  end
+
+
+  defp get_command(message, state) do
+     prefix = state.prefix
+     destructure([_, command, rest],
+                 message.content
+                 |> String.split([prefix, " "], parts: 3)
+                 |> Enum.concat(["", ""]))
+     case state[command] do
+       {mod, arity, method} ->
+         command_tuple(mod, method, arity, &String.split/1, message, rest)
+       {mod, arity, method, parser} ->
+         command_tuple(mod, method, arity, parser, message, rest)
+       _ ->
+         nil
+     end
+  end
+
+  # Returns information about the command, ready to be run
+  defp command_tuple(mod, method, arity, parser, message, content) do
+    args = Enum.take(parser.(content), arity)
+    {mod, method, [message | args]}
   end
 
   ### Server ###
@@ -61,54 +97,18 @@ defmodule Alchemy.Cogs.CommandHandler do
   end
 
 
-  def handle_cast({:set_prefix, prefix}, state) do
-    {:noreply, %{state | prefix: prefix}}
+  def handle_call({:set_prefix, prefix}, _from, state) do
+    {:reply, :ok, %{state | prefix: prefix}}
   end
 
 
-  def handle_cast({:add_commands, module, commands}, state) do
+  def handle_call({:add_commands, module, commands}, _from, state) do
     Logger.info "*#{inspect module}* loaded as a command cog"
-    {:noreply, Map.merge(state, commands)}
+    {:reply, :ok, Map.merge(state, commands)}
   end
 
 
-  def handle_call({:dispatch, message}, _,
-                  %{options: [selfbot: id]} = state) do
-    callback =
-      if message.author.id == id &&
-         String.starts_with?(message.content, state.prefix) do
-         fn -> dispatch(message, state) end
-      end
-    {:reply, callback, state}
+  def handle_call(:copy, _from, state) do
+    {:reply, state, state}
   end
-  def handle_call({:dispatch, message}, _, state) do
-    # Perhaps make a more general filtering pipeline
-    callback =
-      if String.starts_with?(message.content, state.prefix) do
-        fn -> dispatch(message, state) end
-      end
-    {:reply, callback, state}
-  end
-
-
-  defp dispatch(message, state) do
-     prefix = state.prefix
-     destructure([_, command, rest],
-                 message.content
-                 |> String.split([prefix, " "], parts: 3)
-                 |> Enum.concat(["", ""]))
-     case state[command] do
-       {mod, arity, method} ->
-         run_command(mod, method, arity, &String.split(&1), message, rest)
-       {mod, arity, method, parser} ->
-         run_command(mod, method, arity, parser, message, rest)
-       _ -> nil
-     end
-  end
-
-  defp run_command(mod, method, arity, parser, message, content) do
-    args = Enum.take(parser.(content), arity)
-    apply(mod, method, [message | args])
-  end
-
 end
