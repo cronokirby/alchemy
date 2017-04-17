@@ -31,46 +31,30 @@ defmodule Alchemy.Discord.Api do
 
   ### Request API ###
 
-
   def get(url, token, body) do
-    request(:_get, [url, token], body)
+    request(:get, url, token)
+    |> handle(body)
   end
 
-
-  def patch(url, token, data) do
-    request(:_patch, [url, data, token])
-  end
-  def patch(url, token, data, body) do
-    request(:_patch, [url, data, token], body)
+  def patch(url, token, data \\ "", body \\ :no_parser) do
+    request(:patch, url, data, token)
+    |> handle(body)
   end
 
-
-  def post(url, token) do
-    request(:_post, [url, token])
-  end
-  def post(url, token, data) do
-    request(:_post, [url, data, token])
-  end
-  def post(url, token, data, body) do
-    request(:_post, [url, data, token], body)
+  def post(url, token, data \\ "", body \\ :no_parser) do
+    request(:post, url, data, token)
+    |> handle(body)
   end
 
-
-  def put(url, token) do
-    request(:_put, [url, token])
-  end
-  def put(url, token, data) do
-    request(:_put, [url, token, data])
+  def put(url, token, data \\ "") do
+    request(:put, url, data, token)
+    |> handle(:no_parser)
   end
 
-
-  def delete(url, token) do
-    request(:_delete, [url, token])
+  def delete(url, token, body \\ :no_parser) do
+    request(:delete, url, token)
+    |> handle(body)
   end
-  def delete(url, token, body) do
-    request(:_delete, [url, token], body)
-  end
-
 
 
   def image_data(url) do
@@ -84,32 +68,36 @@ defmodule Alchemy.Discord.Api do
     {:ok, "data:image/jpeg;base64,#{data}"}
   end
 
-
-
   ### Private ###
 
-  defp request(req_type, req_args) do
-    apply(__MODULE__, req_type, req_args)
-    |> handle_response(nil)
-  end
-  defp request(req_type, req_args, module) when is_atom(module) do
-    apply(__MODULE__, req_type, req_args)
-    |> handle_response(&module.from_map(Poison.Parser.parse!(&1)))
-  end
-  defp request(req_type, req_args, parser) when is_function(parser) do
-    apply(__MODULE__, req_type, req_args)
-    |> handle_response(parser)
-  end
-  defp request(req_type, req_args, struct) do
-    apply(__MODULE__, req_type, req_args)
-    |> handle_response(&Poison.decode!(&1, as: struct))
+  # gets the auth headers, checking for selfbot
+  def auth_headers(token) do
+    client_type = Application.get_env(:alchemy, :self_bot, "Bot ")
+    [{"Authorization", client_type <> "#{token}"},
+     {"User-Agent", "DiscordBot (https://github.com/cronokirby/alchemy, 0.3.0)"}]
   end
 
 
-  defmacrop is_ok(code) do
-    quote do
-      unquote(code) in 200..299
-    end
+  defp request(type, url, token) do
+    apply(HTTPoison, type, [url, auth_headers(token)])
+  end
+  defp request(type, url, data, token) do
+    headers = [{"Content-Type", "application/json"}|auth_headers(token)]
+    apply(HTTPoison, type, [url, data, headers])
+  end
+
+
+  defp handle(response, :no_parser) do
+    handle_response(response, :no_parser)
+  end
+  defp handle(response, module) when is_atom(module) do
+    handle_response(response, &module.from_map(Poison.Parser.parse!(&1)))
+  end
+  defp handle(response, parser) when is_function(parser) do
+    handle_response(response, parser)
+  end
+  defp handle(response, struct) do
+    handle_response(response, &Poison.decode!(&1, as: struct))
   end
 
 
@@ -122,69 +110,27 @@ defmodule Alchemy.Discord.Api do
     RateLimits.rate_info(response)
   end
 
-
-  defp handle_response({:ok, %{status_code: code} = response}, nil)
-  when is_ok(code) do
+  defp handle_response({:ok, %{status_code: code} = response}, :no_parser)
+  when code in 200..299 do
     rate_info = RateLimits.rate_info(response)
     {:ok, nil, rate_info}
   end
   defp handle_response({:ok, %{status_code: code} = response}, decoder)
-  when is_ok(code) do
+  when code in 200..299 do
     rate_info = RateLimits.rate_info(response)
     struct = decoder.(response.body)
     {:ok, struct, rate_info}
   end
-
-
   defp handle_response({:ok, response}, _) do
     {:error, response.body}
   end
 
-
-  # gets the auth headers, checking for selfbot
-  def auth_headers(token) do
-    client_type = Application.get_env(:alchemy, :self_bot, "Bot ")
-    [{"Authorization", client_type <> "#{token}"},
-     {"User-Agent", "DiscordBot (https://github.com/cronokirby/alchemy, 0.3.0)"}]
+  # This is necessary in a few places to bypass the error handling:
+  # i.e. the Gateway url requests.
+  def get!(url) do
+    HTTPoison.get! url
   end
-  # Performs a `get` request for a url, using the provided token as authorization.
-  def _get(url) do
-    HTTPoison.get url
+  def get!(url, token) do
+    HTTPoison.get! url, auth_headers(token)
   end
-  def _get(url, token) do
-    HTTPoison.get url, auth_headers(token)
-  end
-
-  # Performs a `patch` request, returning an HTTPotion response.
-  # This isn't used too often
-  def _patch(url, data, token) do
-    HTTPoison.patch url, data, auth_headers(token) ++
-                               [{"Content-Type", "application/json"}]
-  end
-
-
-  def _post(url, token) do
-    HTTPoison.post url, "", auth_headers(token)
-  end
-  def _post(url, data, token) do
-    HTTPoison.post url, data, auth_headers(token) ++
-                              [{"Content-Type", "application/json"}]
-
-  end
-
-
-  def _put(url, token) do
-    HTTPoison.put url, "", auth_headers(token)
-  end
-  def _put(url, token, data) do
-    HTTPoison.put url, data, auth_headers(token) ++
-                             [{"Content-Type", "application/json"}]
-  end
-
-
-  # Performs a `delete` request, returning an HTTPoison response.
-  def _delete(url, token) do
-    HTTPoison.delete url, auth_headers(token)
-  end
-
 end
