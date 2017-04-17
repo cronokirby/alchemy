@@ -6,14 +6,6 @@ defmodule Alchemy.Discord.Protocol do
   import Alchemy.Discord.Payloads
 
 
-  def get_url do
-    {:ok, json} =
-      HTTPotion.get("https://discordapp.com/api/v6/gateway").body
-      |> Poison.Parser.parse
-    json["url"] <> "?v=6&encoding=json"
-  end
-
-
   # Immediate heartbeat request
   def dispatch(%{"op" => 1}, state) do
     {:reply, {:text, heartbeat(state.seq)}, state}

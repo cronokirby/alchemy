@@ -18,12 +18,12 @@ defmodule Alchemy.Mixfile do
   def application do
     # Specify extra applications you'll use from Erlang/Elixir
     [extra_applications: [:logger],
-     applications: [:httpotion]]
+     applications: [:httpoison]]
   end
 
 
   defp deps do
-    [{:httpotion, "~> 3.0.2"},
+    [{:httpoison, "~> 0.10.0"},
      {:earmark, "~> 0.1", only: :dev},
      {:websocket_client, "~> 1.2"},
      {:ex_doc, "~> 0.11", only: :dev},

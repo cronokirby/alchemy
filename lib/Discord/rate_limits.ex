@@ -11,10 +11,10 @@ defmodule Alchemy.Discord.RateLimits do
 
 
   # will only match if the ratelimits are present
-  defp parse_headers(%{"x-ratelimit-remaining" => remaining} = headers) do
+  defp parse_headers(%{"X-RateLimit-Remaining" => remaining} = headers) do
     {remaining, _} = Integer.parse remaining
-    {reset_time, _} = Integer.parse headers["x-ratelimit-reset"]
-    {limit, _} = Integer.parse headers["x-ratelimit-limit"]
+    {reset_time, _} = Integer.parse headers["X-RateLimit-Reset"]
+    {limit, _} = Integer.parse headers["X-RateLimit-Limit"]
     %RateInfo{limit: limit, remaining: remaining, reset_time: reset_time}
   end
   defp parse_headers(_none) do
@@ -28,7 +28,7 @@ defmodule Alchemy.Discord.RateLimits do
   end
 
   def rate_info(%{status_code: 200, headers: h}) do
-    h.hdrs |> parse_headers
+    h |> Enum.into(%{}) |> parse_headers
   end
 
   # Used in the case of a 429 error, expected to "decide" what response to give

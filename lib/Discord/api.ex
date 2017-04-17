@@ -74,7 +74,7 @@ defmodule Alchemy.Discord.Api do
 
 
   def image_data(url) do
-    {:ok, HTTPotion.get(url).body |> Base.encode64}
+    {:ok, HTTPoison.get(url).body |> Base.encode64}
   end
 
   # Fetches an image, encodes it base64, and then formats it in discord's
@@ -113,22 +113,22 @@ defmodule Alchemy.Discord.Api do
   end
 
 
-  defp handle_response(%HTTPotion.ErrorResponse{message: why}, _) do
+  defp handle_response({:error, %HTTPoison.Error{reason: why}}, _) do
     {:error, why}
   end
 
   # Ratelimit status code
-  defp handle_response(%{status_code: 429} = response, _) do
+  defp handle_response({:ok, %{status_code: 429} = response}, _) do
     RateLimits.rate_info(response)
   end
 
 
-  defp handle_response(%{status_code: code} = response, nil)
+  defp handle_response({:ok, %{status_code: code} = response}, nil)
   when is_ok(code) do
     rate_info = RateLimits.rate_info(response)
     {:ok, nil, rate_info}
   end
-  defp handle_response(%{status_code: code} = response, decoder)
+  defp handle_response({:ok, %{status_code: code} = response}, decoder)
   when is_ok(code) do
     rate_info = RateLimits.rate_info(response)
     struct = decoder.(response.body)
@@ -136,7 +136,7 @@ defmodule Alchemy.Discord.Api do
   end
 
 
-  defp handle_response(response, _) do
+  defp handle_response({:ok, response}, _) do
     {:error, response.body}
   end
 
@@ -144,56 +144,47 @@ defmodule Alchemy.Discord.Api do
   # gets the auth headers, checking for selfbot
   def auth_headers(token) do
     client_type = Application.get_env(:alchemy, :self_bot, "Bot ")
-    ["Authorization": client_type <> "#{token}",
-     "User-Agent": "DiscordBot (https://github.com/cronokirby/alchemy, 0.3.0)"]
+    [{"Authorization", client_type <> "#{token}"},
+     {"User-Agent", "DiscordBot (https://github.com/cronokirby/alchemy, 0.3.0)"}]
   end
   # Performs a `get` request for a url, using the provided token as authorization.
   def _get(url) do
-    HTTPotion.get url
+    HTTPoison.get url
   end
   def _get(url, token) do
-    HTTPotion.get url,
-      headers: auth_headers(token)
+    HTTPoison.get url, auth_headers(token)
   end
 
   # Performs a `patch` request, returning an HTTPotion response.
   # This isn't used too often
   def _patch(url, data, token) do
-    HTTPotion.patch url,
-      [headers: auth_headers(token) ++
-                ["Content-Type": "application/json"],
-      body: data]
+    HTTPoison.patch url, data, auth_headers(token) ++
+                               [{"Content-Type", "application/json"}]
   end
 
 
   def _post(url, token) do
-    HTTPotion.post url,
-      headers: auth_headers(token)
+    HTTPoison.post url, "", auth_headers(token)
   end
   def _post(url, data, token) do
-    HTTPotion.post url,
-      [headers: auth_headers(token) ++
-                ["Content-Type": "application/json"],
-      body: data]
+    HTTPoison.post url, data, auth_headers(token) ++
+                              [{"Content-Type", "application/json"}]
+
   end
 
 
   def _put(url, token) do
-    HTTPotion.put url,
-      headers: auth_headers(token)
+    HTTPoison.put url, "", auth_headers(token)
   end
   def _put(url, token, data) do
-    HTTPotion.put url,
-      [headers: auth_headers(token) ++
-                ["Content-Type": "application/json"],
-      body: data]
+    HTTPoison.put url, data, auth_headers(token) ++
+                             [{"Content-Type", "application/json"}]
   end
 
 
-  # Performs a `delete` request, returning an HTTPotion response.
+  # Performs a `delete` request, returning an HTTPoison response.
   def _delete(url, token) do
-    HTTPotion.delete url,
-      headers: auth_headers(token)
+    HTTPoison.delete url, auth_headers(token)
   end
 
 end
