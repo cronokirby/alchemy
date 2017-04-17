@@ -292,14 +292,20 @@ defmodule Alchemy.Client do
    ## Options
    - `tts` used to set whether or not a message should be text to speech
    - `embed` used to send an `Embed` object along with the message
+   - `file` used to send a file along with the message
    ## Examples
    ```elixir
    {:ok, message} = Task.await Client.send_message(chan_id, "pong!")
    ```
+   Sending files along with messages is simple as well.
+   ```elixir
+   Task.await Client.send_message(chan_id, "here you go!", "foo.txt")
+   ```
    """
    @spec send_message(String.t,
                       tts: Boolean,
-                      embed: Embed.t) :: {:ok, Message.t}
+                      embed: Embed.t,
+                      file: Path.t) :: {:ok, Message.t}
                                        | {:error, term}
    def send_message(channel_id, content, options \\ []) do
      {_, options} =

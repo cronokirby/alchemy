@@ -45,8 +45,21 @@ defmodule Alchemy.Discord.Channels do
 
 
   def create_message(token, channel_id, options) do
-    @root <> channel_id <> "/messages"
-    |> Api.post(token, Api.encode(options), Message)
+    url = @root <> channel_id <> "/messages"
+    case Keyword.pop(options, :file) do
+      {nil, options} ->
+        Api.post(url, token, Api.encode(options), Message)
+      # This branch requires a completely different request
+      {file, options} ->
+        options = Enum.map(options, fn {k, v} ->
+          {Atom.to_string(k), v}
+        end)
+        data = {:multipart, [{:file, file}|options]}
+        headers = [{"Content-Type", "multipart/form-data"}
+                  |Api.auth_headers(token)]
+        HTTPoison.post(url, data, headers)
+        |> Api.handle(Message)
+    end
   end
 
 
