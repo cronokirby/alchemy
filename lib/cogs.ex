@@ -179,15 +179,6 @@ defmodule Alchemy.Cogs do
     end
   end
   @doc """
-  """
-  defmacro send(embed, content \\ "") do
-    quote do
-      Alchemy.Client.send_message(var!(message).channel_id,
-                                  unquote(content),
-                                  embed: unquote(embed))
-    end
-  end
-  @doc """
   Gets the id of the guild from which a command was triggered.
 
   This is to be used when the guild_id is necessary for an operation,

@@ -51,9 +51,14 @@ defmodule Alchemy.Discord.Channels do
         Api.post(url, token, Api.encode(options), Message)
       # This branch requires a completely different request
       {file, options} ->
-        options = Enum.map(options, fn {k, v} ->
-          {Atom.to_string(k), v}
-        end)
+        options = case Keyword.pop(options, :embed) do
+          {nil, options} ->
+            options
+          {embed, options} ->
+            embed = %{"embed" => embed} |> Poison.encode!
+            [{:payload_json, embed} | options]
+        end
+        |> Enum.map(fn {k, v} -> {Atom.to_string(k), v} end)
         data = {:multipart, [{:file, file}|options]}
         headers = [{"Content-Type", "multipart/form-data"}
                   |Api.auth_headers(token)]

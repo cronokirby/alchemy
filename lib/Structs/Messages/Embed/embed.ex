@@ -14,7 +14,7 @@ defmodule Alchemy.Embed do
       |> title("The BEST embed")
       |> description("the best description")
       |> image("http://i.imgur.com/4AiXzf8.jpg")
-      |> Cogs.send
+      |> Embed.send
     end
     ```
     Note that this is equivalent to:
@@ -23,7 +23,17 @@ defmodule Alchemy.Embed do
       %Embed{title: "The BEST embed",
              description: "the best description",
              image: "http://i.imgur.com/4AiXzf8.jpg"}
-      |> Cogs.send
+      |> Embed.send
+    end
+    ```
+    ## File Attachments
+    The fields that take urls can also take a special "attachment"
+    url referencing files uploaded alongside the embed.
+    ```elixir
+    Cogs.def foo do
+      %Embed{}
+      |> image("attachment://foo.png")
+      |> Embed.send("", file: "foo.png")
     end
     ```
     """
@@ -271,7 +281,7 @@ defmodule Alchemy.Embed do
   Cogs.def title(string) do
     %Embed{}
     |> title(string)
-    |> Cog.send
+    |> Embed.send
   end
   """
   @spec title(Embed.t, String.t) :: Embed.t
@@ -286,7 +296,7 @@ defmodule Alchemy.Embed do
   Cogs.def embed(url) do
     %Embed{}
     |> url(url)
-    |> Cogs.send
+    |> Embed.send
   end
   ```
   """
@@ -302,7 +312,7 @@ defmodule Alchemy.Embed do
     %Embed{}
     |> title("generic title")
     |> description(description)
-    |> Cogs.send
+    |> Embed.send
   end
   ```
   """
@@ -332,7 +342,7 @@ defmodule Alchemy.Embed do
     |> author(name: "John",
               url: "https://discordapp.com/developers"
               icon_url: "http://i.imgur.com/3nuwWCB.jpg")
-    |> Cogs.send
+    |> Embed.send
   end
   ```
   """
@@ -352,9 +362,11 @@ defmodule Alchemy.Embed do
   ## Examples
   ```elixir
   Cogs.def embed do
-    embed = %Embed{description: "the best embed"}
-          |> color(0xc13261)
-    {:ok, message} = Task.await Cogs.send(embed)
+    {:ok, message} =
+      %Embed{description: "the best embed"}
+      |> color(0xc13261)
+      |> Embed.send
+      |> Task.await
     Process.sleep(2000)
     Client.edit_embed(message, embed |> color(0x5aa4d4))
   end
@@ -382,7 +394,7 @@ defmodule Alchemy.Embed do
     %Embed{}
     |> footer(text: "<- this is you",
               icon_url: message.author |> User.avatar_url)
-    |> Cogs.send
+    |> Embed.send
   end
   ```
   """
@@ -461,5 +473,31 @@ defmodule Alchemy.Embed do
   @spec timestamp(Embed.t, DateTime.t) :: DateTime.t
   def timestamp(embed, %DateTime{} = time) do
     %{embed | timestamp: DateTime.to_iso8601(time) }
+  end
+  @doc """
+  Sends an embed to the same channel as the message triggering a command.
+
+  This macro can't be used outside of `Alchemy.Cogs` commands.
+
+  See `Alchemy.Client.send_message/3` for a list of options that can be
+  passed to this macro.
+  ## Examples
+  ```elixir
+  Cogs.def blue do
+    %Embed{}
+    |> color(0x1d3ad1)
+    |> description("Hello!")
+    |> Embed.send("Here's an embed, and a file", file: "foo.txt")
+  end
+  ```
+  """
+  defmacro send(embed, content \\ "", options \\ []) do
+    quote do
+      Alchemy.Client.send_message(
+        var!(message).channel_id,
+        unquote(content),
+        [{:embed, unquote(embed)}|unquote(options)]
+      )
+    end
   end
 end
