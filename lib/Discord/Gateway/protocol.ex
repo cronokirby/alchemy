@@ -44,11 +44,7 @@ defmodule Alchemy.Discord.Protocol do
 
   # The READY event, part of the standard protocol
   def dispatch(%{"t" => "READY", "s" => seq, "d" => payload}, state) do
-    Task.start(fn ->
-      Cache.ready(payload["user"],
-                  payload["private_channels"],
-                  payload["guilds"])
-    end)
+    EventBuffer.notify({"READY", Map.put(payload, "shard", state.shard)})
     Logger.debug "Shard #{inspect state.shard} received READY"
     {:ok, %{state | seq: seq,
                     session_id: payload["session_id"],
@@ -63,7 +59,6 @@ defmodule Alchemy.Discord.Protocol do
   end
 
 
-  # Generic events are handled unlinked, to prevent potential crashes
   def dispatch(%{"t" => type, "d" => payload, "s" => seq}, state) do
     EventBuffer.notify({type, payload})
     {:ok, %{state | seq: seq}}

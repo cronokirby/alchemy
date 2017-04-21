@@ -410,6 +410,19 @@ defmodule Alchemy.Events do
   defmacro on_voice_update(func) do
     handle(:voice_state_update, func)
   end
+  @doc """
+  Registers a handle triggering whenever a shard receives a
+  READY event.
+
+  `args` : `Integer`, `Integer`
+  Receives the shard number (starting at 0), and the total amount of shards.
+
+  After this event has been received, most of the information in
+  the cache should be failed.
+  """
+  defmacro on_ready(func) do
+    handle(:ready, func)
+  end
   @doc false
   # Requires and aliases this module, as well as adds a @handles attribute,
   # necessary to use the other macros

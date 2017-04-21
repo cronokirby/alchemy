@@ -5,6 +5,7 @@ defmodule Alchemy.Discord.Events do
   alias Alchemy.{Channel, DMChannel, Emoji, Guild,
                  Message, User, VoiceState}
   alias Alchemy.Guild.{GuildMember, Presence, Role}
+  alias Alchemy.Cache.Supervisor, as: Cache
   alias Alchemy.Cache.{Channels, Guilds, PrivChannels}
   import Alchemy.Structs
 
@@ -134,6 +135,14 @@ defmodule Alchemy.Discord.Events do
   end
   def handle("PRESENCE_UPDATE", presence) do
     {:presence_update, [Presence.from_map(presence)]}
+  end
+
+
+  def handle("READY", payload) do
+    Cache.ready(payload["user"],
+                payload["private_channels"],
+                payload["guilds"])
+    {:ready, payload["shard"]}
   end
 
 
