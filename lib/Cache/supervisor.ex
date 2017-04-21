@@ -41,5 +41,4 @@ defmodule Alchemy.Cache.Supervisor do
     PrivChannels.add_channels(priv_channels)
     User.set_user(user)
   end
-
 end

@@ -251,6 +251,33 @@ defmodule Alchemy.Cogs do
     end
   end
   @doc """
+  Makes all commands in this module sub commands of a group.
+
+  ## Examples
+  ```elixir
+  defmodule C do
+    use Alchemy.Cogs
+
+    Cogs.group("cool")
+
+    Cogs.def foo, do: Cogs.say "foo"
+  end
+  ```
+  To use this foo command, one has to type `!cool foo`, from there on
+  arguments will be passed like normal.
+
+  The relevant parsing will be done in the command task, as if there
+  were a command `!cool` that redirected to subfunctions. Because of this,
+  `Cogs.disable/1` will not be able to disable the subcommands, however,
+  `Cogs.unload/1` still works as expected. Reloading a grouped module
+  will also disable removed commands, unlike with ungrouped modules.
+  """
+  defmacro group(str) do
+    quote do
+      @command_group {:group, unquote(str)}
+    end
+  end
+  @doc """
   Halts the current command until an event is received.
 
   The event type is an item corresponding to the events in `Alchemy.Events`,
@@ -427,10 +454,9 @@ defmodule Alchemy.Cogs do
   defp inject({:when, ctx, [{name, _, args} | func_rest]} = guard, body) do
     args = args || []
     injected = [{:message, [], ctx[:context]} | args]
-    new_guard =
-      guard
-      |> Tuple.delete_at(2)
-      |> Tuple.insert_at(2, [{name, ctx, injected} | func_rest])
+    new_guard = Macro.prewalk(guard, fn {a, b, c} ->
+      {a, b, [{name, ctx, injected} | func_rest]}
+    end)
     new_func = {:def, ctx, [new_guard, body]}
     {name, length(args), new_func}
   end
@@ -440,8 +466,6 @@ defmodule Alchemy.Cogs do
     new_func = {:def, ctx, [{name, ctx, injected}, body]}
     {name, length(args), new_func}
   end
-
-
 
   @doc false
   defmacro __using__(_opts) do
@@ -455,8 +479,7 @@ defmodule Alchemy.Cogs do
     end
   end
 
-
-  defmacro __before_compile__(_env) do
+  defp normal_cog do
     quote do
       defmacro __using__(_opts) do
         commands = Macro.escape(@commands)
@@ -476,5 +499,53 @@ defmodule Alchemy.Cogs do
     end
   end
 
+  defp grouped_cog(str) do
+    quote do
+      @commands Enum.map(@commands, fn
+        {k, {mod, arity, name, str}} ->
+          {eval, _} = Code.eval_string(str)
+          {k, {mod, arity, name, eval}}
+        x ->
+          x
+      end) |> Enum.into(%{})
 
+      def cogs_command_grouper(message, rest) do
+        [sub, rest] =
+          rest
+          |> String.split(" ", parts: 2)
+          |> Enum.concat([""])
+          |> Enum.take(2)
+        case @commands[sub] do
+          {m, a, f, e} ->
+            apply(m, f, [message | rest |> e.() |> Enum.take(a)])
+          {m, a, f} ->
+            apply(m, f, [message | rest |> String.split(" ") |> Enum.take(a)])
+          _x ->
+            nil
+        end
+      end
+
+      defmacro __using__(_opts) do
+        module = __MODULE__
+        commands = %{unquote(str) =>
+          {module, 1, :cogs_command_grouper, &List.wrap/1}}
+          |> Macro.escape
+        quote do
+          Alchemy.Cogs.CommandHandler.add_commands(
+            unquote(module), unquote(commands)
+          )
+        end
+      end
+    end
+  end
+
+  defmacro __before_compile__(env) do
+    module = env.module
+    case Module.get_attribute(module, :command_group) do
+      {:group, str} ->
+        grouped_cog(str)
+      nil ->
+        normal_cog()
+    end
+  end
 end
