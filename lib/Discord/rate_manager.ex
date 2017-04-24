@@ -11,24 +11,17 @@ defmodule Alchemy.Discord.RateManager do
     GenServer.start_link(__MODULE__, token, name: API)
   end
 
-
-  # Starts a new task to go through the whole process
-  def send_req(req, route) do
-    Task.async(__MODULE__, :request, [req, route])
-  end
-
-
   # Wrapper method around applying for a slot
   def apply(route) do
     GenServer.call(API, {:apply, route})
   end
 
   # Applies for a bucket, waiting and retrying if it fails to get a slot
-  def request(req, route) do
+  def send_req(req, route) do
     case apply(route) do
       {:wait, n} ->
         Process.sleep(n)
-        request(req, route)
+        send_req(req, route)
       {:go, token} ->
         process_req(req, token, route)
     end
@@ -48,7 +41,7 @@ defmodule Alchemy.Discord.RateManager do
         Logger.info "Local rate limit encountered for route #{route}" <>
                     "\n retrying in #{time} ms."
         Process.sleep(time)
-        request({m, f, a}, route)
+        send_req({m, f, a}, route)
       done ->
         done
     end

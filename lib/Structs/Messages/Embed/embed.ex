@@ -366,7 +366,6 @@ defmodule Alchemy.Embed do
       %Embed{description: "the best embed"}
       |> color(0xc13261)
       |> Embed.send
-      |> Task.await
     Process.sleep(2000)
     Client.edit_embed(message, embed |> color(0x5aa4d4))
   end

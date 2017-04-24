@@ -8,10 +8,11 @@ defmodule Alchemy.Client do
   necessary to hook into discord. You generally want to do this before
   you do any other work in your bot really.
 
-  ## Tasks
-  Most functions in this module return a `Task` unless specified otherwise.
-  to get the value out of the task, you need to use `Task.await/2` or
-  `Task.yield/2`.
+  ## Blocking
+  All the requests here will block the process using them. Since
+  all the event handles and commands created with this framework run
+  in concurrent processes, this isn't usually an issue. If you do
+  want to "fire and forget", it's easy to wrap these requests in a task.
 
   ## Caching
   In general, you should try and use the functions provided by `Alchemy.Cache`
@@ -84,7 +85,7 @@ defmodule Alchemy.Client do
   ## Examples
 
   ```elixir
-  iex> {:ok, user} = Task.await Client.get_user("client_id")
+  iex> {:ok, user} = Client.get_user("client_id")
   {:ok, Alchemy.User%{....
   ```
   """
@@ -108,7 +109,7 @@ defmodule Alchemy.Client do
    Client.edit_profile(username: "NewGuy", avatar: "imgur.com/image.jpeg")
    ```
    ```elixir
-   iex> {:ok, user} = Task.await Client.edit_profile(username: "NewName")
+   iex> {:ok, user} = Client.edit_profile(username: "NewName")
    {:ok, Alchemy.User%{....
    ```
    """
@@ -124,7 +125,7 @@ defmodule Alchemy.Client do
    ## Examples
 
    ```elixir
-   {:ok, guilds} = Task.await Client.current_guilds
+   {:ok, guilds} = Client.current_guilds
    ```
    """
    @spec get_current_guilds() :: {:ok, [User.user_guild]} | {:error, term}
@@ -179,7 +180,7 @@ defmodule Alchemy.Client do
 
    ## Examples
    ```elixir
-   {:ok, channel} = Task.await Client.get_channel("id")
+   {:ok, channel} = Client.get_channel("id")
    ```
    """
    @spec get_channel(snowflake) :: {:ok, Channel.t}
@@ -209,7 +210,7 @@ defmodule Alchemy.Client do
    Client.edit_channel(id, name: "the best channel", position: 1)
    ```
    ```elixir
-   {:ok, new_voice_channel} = Task.await Client.edit_channel(id, bitrate: 8000)
+   {:ok, new_voice_channel} = Client.edit_channel(id, bitrate: 8000)
    ```
    """
    @spec edit_channel(snowflake,
@@ -231,7 +232,7 @@ defmodule Alchemy.Client do
    pattern matching:
    ```elixir
    def my_delete(id) do
-    {:ok, channel} = Task.await Client.delete_channel(id)
+    {:ok, channel} = Client.delete_channel(id)
      case channel do
        %DMChannel{} -> "this is a private channel!"
        %Channel{} -> "this is a normal channel!"
@@ -259,7 +260,7 @@ defmodule Alchemy.Client do
 
    ## Examples
    ```elixir
-   {:ok, messages} = Task.await Client.get_messages(around: id, limit: 40)
+   {:ok, messages} = Client.get_messages(around: id, limit: 40)
    ```
    """
    @spec get_messages(snowflake,
@@ -279,7 +280,7 @@ defmodule Alchemy.Client do
    Use `get_messages` for a bulk request instead.
    ## Examples
    ```elixir
-   {:ok, message} = Task.await Client.get_message(channel, id)
+   {:ok, message} = Client.get_message(channel, id)
    """
    @spec get_message(snowflake, snowflake) :: {:ok, Message.t} | {:error, term}
    def get_message(channel_id, message_id) do
@@ -295,11 +296,11 @@ defmodule Alchemy.Client do
    - `file` used to send a file along with the message
    ## Examples
    ```elixir
-   {:ok, message} = Task.await Client.send_message(chan_id, "pong!")
+   {:ok, message} = Client.send_message(chan_id, "pong!")
    ```
    Sending files along with messages is simple as well.
    ```elixir
-   Task.await Client.send_message(chan_id, "here you go!", "foo.txt")
+   Client.send_message(chan_id, "here you go!", "foo.txt")
    ```
    """
    @spec send_message(String.t,
@@ -323,7 +324,7 @@ defmodule Alchemy.Client do
 
    ## Examples
    ```elixir
-   {:ok, message} = Task.await Client.send_message(channel, "ping!")
+   {:ok, message} = Client.send_message(channel, "ping!")
    Process.sleep(1000)
    Client.edit_message(message, "not ping anymore!")
    ```
@@ -352,7 +353,7 @@ defmodule Alchemy.Client do
    Cogs.def embed do
     embed = %Embed{description: "the best embed"}
             |> color(0xc13261)
-    {:ok, message} = Task.await Embed.send(embed)
+    {:ok, message} = Embed.send(embed)
     Process.sleep(2000)
     Client.edit_embed(message, embed |> color(0x5aa4d4))
    end
@@ -375,7 +376,7 @@ defmodule Alchemy.Client do
    ## Examples
    ```elixir
    content = "self destructing in 1s!!!"
-   {:ok, message} = Task.await Client.send_message(channel_id, content)
+   {:ok, message} = Client.send_message(channel_id, content)
    Process.sleep(1000)
    Client.delete_message(message)
    ```
@@ -398,11 +399,11 @@ defmodule Alchemy.Client do
 
    ```elixir
     Cogs.def countdown do
-      {:ok, m1} = Task.await Cogs.say "3..."
+      {:ok, m1} = Cogs.say "3..."
       Process.sleep(1000)
-      {:ok, m2} = Task.await Cogs.say "2..."
+      {:ok, m2} = Cogs.say "2..."
       Process.sleep(1000)
-      {:ok, m3} = Task.await Cogs.say "1..."
+      {:ok, m3} = Cogs.say "1..."
       Process.sleep(1000)
       Client.delete_messages(message.channel, [m1, m2, m3])
     end
@@ -503,9 +504,9 @@ defmodule Alchemy.Client do
 
     ## Examples
     Cogs.def react do
-      {:ok, message} = Task.await Cogs.say("react to this!")
+      {:ok, message} = Cogs.say("react to this!")
       Process.sleep(10000)
-      {:ok, users} = Task.await Client.get_reactions(message, "\u2764")
+      {:ok, users} = Client.get_reactions(message, "\u2764")
       Cogs.say("#\{length(users)\} users reacted with a \u2764!")
     end
     """
@@ -529,7 +530,7 @@ defmodule Alchemy.Client do
     ## Examples
     ```elixir
     Cogs.def psyche do
-      {:ok, message} = Task.await Cogs.say("react to this")
+      {:ok, message} = Cogs.say("react to this")
       Process.sleep(10000)
       Client.delete_reactions(message)
     end
@@ -553,7 +554,6 @@ defmodule Alchemy.Client do
     ```elixir
     Cogs.def count_invites do
       {:ok, invites} = Client.get_channel_invites(message.channel_id)
-                     |> Task.await
       Cogs.say("there are #\{length(invites)\} invites active in this channel")
     end
     """
@@ -585,7 +585,7 @@ defmodule Alchemy.Client do
     ## Examples
     ```elixir
     Cogs.def invite do
-      {:ok, invite} = Task.await Client.create_invite(message.channel_id, max_age: 0)
+      {:ok, invite} = Client.create_invite(message.channel_id, max_age: 0)
       Cogs.say("Here you go:\\nhttps://discord.gg/#\{invite.code\}")
     end
     ```
@@ -624,7 +624,7 @@ defmodule Alchemy.Client do
     ## Examples
     ```elixir
     Cogs.def pins do
-      {:ok, pinned} = Task.await Client.get_pins(message.channel_id)
+      {:ok, pinned} = Client.get_pins(message.channel_id)
       Cogs.say("there are #\{length(pinned)\} pins in this channel.")
     end
     ```
@@ -659,7 +659,7 @@ defmodule Alchemy.Client do
     ## Examples
     ```elixir
     Cogs.def unpin do
-      {:ok, [first|_]} = Task.await Client.get_pins(message.channel_id)
+      {:ok, [first|_]} = Client.get_pins(message.channel_id)
       Client.unpin(first)
     end
     ```
@@ -778,7 +778,7 @@ defmodule Alchemy.Client do
     ## Examples
     ```elixir
     # alphabetizes a guild channel list
-    with {:ok, channels} <- Task.await Client.get_channels(guild_id) do
+    with {:ok, channels} <- Client.get_channels(guild_id) do
       channels
       |> Enum.sort_by(& &1.name)
       |> Stream.map(& &1.id)
@@ -1194,28 +1194,27 @@ defmodule Alchemy.Client do
     ## Note on ratelimiting
     This functionality is *heavily* ratelimited, at a rate of 1 req / 12s.
     Because of this, this function will automatically error after 24s of
-    waiting. Keep this in mind when waiting for the task this function returns.
+    waiting. Because of how long this may take, you might want to run
+    this in a new task.
     ## Examples
     ```elixir
-    Task.await Client.update_status("Alchemy")
+    Client.update_status("Alchemy")
     ```
     """
     @spec update_status(Integer, String.t) :: :ok | {:error, String.t}
     def update_status(game_name, idle_since \\ nil) do
-      Task.async fn ->
-        pids = Supervisor.which_children(GatewayRates)
-        |> Stream.map(fn {_, pid, _, _} -> pid end)
-        try do
-          Enum.map(pids, fn pid ->
-            GatewayLimiter.status_update(pid, idle_since, game_name)
-            |> Task.await(24_000)
-          end)
-          :ok
-        catch
-         :exit, _ -> {:error, "Took longer than 24s to update statuses. " <>
-                              "You might be using the function too often; " <>
-                              "it has a ratelimit of 1 req / 12s."}
-        end
+      pids = Supervisor.which_children(GatewayRates)
+      |> Stream.map(fn {_, pid, _, _} -> pid end)
+      try do
+        Enum.map(pids, fn pid ->
+          GatewayLimiter.status_update(pid, idle_since, game_name)
+          |> Task.await(24_000)
+        end)
+        :ok
+      catch
+       :exit, _ -> {:error, "Took longer than 24s to update statuses. " <>
+                            "You might be using the function too often; " <>
+                            "it has a ratelimit of 1 req / 12s."}
       end
     end
 

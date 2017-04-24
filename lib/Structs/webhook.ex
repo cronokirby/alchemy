@@ -38,7 +38,7 @@ defmodule Alchemy.Webhook do
     A link to a 128x128 image to act as the avatar of the webhook.
   ## Examples
   ```elixir
-  {:ok, hook} = Task.await Webhook.create("66666", "The Devil")
+  {:ok, hook} = Webhook.create("66666", "The Devil")
   ```
   """
   @spec create(snowflake, String.t, [avatar: String.t]) :: {:ok, __MODULE__.t}
@@ -52,7 +52,7 @@ defmodule Alchemy.Webhook do
 
   ## Examples
   ```elixir
-  {:ok, [%Webhook{} | _]} = Task.await Webhook.in_channel("6666")
+  {:ok, [%Webhook{} | _]} = Webhook.in_channel("6666")
   ```
   """
   @spec in_channel(snowflake) :: {:ok, [__MODULE__.t]} | {:error, term}
@@ -65,7 +65,7 @@ defmodule Alchemy.Webhook do
 
   ## Examples
   ```elixir
-  {:ok, [%Webhook{} | _]} = Task.await Webhook.in_guild("99999")
+  {:ok, [%Webhook{} | _]} = Webhook.in_guild("99999")
   ```
   """
   @spec in_guild(atom) :: {:ok, [__MODULE__.t]} | {:error, term}
@@ -86,7 +86,7 @@ defmodule Alchemy.Webhook do
 
   ## Examples
   ```elixir
-  {:ok, hook} = Task.await Webhook.create("6666", "Captian Hook")
+  {:ok, hook} = Webhook.create("6666", "Captian Hook")
   # Let's fix that typo:
   Webhook.edit(hook, name: "Captain Hook")
   ```
@@ -104,7 +104,7 @@ defmodule Alchemy.Webhook do
   All you need for this is the webhook itself.
   ## Examples
   ```elixir
-  {:ok, wh} = Task.await Webhook.create("666", "Captain Hook")
+  {:ok, wh} = Webhook.create("666", "Captain Hook")
   Webhook.delete(wh)
   ```
   """
@@ -127,7 +127,7 @@ defmodule Alchemy.Webhook do
     When set to true, will make the message TTS
   ## Examples
   ```elixir
-  {:ok, hook} = Task.await Webhook.create("66", "Captain Hook")
+  {:ok, hook} = Webhook.create("66", "Captain Hook")
   Webhook.send(hook, {content: "ARRRRRGH!"})
   ```
   For a more elaborate example:
