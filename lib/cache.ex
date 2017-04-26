@@ -11,7 +11,9 @@ defmodule Alchemy.Cache do
   alias Alchemy.Cache.{Guilds, Guilds.GuildSupervisor}
   alias Alchemy.{DMChannel, Channel, Guild, User, VoiceState, Voice}
   alias Alchemy.Guild.{Emoji, GuildMember, Presence, Role}
+  alias Alchemy.Discord.Gateway.RateLimiter, as: Gateway
   import Alchemy.Structs, only: [to_struct: 2]
+
 
   @type snowflake :: String.t
   @doc """
@@ -214,5 +216,22 @@ defmodule Alchemy.Cache do
   def user do
     GenServer.call(Alchemy.Cache.User, :get)
     |> to_struct(User)
+  end
+  @doc """
+  Requests the loading of offline guild members for a guild.
+
+  Guilds should automatically get 250 offline members after the
+  `:ready` event, however, you can use this method to request a fuller
+  list if needed.
+
+  The `username` is used to only select members whose username starts
+  with a certain string; `""` won't do any filtering. The `limit`
+  specifies the amount of members to get; `0` for unlimited.
+
+  There's a ratelimit of ~100 requests per shard per minute on this
+  function, so be wary of the fact that this might block a process.
+  """
+  def load_guild_members(guild_id, username \\ "", limit \\ 0) do
+    Gateway.request_guild_members(guild_id, username, limit)
   end
 end

@@ -1,6 +1,7 @@
 defmodule Alchemy.Discord.Gateway.RateLimiter do
   @moduledoc false
   # This servers as a limiter to outside requests to the individual gateways
+  use Bitwise
   alias Alchemy.Discord.Payloads
 
 
@@ -30,30 +31,51 @@ defmodule Alchemy.Discord.Gateway.RateLimiter do
 
   def status_update(pid, idle_since, game_name) do
     Task.async(fn ->
-      send_status_update(pid, Payloads.status_update(idle_since, game_name))
+      payload = Payloads.status_update(idle_since, game_name)
+      send_request(pid, {:status_update, payload})
     end)
   end
 
+  def request_guild_members(guild_id, username, limit) do
+    payload = Payloads.request_guild_members(guild_id, username, limit)
+    shards = Supervisor.which_children(__MODULE__.RateSupervisor)
+             |> Enum.map(fn {_, pid, _, _} -> pid end)
+    {guild_id, _} = Integer.parse(guild_id)
+    Enum.at(shards, rem((guild_id >>> 22), length(shards)))
+    |> send_request({:send_event, payload})
+  end
+
   # Handles the rate
-  defp send_status_update(pid, data) do
-    case GenServer.call(pid, {:status_update, data}) do
+  defp send_request(pid, request) do
+    case GenServer.call(pid, request) do
       :ok ->
         :ok
       {:wait, time} ->
         Process.sleep(time)
-        send_status_update(pid, data)
+        send_request(pid, request)
     end
   end
 
   defp handle_wait(now, reset_time) do
     wait_time = reset_time - now
-    cond do
-      wait_time < 0 ->
-        :go
-      wait_time == 0 ->
-        {:wait, 1000}
-      true ->
-        {:wait, wait_time * 1000}
+    if wait_time < 0 do
+      :go
+    else
+      {:wait, wait_time}
+    end
+  end
+
+  defp wait_protocol(data, timeout, section, state) do
+    now = System.monotonic_time(:milliseconds)
+    case handle_wait(now, get_in(state, [section, :reset])) do
+      :go ->
+        send(state.gateway, {:send_event, data})
+        new = update_in(state, [section], fn x ->
+          %{x | left: 0, reset: now + timeout}
+        end)
+        {:reply, :ok, new}
+      {:wait, time} ->
+        {:reply, {:wait, time}, state}
     end
   end
 
@@ -62,28 +84,28 @@ defmodule Alchemy.Discord.Gateway.RateLimiter do
   end
 
   def init({:ok, gateway}) do
-
-    now = DateTime.utc_now() |> DateTime.to_unix
+    now = System.monotonic_time(:millisecond)
     state = %{gateway: gateway,
-              status_update: %{left: 1, reset: now + 12}}
+              status_update: %{left: 1, reset: now + 12_000},
+              events: %{left: 100, reset: now + 60_000}}
     {:ok, state}
   end
 
+  def handle_call({:send_event, data}, _from,
+                  %{events: %{left: 0}} = state) do
+    wait_protocol(data, 60_000, :events, state)
+  end
+  def handle_call({:send_event, data}, _from, state) do
+    send(state.gateway, {:send_event, data})
+    {:reply, :ok, update_in(state.events.left, & &1 - 1)}
+  end
 
   def handle_call({:status_update, data}, _from,
                   %{status_update: %{left: 1}} = state) do
-    send(state.gateway, {:status_update, data})
+    send(state.gateway, {:send_event, data})
     {:reply, :ok, update_in(state.status_update.left, & &1 - 1)}
   end
   def handle_call({:status_update, data}, _from, state) do
-    now = DateTime.utc_now() |> DateTime.to_unix
-    case handle_wait(now, state.status_update.reset) do
-      :go ->
-        send(state.gateway, {:status_update, data})
-        status_update = %{state.status_update | left: 0, reset: now + 12}
-        {:reply, :ok, %{state | status_update: status_update}}
-      {:wait, time} ->
-        {:reply, {:wait, time}, state}
-    end
+    wait_protocol(data, 12_000, :status_update, state)
   end
 end

@@ -5,6 +5,7 @@ defmodule Alchemy.EventStage.Tasker do
   alias Alchemy.EventStage.{CommandStage, EventStage}
 
   defmodule Runner do
+    @moduledoc false
     def start_link({m, f, a}) do
       Task.start_link(m, f, a)
     end

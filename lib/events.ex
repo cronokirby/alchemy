@@ -414,6 +414,9 @@ defmodule Alchemy.Events do
   Registers a handle triggering whenever a shard receives a
   READY event.
 
+  This event gets sent after a shard connects with the gateway,
+  filling the cache with info about the guilds the bot is in.
+
   `args` : `Integer`, `Integer`
   Receives the shard number (starting at 0), and the total amount of shards.
 
@@ -422,6 +425,20 @@ defmodule Alchemy.Events do
   """
   defmacro on_ready(func) do
     handle(:ready, func)
+  end
+  @doc """
+  Registers a handle triggering whenever a shard receives a member
+  chunk.
+
+  This event gets sent after a shard has requested offline guild
+  member info for a guild.
+
+  `args` : `snowflake`, `[Alchemy.Guild.GuildMember]`
+  Receives the id of the guild the members are from, and a list
+  of members loaded.
+  """
+  defmacro on_member_chunk(func) do
+    handle(:member_chunk, func)
   end
   @doc false
   # Requires and aliases this module, as well as adds a @handles attribute,

@@ -118,7 +118,7 @@ defmodule Alchemy.Cache.Guilds do
 
 
   def update_member(guild_id, %{"user" => %{"id" => id}} = member) do
-    call(guild_id, {:update, "members", id, member})
+    call(guild_id, {:update, ["members", id], member})
   end
 
 
@@ -151,6 +151,11 @@ defmodule Alchemy.Cache.Guilds do
 
   def update_voice_state(%{"user_id" => id, "guild_id" => guild_id} = voice) do
     call(guild_id, {:put, "voice_states", id, voice})
+  end
+
+
+  def add_members(guild_id, members) do
+    call(guild_id, {:update, ["members"], index(members, ["user", "id"])})
   end
 
   ### Server ###
@@ -188,8 +193,8 @@ defmodule Alchemy.Cache.Guilds do
   end
 
 
-  def handle_call({:update, section, key, data}, _, state) do
-    new = update_in(state, [section, key], fn
+  def handle_call({:update, section, data}, _, state) do
+    new = update_in(state, section, fn
       # Need to figure out why members sometimes become nil.
       nil -> data
       there -> Map.merge(there, data)

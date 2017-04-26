@@ -83,6 +83,12 @@ defmodule Alchemy.Discord.Events do
   end
 
 
+  def handle("GUILD_MEMBERS_CHUNK", %{"guild_id" => id, "members" => m}) do
+    Guilds.add_members(id, m)
+    {:member_chunk, [id, Enum.map(m, &GuildMember.from_map/1)]}
+  end
+
+
   def handle("GUILD_MEMBER_REMOVE", %{"guild_id" => id, "user" => user}) do
     Guilds.remove_member(id, user)
     {:member_leave, [to_struct(user, User), id]}

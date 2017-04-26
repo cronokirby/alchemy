@@ -10,13 +10,15 @@ defmodule Alchemy.Discord.Gateway.Manager do
   alias Alchemy.Discord.Api
   import Supervisor.Spec
 
-
   ### Public ###
+
+  def shard_count do
+    GenServer.call(GatewayManager, :shard_count)
+  end
 
   def request_url do
     GenServer.call(GatewayManager, :url_req)
   end
-
 
   ### Private Utility ###
 
@@ -33,9 +35,7 @@ defmodule Alchemy.Discord.Gateway.Manager do
      json["shards"]}
   end
 
-
   defp now, do: DateTime.utc_now |> DateTime.to_unix
-
 
   ### Server ###
 
@@ -59,11 +59,15 @@ defmodule Alchemy.Discord.Gateway.Manager do
     state = %{url: url,
               url_reset: now(),
               shards: shards,
-              started: [],
               token: token,
               supervisor: sup}
     GenServer.cast(GatewayManager, {:start_shard, 0})
     {:ok, state}
+  end
+
+
+  def handle_call(:shard_count, _from, state) do
+    {:reply, state.shards, state}
   end
 
 

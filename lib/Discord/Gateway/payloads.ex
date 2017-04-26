@@ -67,4 +67,9 @@ defmodule Alchemy.Discord.Payloads do
     payload = %{idle_since: idle_since, game: %{name: game_name}}
     build_payload(:status_update, payload)
   end
+
+  def request_guild_members(guild_id, username, limit) do
+    payload = %{guild_id: guild_id, query: username, limit: limit}
+    build_payload(:req_guild_members, payload)
+  end
 end

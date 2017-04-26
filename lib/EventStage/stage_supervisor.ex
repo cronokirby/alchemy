@@ -1,4 +1,5 @@
 defmodule Alchemy.EventStage.StageSupervisor do
+  @moduledoc false
   use Supervisor
   alias Alchemy.Cogs.{CommandHandler, EventHandler, EventRegistry}
   alias Alchemy.EventStage.{Cacher, EventBuffer, EventDispatcher,
