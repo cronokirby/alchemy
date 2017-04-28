@@ -38,7 +38,7 @@ defmodule Alchemy.Discord.RateLimits do
     if body["global"] do
       {:global, timeout}
     else
-      {:local, timeout, parse_headers(h.hdrs)}
+      {:local, timeout, h |> Enum.into(%{}) |> parse_headers}
     end
   end
 
