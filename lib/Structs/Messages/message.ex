@@ -121,4 +121,44 @@ defmodule Alchemy.Message do
     |> to_struct(__MODULE__)
   end
 
+  defmacrop matcher(str) do
+    quote do
+      fn
+        unquote(str) <> r -> r
+        _ -> nil
+      end
+    end
+  end
+
+  @type mention_type :: :roles | :nicknames | :channels | :users
+  @doc """
+  Finds a list of mentions in a string.
+
+  4 types of mentions exist:
+  - `roles`
+    A mention of a specific role.
+  - `nicknames`
+    A mention of a user by nickname.
+  - `users`
+    A mention of a user by name, or nickname.
+  - `:channels`
+    A mention of a channel.
+  """
+  @spec find_mentions(String.t, mention_type) :: [snowflake]
+  def find_mentions(content, type) do
+    matcher = case type do
+      :roles -> matcher("@&")
+      :nicknames -> matcher("@!")
+      :channels -> matcher("#")
+      :users -> fn
+        "@!" <> r -> r
+        "@"  <> r -> r
+        _ -> nil
+      end
+    end
+    Regex.scan(~r/<([#@]?[!&]?[0-9]+)>/, content, capture: :all_but_first)
+    |> Stream.concat
+    |> Stream.map(matcher)
+    |> Enum.filter(&(&1 != nil))
+  end
 end
