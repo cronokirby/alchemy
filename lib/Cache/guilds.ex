@@ -33,6 +33,13 @@ defmodule Alchemy.Cache.Guilds do
     {:via, Registry, {:guilds, id}}
   end
 
+  def safe_call(id, msg) do
+    if Registry.lookup(:guilds, id) != [] do
+      call(id, msg)
+    else
+      {:error, :no_guild}
+    end
+  end
 
   def call(id, msg) do
     GenServer.call(via_guilds(id), msg)

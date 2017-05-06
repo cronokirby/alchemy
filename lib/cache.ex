@@ -52,8 +52,10 @@ defmodule Alchemy.Cache do
     end
   end
   def guild(guild_id) do
-    case Guilds.call(guild_id, :show) do
-      nil ->
+    case Guilds.safe_call(guild_id, :show) do
+      {:error, :no_guild} ->
+        {:error, "You don't seem to be in this guild"}
+      %{"unavailable" => true} ->
         {:error, "This guild hasn't been loaded in the cache yet"}
       guild ->
         {:ok, guild |> Guilds.de_index |> Guild.from_map}
@@ -66,13 +68,15 @@ defmodule Alchemy.Cache do
   end
   defp access(guild_id, section, id, function) do
     maybe_val =
-      guild_id
-      |> Guilds.call({:section, section})
-      |> get_in([id])
+      with {:ok, guild} <- Guilds.safe_call(guild_id, {:section, section}) do
+        {:ok, guild[id]}
+      end
     case maybe_val do
-      nil ->
+      {:error, :no_guild} ->
+        {:error, "You don't seem to be in this guild"}
+      {:ok, nil} ->
         {:error, "Failed to find an entry for #{id} in section #{section}"}
-      some ->
+      {:ok, some} ->
         {:ok, function.(some)}
     end
   end
@@ -163,6 +167,9 @@ defmodule Alchemy.Cache do
     Supervisor.which_children(GuildSupervisor)
     |> Stream.map(fn {_, pid, _, _} -> pid end)
     |> Task.async_stream(&GenServer.call(&1, :show))
+    |> Stream.filter(fn {:ok, val} ->
+      val["unavailable"] != true
+    end)
     |> Stream.map(fn {:ok, val} ->
       val |> Guilds.de_index |> Guild.from_map
     end)
