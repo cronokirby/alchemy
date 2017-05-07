@@ -55,9 +55,9 @@ defmodule Alchemy.Cache do
     case Guilds.safe_call(guild_id, :show) do
       {:error, :no_guild} ->
         {:error, "You don't seem to be in this guild"}
-      %{"unavailable" => true} ->
+      {:ok, %{"unavailable" => true}} ->
         {:error, "This guild hasn't been loaded in the cache yet"}
-      guild ->
+      {:ok, guild} ->
         {:ok, guild |> Guilds.de_index |> Guild.from_map}
     end
   end

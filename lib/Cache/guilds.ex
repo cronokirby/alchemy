@@ -35,7 +35,7 @@ defmodule Alchemy.Cache.Guilds do
 
   def safe_call(id, msg) do
     if Registry.lookup(:guilds, id) != [] do
-      call(id, msg)
+      {:ok, call(id, msg)}
     else
       {:error, :no_guild}
     end
