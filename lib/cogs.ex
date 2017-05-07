@@ -454,7 +454,7 @@ defmodule Alchemy.Cogs do
   defp inject({:when, ctx, [{name, _, args} | func_rest]} = guard, body) do
     args = args || []
     injected = [{:message, [], ctx[:context]} | args]
-    new_guard = Macro.prewalk(guard, fn {a, b, c} ->
+    new_guard = Macro.prewalk(guard, fn {a, b, _} ->
       {a, b, [{name, ctx, injected} | func_rest]}
     end)
     new_func = {:def, ctx, [new_guard, body]}

@@ -1,7 +1,6 @@
 defmodule Alchemy.Discord.Protocol do
   @moduledoc false
   require Logger
-  alias Alchemy.Cache.Supervisor, as: Cache
   alias Alchemy.EventStage.EventBuffer
   import Alchemy.Discord.Payloads
 
