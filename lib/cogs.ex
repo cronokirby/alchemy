@@ -238,7 +238,7 @@ defmodule Alchemy.Cogs do
   """
   @type parser :: (String.t -> Enum.t)
   defmacro set_parser(name, parser) do
-    parser = Macro.to_string(parser)
+    parser = Macro.escape(parser)
     quote do
       @commands update_in(@commands, [Atom.to_string(unquote(name))], fn
         nil ->
@@ -487,8 +487,8 @@ defmodule Alchemy.Cogs do
         quote do
           Alchemy.Cogs.CommandHandler.add_commands(unquote(module),
             unquote(commands) |> Enum.map(fn
-              {k, {mod, arity, name, string}} ->
-                {eval, _} = Code.eval_string(string)
+              {k, {mod, arity, name, quoted}} ->
+                {eval, _} = Code.eval_quoted(quoted)
                 {k, {mod, arity, name, eval}}
               {k, v} ->
                 {k, v}
@@ -499,23 +499,16 @@ defmodule Alchemy.Cogs do
     end
   end
 
-  defp grouped_cog(str) do
+  defp grouped_cog(str, commands) do
     quote do
-      @commands Enum.map(@commands, fn
-        {k, {mod, arity, name, str}} ->
-          {eval, _} = Code.eval_string(str)
-          {k, {mod, arity, name, eval}}
-        x ->
-          x
-      end) |> Enum.into(%{})
 
-      def cogs_command_grouper(message, rest) do
+      def cOGS_COMMANDS_GROUPER(message, rest) do
         [sub, rest] =
           rest
           |> String.split(" ", parts: 2)
           |> Enum.concat([""])
           |> Enum.take(2)
-        case @commands[sub] do
+        case unquote(commands)[sub] do
           {m, a, f, e} ->
             apply(m, f, [message | rest |> e.() |> Enum.take(a)])
           {m, a, f} ->
@@ -528,7 +521,7 @@ defmodule Alchemy.Cogs do
       defmacro __using__(_opts) do
         module = __MODULE__
         commands = %{unquote(str) =>
-          {module, 1, :cogs_command_grouper, &List.wrap/1}}
+          {module, 1, :cOGS_COMMANDS_GROUPER, &List.wrap/1}}
           |> Macro.escape
         quote do
           Alchemy.Cogs.CommandHandler.add_commands(
@@ -543,7 +536,13 @@ defmodule Alchemy.Cogs do
     module = env.module
     case Module.get_attribute(module, :command_group) do
       {:group, str} ->
-        grouped_cog(str)
+        # Replace the map with the AST representing it, keeping the lambdas
+        commands =
+          Module.get_attribute(module, :commands)
+          |> Enum.map(fn {k, v} ->
+            {k, {:{}, [], Tuple.to_list(v)}}
+          end)
+        grouped_cog(str, {:%{}, [], commands})
       nil ->
         normal_cog()
     end
