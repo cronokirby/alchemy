@@ -361,11 +361,12 @@ defmodule Alchemy.Client do
    """
    @spec edit_embed(Message.t | {channel_id, message_id}, Embed.t) :: {:ok, Message.t}
                                                                     | {:error, term}
+   def edit_embed(message, embed)
    def edit_embed(%Message{channel_id: channel_id, id: id}, embed) do
      {Channels, :edit_message, [channel_id, id, [embed: Embed.build(embed)]]}
      |> send_req("/channels/#{channel_id}/messages")
    end
-   def edit_embed({channel_id, id} = message, embed) do
+   def edit_embed({channel_id, id}, embed) do
      {Channels, :edit_message, [channel_id, id, [embed: Embed.build(embed)]]}
      |> send_req("/channels/#{channel_id}/messages")
    end
@@ -383,11 +384,12 @@ defmodule Alchemy.Client do
    """
    @spec delete_message(Message.t | {channel_id, message_id}) ::
                        {:ok, nil} | {:error, term}
+   def delete_message(message)
    def delete_message(%Message{channel_id: channel_id, id: id}) do
      {Channels, :delete_message, [channel_id, id]}
      |> send_req("del/channels/#{channel_id}/messages")
    end
-   def delete_message({channel_id, message_id} = message) do
+   def delete_message({channel_id, message_id}) do
      {Channels, :delete_message, [channel_id, message_id]}
      |> send_req("del/channels/#{channel_id}/messages")
    end
@@ -435,12 +437,13 @@ defmodule Alchemy.Client do
    """
    @spec add_reaction(Message.t | {channel_id, message_id},
                       unicode | Emoji.t) :: {:ok, nil} | {:error, term}
+   def add_reaction(message, emoji)
    def add_reaction(%Message{channel_id: channel_id, id: id}, emoji) do
      emoji = Emoji.resolve(emoji)
      {Channels, :create_reaction, [channel_id, id, emoji]}
      |> send_req("/channels/#{channel_id}/messages/reactions/@me")
    end
-   def add_reaction({channel_id, message_id} = message, emoji) do
+   def add_reaction({channel_id, message_id}, emoji) do
      emoji = Emoji.resolve(emoji)
      {Channels, :create_reaction, [channel_id, message_id, emoji]}
      |> send_req("/channels/#{channel_id}/messages/reactions/@me")
@@ -462,12 +465,13 @@ defmodule Alchemy.Client do
    """
    @spec remove_reaction(Message.t | {channel_id, message_id},
                          unicode | Emoji.t) :: {:ok, nil} | {:error, term}
+   def remove_reaction(message, emoji)
    def remove_reaction(%Message{channel_id: channel_id, id: id}, emoji) do
      emoji = Emoji.resolve(emoji)
      {Channels, :delete_own_reaction, [channel_id, id, emoji]}
      |> send_req("/channels/#{channel_id}/messages/reactions/@me")
    end
-    def remove_reaction({channel_id, message_id} = message, emoji) do
+    def remove_reaction({channel_id, message_id}, emoji) do
       emoji = Emoji.resolve(emoji)
       {Channels, :delete_own_reaction, [channel_id, message_id, emoji]}
       |> send_req("/channels/#{channel_id}/messages/reactions/@me")
@@ -480,8 +484,8 @@ defmodule Alchemy.Client do
     @spec delete_reaction(Message.t | {channel_id, message_id},
                           unicode | Emoji.t, snowflake | User.t) :: {:ok, nil}
                                                                   | {:error, term}
-    def delete_reaction(%Message{channel_id: channel_id, id: id} = message,
-                        emoji, user) do
+    def delete_reaction(message, emoji, user)
+    def delete_reaction(%Message{channel_id: channel_id, id: id}, emoji, user) do
       emoji = Emoji.resolve(emoji)
       user = case user do
         %User{id: id} -> id
@@ -538,6 +542,7 @@ defmodule Alchemy.Client do
     """
     @spec remove_reactions(Message.t | {channel_id, message_id}) ::
                            {:ok, nil} | {:error, term}
+    def remove_reactions(message)
     def remove_reactions(%Message{channel_id: channel_id, id: id}) do
       {Channels, :delete_reactions, [channel_id, id]}
       |> send_req("/channels/#{channel_id}/messages/reactions")
