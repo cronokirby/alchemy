@@ -2,7 +2,7 @@ defmodule Alchemy.Discord.Events do
   @moduledoc false # This module contains the protocols
   # for updating the cache based on the events received from discord.
   # This module is then used by EventStage.Cache
-  alias Alchemy.{Channel, DMChannel, Emoji, Guild,
+  alias Alchemy.{Channel, DMChannel, Guild.Emoji, Guild,
                  Message, User, VoiceState}
   alias Alchemy.Guild.{GuildMember, Presence, Role}
   alias Alchemy.Cache.Supervisor, as: Cache
