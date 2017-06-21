@@ -547,7 +547,7 @@ defmodule Alchemy.Client do
       {Channels, :delete_reactions, [channel_id, id]}
       |> send_req("/channels/#{channel_id}/messages/reactions")
     end
-    def remove_reactions({channel_id, message_id} = message) do
+    def remove_reactions({channel_id, message_id}) do
       {Channels, :delete_reactions, [channel_id, message_id]}
       |> send_req("/channels/#{channel_id}/messages/reactions")
     end
