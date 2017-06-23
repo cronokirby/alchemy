@@ -2,6 +2,7 @@ defmodule Alchemy.Discord.Protocol do
   @moduledoc false
   require Logger
   alias Alchemy.EventStage.EventBuffer
+  alias Alchemy.Voice.Supervisor.Server
   import Alchemy.Discord.Payloads
 
 
@@ -47,7 +48,8 @@ defmodule Alchemy.Discord.Protocol do
     Logger.debug "Shard #{inspect state.shard} received READY"
     {:ok, %{state | seq: seq,
                     session_id: payload["session_id"],
-                    trace: payload["_trace"]}}
+                    trace: payload["_trace"],
+                    user_id: payload["user"]["id"]}}
   end
 
 
@@ -57,6 +59,17 @@ defmodule Alchemy.Discord.Protocol do
     {:ok, %{state | trace: payload["_trace"]}}
   end
 
+  def dispatch(%{"t" => "VOICE_SERVER_UPDATE", "d" => payload, "s" => seq}, state) do
+    Supervisor.send_to(payload["guild_id"], {payload["token"], payload["endpoint"]})
+    {:ok, %{state | seq: seq}}
+  end
+
+  def dispatch(%{"t" => "VOICE_STATE_UPDATE", "s" => seq,
+               "d" => %{"user_id" => u} = payload}, %{user_id: u} = state) do
+    Supervisor.send_to(payload["guild_id"], {u, payload["session_id"]})
+    EventBuffer.notify({"VOICE_STATE_UPDATE", payload})
+    {:ok, %{state | seq: seq}}
+  end
 
   def dispatch(%{"t" => type, "d" => payload, "s" => seq}, state) do
     EventBuffer.notify({type, payload})

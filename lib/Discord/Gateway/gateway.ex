@@ -9,7 +9,7 @@ defmodule Alchemy.Discord.Gateway do
 
   defmodule State do
     @moduledoc false
-    defstruct [:token, :shard, :trace, :session_id, :seq]
+    defstruct [:token, :shard, :trace, :session_id, :seq, :user_id]
   end
 
 
