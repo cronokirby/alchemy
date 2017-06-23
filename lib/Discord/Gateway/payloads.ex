@@ -72,4 +72,10 @@ defmodule Alchemy.Discord.Payloads do
     payload = %{guild_id: guild_id, query: username, limit: limit}
     build_payload(:req_guild_members, payload)
   end
+
+  def voice_update(guild_id, channel_id, mute, deaf) do
+    payload = %{guild_id: guild_id, channel_id: channel_id,
+                self_mute: mute, self_deaf: deaf}
+    build_payload(:voice_update, payload)
+  end
 end

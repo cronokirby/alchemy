@@ -21,13 +21,6 @@ defmodule Alchemy.Discord.Gateway.Manager do
     GenServer.call(GatewayManager, :url_req)
   end
 
-  def shard_pid(guild, name \\ __MODULE__) do
-    {guild_id, _} = Integer.parse(guild)
-    shards = Supervisor.which_children(name)
-      |> Enum.map(fn {_, pid, _, _} -> pid end)
-    Enum.at(shards, rem((guild_id >>> 22), length(shards)))
-  end
-
   ### Private Utility ###
 
   defp get_url(_token, selfbot: _) do

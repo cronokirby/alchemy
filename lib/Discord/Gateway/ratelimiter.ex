@@ -36,9 +36,23 @@ defmodule Alchemy.Discord.Gateway.RateLimiter do
     end)
   end
 
+  def shard_pid(guild, name \\ __MODULE__.RateSupervisor) do
+    {guild_id, _} = Integer.parse(guild)
+    shards = Supervisor.which_children(name)
+      |> Enum.map(fn {_, pid, _, _} -> pid end)
+    Enum.at(shards, rem((guild_id >>> 22), length(shards)))
+  end
+
   def request_guild_members(guild_id, username, limit) do
     payload = Payloads.request_guild_members(guild_id, username, limit)
-    Manager.shard_pid(guild_id, __MODULE__.RateSupervisor)
+    shard_pid(guild_id)
+    |> send_request({:send_event, payload})
+  end
+
+  def change_voice_state(guild_id, channel_id, mute \\ false, deaf \\ false) do
+    payload = Payloads.voice_update(guild_id, channel_id, mute, deaf)
+    shard_pid(guild_id)
+    |> send_request({:send_event, payload})
   end
 
   # Handles the rate
