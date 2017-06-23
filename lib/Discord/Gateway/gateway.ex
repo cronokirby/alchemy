@@ -15,8 +15,8 @@ defmodule Alchemy.Discord.Gateway do
 
   # Requests a gateway URL, before then connecting, and storing the token
   def start_link(token, shard) do
-     :crypto.start
-     :ssl.start
+     :crypto.start()
+     :ssl.start()
      # request_url will return a protocol to execute
      url = Manager.request_url().()
      Logger.info "Shard #{inspect shard} connecting to the gateway"

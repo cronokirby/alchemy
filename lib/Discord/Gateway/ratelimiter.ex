@@ -3,6 +3,7 @@ defmodule Alchemy.Discord.Gateway.RateLimiter do
   # This servers as a limiter to outside requests to the individual gateways
   use Bitwise
   alias Alchemy.Discord.Payloads
+  alias Alchemy.Discord.Gateway.Manager
 
 
   defmodule RateSupervisor do
@@ -28,7 +29,6 @@ defmodule Alchemy.Discord.Gateway.RateLimiter do
     Supervisor.start_child(__MODULE__.RateSupervisor, [pid])
   end
 
-
   def status_update(pid, idle_since, game_name) do
     Task.async(fn ->
       payload = Payloads.status_update(idle_since, game_name)
@@ -38,11 +38,7 @@ defmodule Alchemy.Discord.Gateway.RateLimiter do
 
   def request_guild_members(guild_id, username, limit) do
     payload = Payloads.request_guild_members(guild_id, username, limit)
-    shards = Supervisor.which_children(__MODULE__.RateSupervisor)
-             |> Enum.map(fn {_, pid, _, _} -> pid end)
-    {guild_id, _} = Integer.parse(guild_id)
-    Enum.at(shards, rem((guild_id >>> 22), length(shards)))
-    |> send_request({:send_event, payload})
+    Manager.shard_pid(guild_id, __MODULE__.RateSupervisor)
   end
 
   # Handles the rate

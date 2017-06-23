@@ -9,6 +9,7 @@ defmodule Alchemy.Discord.Gateway.Manager do
   alias Alchemy.Discord.Gateway.RateLimiter
   alias Alchemy.Discord.Api
   import Supervisor.Spec
+  import Bitwise
 
   ### Public ###
 
@@ -18,6 +19,13 @@ defmodule Alchemy.Discord.Gateway.Manager do
 
   def request_url do
     GenServer.call(GatewayManager, :url_req)
+  end
+
+  def shard_pid(guild, name \\ __MODULE__) do
+    {guild_id, _} = Integer.parse(guild)
+    shards = Supervisor.which_children(name)
+      |> Enum.map(fn {_, pid, _, _} -> pid end)
+    Enum.at(shards, rem((guild_id >>> 22), length(shards)))
   end
 
   ### Private Utility ###
