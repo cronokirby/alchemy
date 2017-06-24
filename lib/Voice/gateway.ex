@@ -1,8 +1,10 @@
 defmodule Alchemy.Voice.Gateway do
   @moduledoc false
   @behaviour :websocket_client
-  alias Alchemy.Voice.Supervisor.Registry
+  alias Alchemy.Voice.Supervisor.{Registry, Server}
+  alias Alchemy.Voice.Controller
   alias Alchemy.Voice.UDP
+  require Logger
 
   defmodule Payloads do
     @opcodes %{
@@ -51,7 +53,6 @@ defmodule Alchemy.Voice.Gateway do
     url = String.replace(url, ":80", "")
     state = %State{token: token, guild_id: guild_id, user_id: user_id,
                    url: url, session: session}
-    IO.puts url
     :websocket_client.start_link("wss://" <> url, __MODULE__, state,
                                  name: Registry.via({guild_id, :gateway}))
   end
@@ -61,7 +62,7 @@ defmodule Alchemy.Voice.Gateway do
   end
 
   def onconnect(_, state) do
-    IO.puts "connect"
+    Logger.debug "Voice Gateway for #{state.guild_id} connected"
     payload = Payloads.identify(state.guild_id, state.user_id,
                                 state.session, state.token)
     send(self(), :send_identify)
@@ -69,7 +70,8 @@ defmodule Alchemy.Voice.Gateway do
   end
 
   def ondisconnect(reason, state) do
-    IO.inspect reason
+    Logger.debug("Voice Gateway for #{state.guild_id} disconnected, "
+                 <> "reason: #{inspect reason}")
     if state.udp do
       :gen_udp.close(state.udp)
     end
@@ -87,6 +89,7 @@ defmodule Alchemy.Voice.Gateway do
       %{state | my_ip: my_ip, my_port: my_port,
                 discord_ip: discord_ip, discord_port: payload["port"]}
     send(self(), {:heartbeat, payload["heartbeat_interval"]})
+    start_controller(udp, new_state)
     {:reply, {:text, Payloads.select(my_ip, my_port)}, state}
   end
 
@@ -103,5 +106,12 @@ defmodule Alchemy.Voice.Gateway do
   def websocket_info({:heartbeat, interval}, _, state) do
     Process.send_after(self(), {:heartbeat, interval}, interval)
     {:reply, {:text, Payloads.heartbeat()}, state}
+  end
+
+  def start_controller(udp, state) do
+    {:ok, pid} =
+      Controller.start_link(udp, state.discord_ip, state.discord_port,
+                            state.guild_id)
+    Server.send_to(state.guild_id, pid)
   end
 end

@@ -7,8 +7,8 @@ defmodule Alchemy.Voice do
   @doc """
   joins a voice channel
   """
-  def join(guild, channel) do
-    Supervisor.start_client(guild, channel)
+  def join(guild, channel, timeout \\ 6000) do
+    Supervisor.start_client(guild, channel, timeout)
   end
 
 end

@@ -5,7 +5,6 @@ defmodule Alchemy.Voice.Supervisor do
   use Supervisor
   alias Alchemy.Discord.Gateway.RateLimiter
   alias Alchemy.Voice.Supervisor.{Controller, Gateway}
-  use Alchemy.Voice.Macros
 
   alias __MODULE__.Server
 
@@ -13,13 +12,25 @@ defmodule Alchemy.Voice.Supervisor do
     Supervisor.start_link(__MODULE__, :ok, name: __MODULE__)
   end
 
-  simple_supervisor(Controller, Alchemy.Voice.Controller)
-  simple_supervisor(Gateway, Alchemy.Voice.Gateway)
+  defmodule Gateway do
+    use Supervisor
+
+    def start_link do
+      Supervisor.start_link(__MODULE__, :ok, name: Gateway)
+    end
+
+    def init(:ok) do
+      children = [
+        worker(Alchemy.Voice.Gateway, [])
+      ]
+
+      supervise(children, strategy: :simple_one_for_one)
+    end
+  end
 
   def init(:ok) do
     children = [
       supervisor(Registry, [:unique, __MODULE__.Registry]),
-      supervisor(Alchemy.Voice.Supervisor.Controller, []),
       supervisor(Alchemy.Voice.Supervisor.Gateway, []),
       worker(__MODULE__.Server, [])
     ]
@@ -30,7 +41,7 @@ defmodule Alchemy.Voice.Supervisor do
   defmodule Registry do
     @moduledoc false
     def via(key) do
-      {:via, Registry, {__MODULE__, key}}
+      {:via, Elixir.Registry, {__MODULE__, key}}
     end
   end
 
@@ -68,19 +79,27 @@ defmodule Alchemy.Voice.Supervisor do
     end
   end
 
-  def start_client(guild, channel, timeout \\ 5_000) do
-    with :ok <- GenServer.call(Server, {:start_client, guild}) do
+  def start_client(guild, channel, timeout) do
+    r = with :ok <- GenServer.call(Server, {:start_client, guild}) do
       RateLimiter.change_voice_state(guild, channel)
+      recv = fn ->
+        receive do
+          x -> x
+        after
+          div(timeout, 3) -> {:error, ""}
+        end
+      end
       # We're waiting on 2 events from the gateway here:
-      {user_id, session} = receive do
-        x -> x
-      end
-      {token, url} = receive do
-        x -> x
-      end
+      {user_id, session} = recv.()
+      {token, url} = recv.()
+      # we need to wait for information from the server now
       args = [url, token, session, user_id, guild]
-      GenServer.call(Server, {:client_done, guild})
-      Supervisor.start_child(Gateway, args)
+      with {:ok, pid1} <- Supervisor.start_child(Gateway, args) do
+        pid2 = recv.()
+        {:ok, pid1, pid2}
+      end
     end
+    GenServer.call(Server, {:client_done, guild})
+    r
   end
 end
