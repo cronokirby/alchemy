@@ -60,13 +60,13 @@ defmodule Alchemy.Discord.Protocol do
   end
 
   def dispatch(%{"t" => "VOICE_SERVER_UPDATE", "d" => payload, "s" => seq}, state) do
-    Supervisor.send_to(payload["guild_id"], {payload["token"], payload["endpoint"]})
+    Server.send_to(payload["guild_id"], {payload["token"], payload["endpoint"]})
     {:ok, %{state | seq: seq}}
   end
 
   def dispatch(%{"t" => "VOICE_STATE_UPDATE", "s" => seq,
                "d" => %{"user_id" => u} = payload}, %{user_id: u} = state) do
-    Supervisor.send_to(payload["guild_id"], {u, payload["session_id"]})
+    Server.send_to(payload["guild_id"], {u, payload["session_id"]})
     EventBuffer.notify({"VOICE_STATE_UPDATE", payload})
     {:ok, %{state | seq: seq}}
   end

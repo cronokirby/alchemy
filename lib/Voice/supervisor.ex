@@ -4,6 +4,7 @@ defmodule Alchemy.Voice.Supervisor do
   # voice client supervisor.
   use Supervisor
   alias Alchemy.Discord.Gateway.RateLimiter
+  alias Alchemy.Voice.Supervisor.{Controller, Gateway}
   use Alchemy.Voice.Macros
 
   alias __MODULE__.Server
@@ -54,6 +55,10 @@ defmodule Alchemy.Voice.Supervisor do
       end
     end
 
+    def handle_call({:client_done, guild}, _, state) do
+      {:reply, :ok, Map.delete(state, guild)}
+    end
+
     def handle_cast({:send_to, guild, data}, state) do
       case Map.get(state, guild) do
         nil -> nil
@@ -73,7 +78,9 @@ defmodule Alchemy.Voice.Supervisor do
       {token, url} = receive do
         x -> x
       end
-
+      args = [url, token, session, user_id, guild]
+      GenServer.call(Server, {:client_done, guild})
+      Supervisor.start_child(Gateway, args)
     end
   end
 end
