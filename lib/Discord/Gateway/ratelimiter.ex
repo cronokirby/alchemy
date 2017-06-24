@@ -50,7 +50,6 @@ defmodule Alchemy.Discord.Gateway.RateLimiter do
   end
 
   def change_voice_state(guild_id, channel_id, mute \\ false, deaf \\ false) do
-    IO.inspect "changing voice state"
     payload = Payloads.voice_update(guild_id, channel_id, mute, deaf)
     shard_pid(guild_id)
     |> send_request({:send_event, payload})

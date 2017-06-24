@@ -69,7 +69,6 @@ defmodule Alchemy.Discord.Gateway do
 
   # RateLimiting has been handled prior
   def websocket_info({:send_event, data}, _, state) do
-    IO.inspect data
     {:reply, {:text, data}, state}
   end
 

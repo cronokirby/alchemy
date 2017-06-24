@@ -1,7 +1,7 @@
 defmodule Alchemy.Voice.Gateway do
   @moduledoc false
   @behaviour :websocket_client
-  alias Alchemy.Voice.Supervisor.{Registry, Server}
+  alias Alchemy.Voice.Supervisor.{VoiceRegistry, Server}
   alias Alchemy.Voice.Controller
   alias Alchemy.Voice.UDP
   require Logger
@@ -53,8 +53,7 @@ defmodule Alchemy.Voice.Gateway do
     url = String.replace(url, ":80", "")
     state = %State{token: token, guild_id: guild_id, user_id: user_id,
                    url: url, session: session}
-    :websocket_client.start_link("wss://" <> url, __MODULE__, state,
-                                 name: Registry.via({guild_id, :gateway}))
+    :websocket_client.start_link("wss://" <> url, __MODULE__, state)
   end
 
   def init(state) do
@@ -62,6 +61,7 @@ defmodule Alchemy.Voice.Gateway do
   end
 
   def onconnect(_, state) do
+    Registry.register(Registry.Voice, {state.guild_id, :gateway}, nil)
     Logger.debug "Voice Gateway for #{state.guild_id} connected"
     payload = Payloads.identify(state.guild_id, state.user_id,
                                 state.session, state.token)
@@ -75,7 +75,7 @@ defmodule Alchemy.Voice.Gateway do
     if state.udp do
       :gen_udp.close(state.udp)
     end
-    {:reconnect, state}
+    {:ok, state}
   end
 
   def websocket_handle({:text, msg}, _, state) do
@@ -89,7 +89,7 @@ defmodule Alchemy.Voice.Gateway do
       %{state | my_ip: my_ip, my_port: my_port,
                 discord_ip: discord_ip, discord_port: payload["port"]}
     send(self(), {:heartbeat, payload["heartbeat_interval"]})
-    start_controller(udp, new_state)
+    send(self(), {:start_controller, udp})
     {:reply, {:text, Payloads.select(my_ip, my_port)}, state}
   end
 
@@ -108,10 +108,11 @@ defmodule Alchemy.Voice.Gateway do
     {:reply, {:text, Payloads.heartbeat()}, state}
   end
 
-  def start_controller(udp, state) do
+  def websocket_info({:start_controller, udp}, _, state) do
     {:ok, pid} =
       Controller.start_link(udp, state.discord_ip, state.discord_port,
                             state.guild_id)
-    Server.send_to(state.guild_id, pid)
+      Server.send_to(state.guild_id, pid)
+    {:ok, state}
   end
 end

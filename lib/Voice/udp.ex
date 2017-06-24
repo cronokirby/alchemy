@@ -3,7 +3,6 @@ defmodule Alchemy.Voice.UDP do
 
   def open_udp(endpoint, port, ssrc) do
     discord_ip = resolve(endpoint)
-    IO.inspect discord_ip
     data = <<ssrc :: size(560)>>
     udp_opts = [:binary, active: false, reuseaddr: true]
     {:ok, udp} = :gen_udp.open(0, udp_opts)

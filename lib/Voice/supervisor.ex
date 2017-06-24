@@ -5,6 +5,7 @@ defmodule Alchemy.Voice.Supervisor do
   use Supervisor
   alias Alchemy.Discord.Gateway.RateLimiter
   alias Alchemy.Voice.Supervisor.{Controller, Gateway}
+  require Logger
 
   alias __MODULE__.Server
 
@@ -30,7 +31,7 @@ defmodule Alchemy.Voice.Supervisor do
 
   def init(:ok) do
     children = [
-      supervisor(Registry, [:unique, __MODULE__.Registry]),
+      supervisor(Registry, [:unique, Registry.Voice]),
       supervisor(Alchemy.Voice.Supervisor.Gateway, []),
       worker(__MODULE__.Server, [])
     ]
@@ -38,10 +39,10 @@ defmodule Alchemy.Voice.Supervisor do
     supervise(children, strategy: :one_for_one)
   end
 
-  defmodule Registry do
+  defmodule VoiceRegistry do
     @moduledoc false
     def via(key) do
-      {:via, Elixir.Registry, {__MODULE__, key}}
+      {:via, Registry, {Registry.Voice, key}}
     end
   end
 
@@ -80,24 +81,29 @@ defmodule Alchemy.Voice.Supervisor do
   end
 
   def start_client(guild, channel, timeout) do
-    r = with :ok <- GenServer.call(Server, {:start_client, guild}) do
-      RateLimiter.change_voice_state(guild, channel)
-      recv = fn ->
-        receive do
-          x -> x
-        after
-          div(timeout, 3) -> {:error, ""}
+    r = with :ok <- GenServer.call(Server, {:start_client, guild}),
+             [] <- Registry.lookup(Registry.Voice, {guild, :gateway})
+      do
+        RateLimiter.change_voice_state(guild, channel)
+        recv = fn ->
+          receive do
+            x -> {:ok, x}
+          after
+            div(timeout, 3) -> {:error, "Timed out"}
+          end
         end
-      end
-      # We're waiting on 2 events from the gateway here:
-      {user_id, session} = recv.()
-      {token, url} = recv.()
-      # we need to wait for information from the server now
-      args = [url, token, session, user_id, guild]
-      with {:ok, pid1} <- Supervisor.start_child(Gateway, args) do
-        pid2 = recv.()
-        {:ok, pid1, pid2}
-      end
+        with {:ok, {user_id, session}} <- recv.(),
+             {:ok, {token, url}} <- recv.(),
+             {:ok, _pid1} <- Supervisor.start_child(Gateway,
+               [url, token, session, user_id, guild]),
+             {:ok, _pid2} <- recv.()
+        do
+          :ok
+        end
+    else
+      [{pid, _}|_] ->
+        RateLimiter.change_voice_state(guild, channel)
+        :ok
     end
     GenServer.call(Server, {:client_done, guild})
     r
