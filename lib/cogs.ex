@@ -512,7 +512,7 @@ defmodule Alchemy.Cogs do
           {m, a, f, e} ->
             apply(m, f, [message | rest |> e.() |> Enum.take(a)])
           {m, a, f} ->
-            apply(m, f, [message | rest |> String.split(" ") |> Enum.take(a)])
+            apply(m, f, [message | rest |> Alchemy.Cogs.CommandHandler.split |> Enum.take(a)])
           _x ->
             nil
         end
