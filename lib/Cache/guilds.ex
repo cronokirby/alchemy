@@ -189,6 +189,9 @@ defmodule Alchemy.Cache.Guilds do
     {:reply, {state["id"], state[key]}, state}
   end
 
+  def handle_call(_, _, %{"unavailable" => true} = state) do
+    {:reply, :ok, state}
+  end
 
   def handle_call({:replace, section, data}, _, state) do
     {:reply, :ok, %{state | section => data}}

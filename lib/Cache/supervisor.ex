@@ -33,7 +33,7 @@ defmodule Alchemy.Cache.Supervisor do
 
   # used to handle the READY event
   def ready(user, priv_channels, guilds) do
-    # we pipe this into to_list to force evaluation
+    # we pipe this into to_list to force evaluationd
     Task.async_stream(guilds, &Guilds.add_guild/1)
     |> Enum.to_list
     PrivChannels.add_channels(priv_channels)
