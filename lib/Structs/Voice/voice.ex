@@ -3,6 +3,8 @@ defmodule Alchemy.Voice do
   Contains the types and functions related to voice communication with discord.
   """
   alias Alchemy.{VoiceState, VoiceRegion}
+  alias Alchemy.Voice.Supervisor, as: VoiceSuper
+  alias Alchemy.Discord.Gateway.RateLimiter
 
   @type snowflake :: String.t
 
@@ -69,5 +71,72 @@ defmodule Alchemy.Voice do
     self_mute: Boolean,
     suppress: Boolean
   }
+
+
+  @doc """
+  Joins a voice channel in a guild.
+
+  Only one voice connection per guild is possible with the api.
+  If you're already connected to the guild, this will not restart the
+  voice connections, but instead just move you to the channel.
+
+  The timeout will be spread across 2 different message receptions,
+  i.e. a timeout of `6000` will only wait 3s at every reception.
+  """
+  @spec join(snowflake, snowflake, integer) :: :ok | {:error, String.t}
+  def join(guild, channel, timeout \\ 6000) do
+    VoiceSuper.start_client(guild, channel, timeout)
+  end
+
+  @doc """
+  Disconnects from voice in a guild.
+
+  Will return an error if already connected to the guild.
+  """
+  @spec leave(snowflake) :: :ok | {:error, String.t}
+  def leave(guild) do
+    case Registry.lookup(Registry.Voice, {guild, :gateway}) do
+      [] ->
+        {:error, "You're not joined to voice in this guild"}
+      [{pid, _}|_] ->
+        Supervisor.terminate_child(VoiceSuper.Gateway, pid)
+        RateLimiter.change_voice_state(guild, nil)
+    end
+  end
+
+  @doc """
+  Starts playing a music file on a guild's voice connection.
+
+  Returns an error if the client isn't connected to the guild,
+  or if the file does not exist.
+
+  ## Examples
+  ```elixir
+  Voice.join("666", "666")
+  Voice.play("666", "cool_song.mp3")
+  ```
+  """
+  def play_file(guild, file_path) do
+    with [{pid, _}|_] <- Registry.lookup(Registry.Voice, {guild, :controller}),
+         true <- File.exists?(file_path)
+    do
+      GenServer.call(pid, {:play, file_path})
+    else
+      [] -> {:error, "You're not joined to voice in this guild"}
+      false -> {:error, "This file does not exist"}
+    end
+  end
+
+  @doc """
+  Stops playing audio on a guild's voice connection.
+
+  Returns an error if the connection hadn't been established.
+  """
+  def stop_audio(guild) do
+    case Registry.lookup(Registry.Voice, {guild, :controller}) do
+      [] -> {:error, "You're not joined to voice in this guild"}
+      [{pid, _}|_] -> GenServer.call(pid, :stop_playing)
+    end
+  end
 
 end

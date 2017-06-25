@@ -89,7 +89,7 @@ defmodule Alchemy.Voice.Supervisor do
           receive do
             x -> {:ok, x}
           after
-            div(timeout, 3) -> {:error, "Timed out"}
+            div(timeout, 2) -> {:error, "Timed out"}
           end
         end
         with {:ok, {user_id, session}} <- recv.(),
