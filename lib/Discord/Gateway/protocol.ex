@@ -22,7 +22,7 @@ defmodule Alchemy.Discord.Protocol do
   def dispatch(%{"op" => 9}, state) do
     Logger.debug("Shard #{inspect state.shard} "
                  <> "connected with an invalid session id")
-    Process.exit(self(), :invalid_session)
+    Process.exit(self(), :brutal_kill)
   end
 
 
