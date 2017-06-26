@@ -27,15 +27,21 @@ defmodule Alchemy.Voice.Controller do
 
   def handle_call({:play, path, type}, _, state) do
     self = self()
-    player = Task.async(fn ->
-      run_player(path, type, self,
-        %{ssrc: state.ssrc, key: state.key, ws: state.ws})
-    end)
-    {:reply, :ok, %{state | player: player}}
+    if state.player != nil && Process.alive?(state.player.pid) do
+      {:reply, {:error, "Already playing audio"}, state}
+    else
+      player = Task.async(fn ->
+        run_player(path, type, self,
+          %{ssrc: state.ssrc, key: state.key, ws: state.ws})
+      end)
+      {:reply, :ok, %{state | player: player}}
+    end
   end
 
   def handle_call(:stop_playing, _, state) do
-    Task.shutdown(state.player)
+    unless state.player == nil do
+      Task.shutdown(state.player)
+    end
     {:reply, :ok, state}
   end
 

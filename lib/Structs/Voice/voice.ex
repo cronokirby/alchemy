@@ -109,7 +109,7 @@ defmodule Alchemy.Voice do
   ## Examples
   ```elixir
   Voice.join("666", "666")
-  Voice.play("666", "cool_song.mp3")
+  Voice.play_file("666", "cool_song.mp3")
   ```
   """
   @spec play_file(snowflake, Path.t) :: :ok
