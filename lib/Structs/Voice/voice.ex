@@ -71,8 +71,6 @@ defmodule Alchemy.Voice do
     self_mute: Boolean,
     suppress: Boolean
   }
-
-
   @doc """
   Joins a voice channel in a guild.
 
@@ -87,7 +85,6 @@ defmodule Alchemy.Voice do
   def join(guild, channel, timeout \\ 6000) do
     VoiceSuper.start_client(guild, channel, timeout)
   end
-
   @doc """
   Disconnects from voice in a guild.
 
@@ -103,7 +100,6 @@ defmodule Alchemy.Voice do
         RateLimiter.change_voice_state(guild, nil)
     end
   end
-
   @doc """
   Starts playing a music file on a guild's voice connection.
 
@@ -116,17 +112,32 @@ defmodule Alchemy.Voice do
   Voice.play("666", "cool_song.mp3")
   ```
   """
+  @spec play_file(snowflake, Path.t) :: :ok
   def play_file(guild, file_path) do
     with [{pid, _}|_] <- Registry.lookup(Registry.Voice, {guild, :controller}),
          true <- File.exists?(file_path)
     do
-      GenServer.call(pid, {:play, file_path})
+      GenServer.call(pid, {:play, file_path, :file})
     else
       [] -> {:error, "You're not joined to voice in this guild"}
       false -> {:error, "This file does not exist"}
     end
   end
+  @doc """
+  Starts playing audio from a url.
 
+  For this to work, the path to `youtube-dl` needs to be configured, and
+  the url must be one of the [supported sites](https://rg3.github.io/youtube-dl/supportedsites.html).
+  This function does not check the validity of this url, so if it's invalid,
+  an error will get logged, and no audio will be played.
+  """
+  @spec play_youtube(snowflake, String.t) :: :ok
+  def play_youtube(guild, url) do
+    case Registry.lookup(Registry.Voice, {guild, :controller}) do
+      [] -> {:error, "You're not joined to voice in this guild"}
+      [{pid, _}|_] -> GenServer.call(pid, {:play, url, :yt})
+    end
+  end
   @doc """
   Stops playing audio on a guild's voice connection.
 
@@ -138,5 +149,4 @@ defmodule Alchemy.Voice do
       [{pid, _}|_] -> GenServer.call(pid, :stop_playing)
     end
   end
-
 end

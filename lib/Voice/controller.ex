@@ -25,10 +25,11 @@ defmodule Alchemy.Voice.Controller do
     {:noreply, state}
   end
 
-  def handle_call({:play, file}, _, state) do
+  def handle_call({:play, path, type}, _, state) do
     self = self()
     player = Task.async(fn ->
-      run_player(file, self, %{ssrc: state.ssrc, key: state.key, ws: state.ws})
+      run_player(path, type, self,
+        %{ssrc: state.ssrc, key: state.key, ws: state.ws})
     end)
     {:reply, :ok, %{state | player: player}}
   end
@@ -36,6 +37,11 @@ defmodule Alchemy.Voice.Controller do
   def handle_call(:stop_playing, _, state) do
     Task.shutdown(state.player)
     {:reply, :ok, state}
+  end
+
+  # ignore down messages from the task
+  def handle_info(_, state) do
+    {:noreply, state}
   end
 
   ## Audio stuff ##
@@ -55,10 +61,28 @@ defmodule Alchemy.Voice.Controller do
     audio_stream
   end
 
-  defp run_player(file_path, parent, state) do
+  @youtube_dl "../porcytest/youtube-dl"
+
+  defp youtube_stream(url) do
+      %Proc{out: youtube} = Porcelain.spawn(@youtube_dl,
+        ["-q", "-f", "bestaudio", "-o", "-", url], [out: :stream])
+      opts = [in: youtube, out: :stream]
+      %Proc{out: audio_stream} =
+        Porcelain.spawn(@ffmpeg,
+          ["-hide_banner", "-loglevel", "quiet", "-i","pipe:0",
+           "-f", "data", "-map", "0:a", "-ar", "48k", "-ac",
+           "2", "-acodec", "libopus", "-b:a", "128k", "pipe:1"], opts)
+      audio_stream
+  end
+
+  defp run_player(path, type, parent, state) do
     send(state.ws, {:speaking, true})
+    stream = case type do
+      :file -> mk_stream(path)
+      :yt -> youtube_stream(path)
+    end
     {seq, time, _} =
-      mk_stream(file_path)
+      stream
       |> Enum.reduce({0, 0, nil}, fn packet, {seq, time, elapsed} ->
         packet = mk_audio(packet, seq, time, state)
         GenServer.cast(parent, {:send_audio, packet})
