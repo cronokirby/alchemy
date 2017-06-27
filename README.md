@@ -79,7 +79,7 @@ to those executables in alchemy like so:
 ```
 # in config.exs
 config :alchemy,
-  ffmpeg_path: "path/to/ffmpeg"
+  ffmpeg_path: "path/to/ffmpeg",
   youtube_dl_path: "path/to/youtube_dl"
 ```
 
