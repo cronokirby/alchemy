@@ -74,8 +74,9 @@ Alchemy also supports using discord's voice API to play audio.
 We rely on [ffmpeg](https://ffmpeg.org/) for audio encoding,
 as well as [youtube-dl](https://rg3.github.io/youtube-dl/) for streaming
 audio from sites. Before the voice api can be used, you'll need to acquire
-the latest versions of those from their sites, and then configure the path
-to those executables in alchemy like so:
+the latest versions of those from their sites (make sure you get ffmpeg
+with opus support), and then configure the path to those executables in
+alchemy like so:
 ```
 # in config.exs
 config :alchemy,
