@@ -61,14 +61,19 @@ defmodule Alchemy.Client do
   # This creates a `RateManager`, under the name `API` that will be available
   # for managing requests.
   def init({token, options}) do
-    children = [
+    base = [
       worker(RateManager, [token]),
       worker(GatewayManager, [token, options]),
       supervisor(GatewayRates, []),
       supervisor(CacheSupervisor, []),
       supervisor(StageSupervisor, [options]),
-      supervisor(VoiceSupervisor, [])
     ]
+    # don't even start the voice section if the path isn't set
+    children = if Application.get_env(:alchemy, :ffmpeg_path) do
+      [supervisor(VoiceSupervisor, []) | base]
+    else
+      base
+    end
     supervise(children, strategy: :one_for_one)
   end
 

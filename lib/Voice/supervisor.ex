@@ -4,7 +4,7 @@ defmodule Alchemy.Voice.Supervisor do
   # voice client supervisor.
   use Supervisor
   alias Alchemy.Discord.Gateway.RateLimiter
-  alias Alchemy.Voice.Supervisor.{Controller, Gateway}
+  alias Alchemy.Voice.Supervisor.Gateway
   require Logger
 
   alias __MODULE__.Server
@@ -101,7 +101,7 @@ defmodule Alchemy.Voice.Supervisor do
           :ok
         end
     else
-      [{pid, _}|_] ->
+      [{_pid, _}|_] ->
         RateLimiter.change_voice_state(guild, channel)
         :ok
     end

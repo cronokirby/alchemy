@@ -4,11 +4,9 @@ defmodule Alchemy.Voice.Controller do
   alias Alchemy.Voice.Supervisor.VoiceRegistry
   alias Porcelain.Process, as: Proc
 
-  @empty_ms MapSet.new()
-
   defmodule State do
     defstruct [:udp, :key, :ssrc, :ip, :port, :guild_id, :player, :ws,
-               :kill_timer, listeners: @empty_ms]
+               :kill_timer, listeners: MapSet.new()]
   end
 
   def start_link(udp, key, ssrc, ip, port, guild_id, me) do
@@ -49,8 +47,8 @@ defmodule Alchemy.Voice.Controller do
 
   def handle_call(:stop_playing, _, state) do
     new = case state.player do
-      nil -> stop_playing(state)
-      _ -> state
+      nil -> state
+      _ -> stop_playing(state)
     end
     {:reply, :ok, new}
   end
@@ -72,12 +70,10 @@ defmodule Alchemy.Voice.Controller do
     Task.shutdown(state.player)
     MapSet.to_list(state.listeners)
     |> Enum.each(&send(&1, {:audio_stopped, state.guild_id}))
-    %{state | listeners: @empty_ms}
+    %{state | listeners: MapSet.new()}
   end
 
   ## Audio stuff ##
-
-  @ffmpeg "../porcytest/ffmpeg"
 
   defp header(sequence, time, ssrc) do
     <<0x80, 0x78, sequence::size(16), time::size(32), ssrc::size(32)>>
@@ -85,25 +81,24 @@ defmodule Alchemy.Voice.Controller do
 
   defp mk_stream(file_path) do
     %Proc{out: audio_stream} =
-      Porcelain.spawn(@ffmpeg,
+      Porcelain.spawn(Application.fetch_env!(:alchemy, :ffmpeg_path),
         ["-hide_banner", "-loglevel", "quiet", "-i","#{file_path}",
          "-f", "data", "-map", "0:a", "-ar", "48k", "-ac",
          "2", "-acodec", "libopus", "-b:a", "128k", "pipe:1"], [out: :stream])
     audio_stream
   end
 
-  @youtube_dl "../porcytest/youtube-dl"
-
   defp youtube_stream(url) do
-      %Proc{out: youtube} = Porcelain.spawn(@youtube_dl,
+    %Proc{out: youtube} =
+      Porcelain.spawn(Application.fetch_env!(:alchemy, :youtube_dl_path),
         ["-q", "-f", "bestaudio", "-o", "-", url], [out: :stream])
-      opts = [in: youtube, out: :stream]
-      %Proc{out: audio_stream} =
-        Porcelain.spawn(@ffmpeg,
-          ["-hide_banner", "-loglevel", "quiet", "-i","pipe:0",
-           "-f", "data", "-map", "0:a", "-ar", "48k", "-ac",
-           "2", "-acodec", "libopus", "-b:a", "128k", "pipe:1"], opts)
-      audio_stream
+    opts = [in: youtube, out: :stream]
+    %Proc{out: audio_stream} =
+      Porcelain.spawn(Application.fetch_env!(:alchemy, :ffmpeg_path),
+        ["-hide_banner", "-loglevel", "quiet", "-i","pipe:0",
+         "-f", "data", "-map", "0:a", "-ar", "48k", "-ac",
+         "2", "-acodec", "libopus", "-b:a", "128k", "pipe:1"], opts)
+    audio_stream
   end
 
   defp run_player(path, type, parent, state) do

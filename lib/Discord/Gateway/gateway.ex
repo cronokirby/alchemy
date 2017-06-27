@@ -72,8 +72,8 @@ defmodule Alchemy.Discord.Gateway do
     {:reply, {:text, data}, state}
   end
 
-  def websocket_terminate(why, _conn_state, _state) do
-    Logger.debug "Websocket terminated, reason: #{inspect why}"
+  def websocket_terminate(why, _conn_state, state) do
+    Logger.debug "Shard #{inspect state.shard} terminated, reason: #{inspect why}"
     :ok
   end
 

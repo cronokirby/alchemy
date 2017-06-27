@@ -9,7 +9,6 @@ defmodule Alchemy.Discord.Gateway.Manager do
   alias Alchemy.Discord.Gateway.RateLimiter
   alias Alchemy.Discord.Api
   import Supervisor.Spec
-  import Bitwise
 
   ### Public ###
 

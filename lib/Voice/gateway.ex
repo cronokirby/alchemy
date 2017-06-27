@@ -1,7 +1,7 @@
 defmodule Alchemy.Voice.Gateway do
   @moduledoc false
   @behaviour :websocket_client
-  alias Alchemy.Voice.Supervisor.{VoiceRegistry, Server}
+  alias Alchemy.Voice.Supervisor.Server
   alias Alchemy.Voice.Controller
   alias Alchemy.Voice.UDP
   require Logger
@@ -68,8 +68,6 @@ defmodule Alchemy.Voice.Gateway do
   def onconnect(_, state) do
     Registry.register(Registry.Voice, {state.guild_id, :gateway}, nil)
     Logger.debug "Voice Gateway for #{state.guild_id} connected"
-    payload = Payloads.identify(state.guild_id, state.user_id,
-                                state.session, state.token)
     send(self(), :send_identify)
     {:ok, state}
   end
@@ -130,5 +128,11 @@ defmodule Alchemy.Voice.Gateway do
 
   def websocket_info({:speaking, flag}, _, state) do
     {:reply, {:text, Payloads.speaking(flag)}, state}
+  end
+
+  def websocket_terminate(why, _conn_state, state) do
+    Logger.debug("Voice Gateway for #{state.guild_id} terminated, "
+                 <> "reason: #{inspect why}")
+    :ok
   end
 end
