@@ -49,16 +49,16 @@ defmodule Alchemy.Voice.Gateway do
 
   defmodule State do
     @moduledoc false
-    defstruct [:token, :guild_id, :user_id, :url, :session, :udp,
+    defstruct [:token, :guild_id, :channel, :user_id, :url, :session, :udp,
                :discord_ip, :discord_port, :my_ip, :my_port, :ssrc, :key]
   end
 
-  def start_link(url, token, session, user_id, guild_id) do
+  def start_link(url, token, session, user_id, guild_id, channel) do
     :crypto.start()
     :ssl.start()
     url = String.replace(url, ":80", "")
     state = %State{token: token, guild_id: guild_id, user_id: user_id,
-                   url: url, session: session}
+                   url: url, session: session, channel: channel}
     :websocket_client.start_link("wss://" <> url, __MODULE__, state)
   end
 
@@ -67,7 +67,9 @@ defmodule Alchemy.Voice.Gateway do
   end
 
   def onconnect(_, state) do
-    Registry.register(Registry.Voice, {state.guild_id, :gateway}, nil)
+    # keeping track of the channel helps avoid pointless voice connections
+    # by letting people ping the registry instead.
+    Registry.register(Registry.Voice, {state.guild_id, :gateway}, state.channel)
     Logger.debug "Voice Gateway for #{state.guild_id} connected"
     send(self(), :send_identify)
     {:ok, state}

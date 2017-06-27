@@ -96,7 +96,7 @@ defmodule Alchemy.Voice.Supervisor do
         with {:ok, {user_id, session}} <- recv.(),
              {:ok, {token, url}} <- recv.(),
              {:ok, _pid1} <- Supervisor.start_child(Gateway,
-               [url, token, session, user_id, guild]),
+               [url, token, session, user_id, guild, channel]),
              {:ok, _pid2} <- recv.()
         do
           :ok

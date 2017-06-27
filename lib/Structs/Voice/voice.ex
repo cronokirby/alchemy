@@ -89,12 +89,18 @@ defmodule Alchemy.Voice do
   If you're already connected to the guild, this will not restart the
   voice connections, but instead just move you to the channel.
 
+  This function also checks if you're already connected to this channel,
+  and does nothing if that is the case.
+
   The timeout will be spread across 2 different message receptions,
   i.e. a timeout of `6000` will only wait 3s at every reception.
   """
   @spec join(snowflake, snowflake, integer) :: :ok | {:error, String.t}
   def join(guild, channel, timeout \\ 6000) do
-    VoiceSuper.start_client(guild, channel, timeout)
+    case Registry.lookup(Registry.Voice, {guild, :gateway}) do
+      [{_, ^channel}|_] -> :ok
+      _ -> VoiceSuper.start_client(guild, channel, timeout)
+    end
   end
   @doc """
   Disconnects from voice in a guild.
@@ -215,6 +221,17 @@ defmodule Alchemy.Voice do
       {:audio_stopped, ^guild} -> :ok
     after
       timeout -> {:error, "Timed out waiting for audio"}
+    end
+  end
+  @doc """
+  Returns which channel the client is connected to in a guild.
+
+  Returns `nil` if there is no connection.
+  """
+  def which_channel(guild) do
+    case Registry.lookup(Registry.Voice, {guild, :gateway}) do
+      [{_, channel}|_] -> channel
+      _ -> nil
     end
   end
 end
