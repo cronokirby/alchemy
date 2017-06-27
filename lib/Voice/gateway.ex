@@ -7,6 +7,7 @@ defmodule Alchemy.Voice.Gateway do
   require Logger
 
   defmodule Payloads do
+    @moduledoc false
     @opcodes %{
       identify: 0,
       select: 1,

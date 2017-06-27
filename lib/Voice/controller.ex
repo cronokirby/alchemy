@@ -1,10 +1,12 @@
 defmodule Alchemy.Voice.Controller do
+  @moduledoc false
   use GenServer
   require Logger
   alias Alchemy.Voice.Supervisor.VoiceRegistry
   alias Porcelain.Process, as: Proc
 
   defmodule State do
+    @moduledoc false
     defstruct [:udp, :key, :ssrc, :ip, :port, :guild_id, :player, :ws,
                :kill_timer, listeners: MapSet.new()]
   end

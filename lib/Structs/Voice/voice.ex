@@ -1,6 +1,17 @@
 defmodule Alchemy.Voice do
   @moduledoc """
   Contains the types and functions related to voice communication with discord.
+
+  To use the functions in this module, make sure to configure the paths
+  to `ffmpeg`, as well as `youtube-dl`, like so:
+  ```elixir
+  config :alchemy,
+    ffmpeg_path: "path/to/ffmpeg"
+    youtube_dl_path: "path/to/youtube-dl"
+  ```
+  If these are not configured, the necessary supervisors for maintaining
+  voice connections won't be started, and you'll run into errors when trying
+  to use the functions in this module.
   """
   alias Alchemy.{VoiceState, VoiceRegion}
   alias Alchemy.Voice.Supervisor, as: VoiceSuper
@@ -88,7 +99,7 @@ defmodule Alchemy.Voice do
   @doc """
   Disconnects from voice in a guild.
 
-  Will return an error if already connected to the guild.
+  Returns an error if the connection hadn’t been established.
   """
   @spec leave(snowflake) :: :ok | {:error, String.t}
   def leave(guild) do
@@ -126,13 +137,13 @@ defmodule Alchemy.Voice do
   @doc """
   Starts playing audio from a url.
 
-  For this to work, the path to `youtube-dl` needs to be configured, and
-  the url must be one of the [supported sites](https://rg3.github.io/youtube-dl/supportedsites.html).
+  For this to work, the url must be one of the
+  [supported sites](https://rg3.github.io/youtube-dl/supportedsites.html).
   This function does not check the validity of this url, so if it's invalid,
   an error will get logged, and no audio will be played.
   """
-  @spec play_youtube(snowflake, String.t) :: :ok | {:error, String.t}
-  def play_youtube(guild, url) do
+  @spec play_url(snowflake, String.t) :: :ok | {:error, String.t}
+  def play_url(guild, url) do
     case Registry.lookup(Registry.Voice, {guild, :controller}) do
       [] -> {:error, "You're not joined to voice in this guild"}
       [{pid, _}|_] -> GenServer.call(pid, {:play, url, :yt})
@@ -154,7 +165,7 @@ defmodule Alchemy.Voice do
   Lets this process listen for the end of an audio track in a guild.
 
   This will subscribe this process up until the next time an audio track
-  ends, to react this, you'll want to handle the message in some way, e.g.
+  ends, to react to this, you'll want to handle the message in some way, e.g.
   ```elixir
   Voice.listen_for_end(guild)
   receive do
@@ -163,7 +174,7 @@ defmodule Alchemy.Voice do
   ```
   This is mainly designed for use in genservers, or other places where you don't
   want to block. If you do want to block and wait immediately, try
-  `wait/2` instead.
+  `wait_for_end/2` instead.
 
   ## Examples
   Use in a genserver:
@@ -199,7 +210,7 @@ defmodule Alchemy.Voice do
   """
   @spec wait_for_end(snowflake, integer | :infinity) :: :ok | {:error, String.t}
   def wait_for_end(guild, timeout \\ :infinity) do
-    __MODULE__.listen_for_end(guild)
+    listen_for_end(guild)
     receive do
       {:audio_stopped, ^guild} -> :ok
     after
