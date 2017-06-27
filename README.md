@@ -99,6 +99,13 @@ Cogs.def play(url) do
   Cogs.say "Now playing #{url}"
 end
 ```
+
+### Porcelain
+Alchemy uses [`Porcelain`](https://github.com/alco/porcelain), to
+help with managing external processes, to help save on memory usage,
+you may want to use the `goon` driver, as suggested by `Porcelain`.
+For more information, check out their github.
+
 # Other Examples
 If you'd like to see a larger example of a bot using `Alchemy`,
 checkout out [Viviani](https://github.com/cronokirby/viviani).
