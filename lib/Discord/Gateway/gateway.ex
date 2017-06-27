@@ -9,14 +9,14 @@ defmodule Alchemy.Discord.Gateway do
 
   defmodule State do
     @moduledoc false
-    defstruct [:token, :shard, :trace, :session_id, :seq]
+    defstruct [:token, :shard, :trace, :session_id, :seq, :user_id]
   end
 
 
   # Requests a gateway URL, before then connecting, and storing the token
   def start_link(token, shard) do
-     :crypto.start
-     :ssl.start
+     :crypto.start()
+     :ssl.start()
      # request_url will return a protocol to execute
      url = Manager.request_url().()
      Logger.info "Shard #{inspect shard} connecting to the gateway"
@@ -72,8 +72,8 @@ defmodule Alchemy.Discord.Gateway do
     {:reply, {:text, data}, state}
   end
 
-  def websocket_terminate(why, _conn_state, _state) do
-    Logger.debug "Websocket terminated, reason: #{inspect why}"
+  def websocket_terminate(why, _conn_state, state) do
+    Logger.debug "Shard #{inspect state.shard} terminated, reason: #{inspect why}"
     :ok
   end
 

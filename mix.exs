@@ -18,7 +18,7 @@ defmodule Alchemy.Mixfile do
   def application do
     # Specify extra applications you'll use from Erlang/Elixir
     [extra_applications: [:logger],
-     applications: [:httpoison]]
+     applications: [:httpoison, :porcelain]]
   end
 
 
@@ -28,7 +28,9 @@ defmodule Alchemy.Mixfile do
      {:websocket_client, "~> 1.2"},
      {:ex_doc, "~> 0.11", only: :dev},
      {:poison, "~> 3.0"},
-     {:gen_stage, "~> 0.11"}]
+     {:gen_stage, "~> 0.11"},
+     {:porcelain, "~> 2.0"},
+     {:kcl, "~> 1.0.0"}]
   end
 
   defp description do

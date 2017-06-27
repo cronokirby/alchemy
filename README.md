@@ -69,6 +69,43 @@ Now, to run this project, we have 2 options:
 Starting the application in the repl is very advantageous, as it allows
  you to interact with the bot live.
 
+### Using Voice
+Alchemy also supports using discord's voice API to play audio.
+We rely on [ffmpeg](https://ffmpeg.org/) for audio encoding,
+as well as [youtube-dl](https://rg3.github.io/youtube-dl/) for streaming
+audio from sites. Before the voice api can be used, you'll need to acquire
+the latest versions of those from their sites, and then configure the path
+to those executables in alchemy like so:
+```
+# in config.exs
+config :alchemy,
+  ffmpeg_path: "path/to/ffmpeg"
+  youtube_dl_path: "path/to/youtube_dl"
+```
+
+Now you're all set to start playing some audio!
+
+The first step is to connect to a voice channel with `Alchemy.Voice.join/2`,
+then, you can start playing audio with `Alchemy.Voice.play_file/2`,
+or `Alchemy.Voice.play_url/2`. Here's an example command to show off these
+features:
+```elixir
+Cogs.def play(url) do
+  {:ok, id} = Cogs.guild_id()
+  # joins the default channel for this guild
+  # this will check if a connection already exists for you
+  Voice.join(id, id)
+  Voice.play_url(id, url)
+  Cogs.say "Now playing #{url}"
+end
+```
+
+### Porcelain
+Alchemy uses [`Porcelain`](https://github.com/alco/porcelain), to
+help with managing external processes, to help save on memory usage,
+you may want to use the `goon` driver, as suggested by `Porcelain`.
+For more information, check out their github.
+
 # Other Examples
 If you'd like to see a larger example of a bot using `Alchemy`,
 checkout out [Viviani](https://github.com/cronokirby/viviani).

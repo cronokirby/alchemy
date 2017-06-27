@@ -4,7 +4,6 @@ defmodule Alchemy.Discord.Gateway.RateLimiter do
   use Bitwise
   alias Alchemy.Discord.Payloads
 
-
   defmodule RateSupervisor do
     @moduledoc false
     alias Alchemy.Discord.Gateway.RateLimiter
@@ -28,7 +27,6 @@ defmodule Alchemy.Discord.Gateway.RateLimiter do
     Supervisor.start_child(__MODULE__.RateSupervisor, [pid])
   end
 
-
   def status_update(pid, idle_since, game_name) do
     Task.async(fn ->
       payload = Payloads.status_update(idle_since, game_name)
@@ -36,12 +34,22 @@ defmodule Alchemy.Discord.Gateway.RateLimiter do
     end)
   end
 
+  def shard_pid(guild, name \\ __MODULE__.RateSupervisor) do
+    {guild_id, _} = Integer.parse(guild)
+    shards = Supervisor.which_children(name)
+      |> Enum.map(fn {_, pid, _, _} -> pid end)
+    Enum.at(shards, rem((guild_id >>> 22), length(shards)))
+  end
+
   def request_guild_members(guild_id, username, limit) do
     payload = Payloads.request_guild_members(guild_id, username, limit)
-    shards = Supervisor.which_children(__MODULE__.RateSupervisor)
-             |> Enum.map(fn {_, pid, _, _} -> pid end)
-    {guild_id, _} = Integer.parse(guild_id)
-    Enum.at(shards, rem((guild_id >>> 22), length(shards)))
+    shard_pid(guild_id)
+    |> send_request({:send_event, payload})
+  end
+
+  def change_voice_state(guild_id, channel_id, mute \\ false, deaf \\ false) do
+    payload = Payloads.voice_update(guild_id, channel_id, mute, deaf)
+    shard_pid(guild_id)
     |> send_request({:send_event, payload})
   end
 

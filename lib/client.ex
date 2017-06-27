@@ -29,6 +29,7 @@ defmodule Alchemy.Client do
                  Guild, Message, User, VoiceRegion}
   alias Alchemy.Cache.Supervisor, as: CacheSupervisor
   alias Alchemy.EventStage.StageSupervisor
+  alias Alchemy.Voice.Supervisor, as: VoiceSupervisor
   import Alchemy.Discord.RateManager, only: [send_req: 2]
   use Alchemy.Discord.Types
 
@@ -60,13 +61,19 @@ defmodule Alchemy.Client do
   # This creates a `RateManager`, under the name `API` that will be available
   # for managing requests.
   def init({token, options}) do
-    children = [
+    base = [
       worker(RateManager, [token]),
       worker(GatewayManager, [token, options]),
       supervisor(GatewayRates, []),
       supervisor(CacheSupervisor, []),
-      supervisor(StageSupervisor, [options])
+      supervisor(StageSupervisor, [options]),
     ]
+    # don't even start the voice section if the path isn't set
+    children = if Application.get_env(:alchemy, :ffmpeg_path) do
+      [supervisor(VoiceSupervisor, []) | base]
+    else
+      base
+    end
     supervise(children, strategy: :one_for_one)
   end
 
@@ -547,7 +554,7 @@ defmodule Alchemy.Client do
       {Channels, :delete_reactions, [channel_id, id]}
       |> send_req("/channels/#{channel_id}/messages/reactions")
     end
-    def remove_reactions({channel_id, message_id} = message) do
+    def remove_reactions({channel_id, message_id}) do
       {Channels, :delete_reactions, [channel_id, message_id]}
       |> send_req("/channels/#{channel_id}/messages/reactions")
     end
