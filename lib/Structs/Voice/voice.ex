@@ -112,7 +112,7 @@ defmodule Alchemy.Voice do
   Voice.play_file("666", "cool_song.mp3")
   ```
   """
-  @spec play_file(snowflake, Path.t) :: :ok
+  @spec play_file(snowflake, Path.t) :: :ok | {:error, String.t}
   def play_file(guild, file_path) do
     with [{pid, _}|_] <- Registry.lookup(Registry.Voice, {guild, :controller}),
          true <- File.exists?(file_path)
@@ -131,7 +131,7 @@ defmodule Alchemy.Voice do
   This function does not check the validity of this url, so if it's invalid,
   an error will get logged, and no audio will be played.
   """
-  @spec play_youtube(snowflake, String.t) :: :ok
+  @spec play_youtube(snowflake, String.t) :: :ok | {:error, String.t}
   def play_youtube(guild, url) do
     case Registry.lookup(Registry.Voice, {guild, :controller}) do
       [] -> {:error, "You're not joined to voice in this guild"}
@@ -143,10 +143,67 @@ defmodule Alchemy.Voice do
 
   Returns an error if the connection hadn't been established.
   """
+  @spec stop_audio(snowflake) :: :ok | {:error, String.t}
   def stop_audio(guild) do
     case Registry.lookup(Registry.Voice, {guild, :controller}) do
       [] -> {:error, "You're not joined to voice in this guild"}
       [{pid, _}|_] -> GenServer.call(pid, :stop_playing)
+    end
+  end
+  @doc """
+  Lets this process listen for the end of an audio track in a guild.
+
+  This will subscribe this process up until the next time an audio track
+  ends, to react this, you'll want to handle the message in some way, e.g.
+  ```elixir
+  Voice.listen_for_end(guild)
+  receive do
+    {:audio_stopped, ^guild} -> IO.puts "audio has stopped"
+  end
+  ```
+  This is mainly designed for use in genservers, or other places where you don't
+  want to block. If you do want to block and wait immediately, try
+  `wait/2` instead.
+
+  ## Examples
+  Use in a genserver:
+  ```elixir
+  def handle_info({:audio_stopped, guild}, state) do
+    IO.puts "audio has stopped in \#{guild}"
+    Voice.listen_for_end(guild)
+    {:noreply, state}
+  end
+  ```
+  """
+  @spec listen_for_end(snowflake) :: :ok | {:error, String.t}
+  def listen_for_end(guild) do
+    case Registry.lookup(Registry.Voice, {guild, :controller}) do
+      [] -> {:error, "You're not joined to voice in this guild"}
+      [{pid, _}|_] -> GenServer.call(pid, :add_listener)
+    end
+  end
+  @doc """
+  Blocks the current process until audio has stopped playing in a guild.
+
+  This is a combination of `listen_for_end/1` and a receive block,
+  however this will return an error if the provided timeout is exceeded.
+  This is useful for implementing automatic track listing, e.g.
+  ```elixir
+  def playlist(guild, tracks) do
+    Enum.map(tracks, fn track ->
+      Voice.play_file(guild, track)
+      Voice.wait_for_end(guild)
+    end)
+  end
+  ```
+  """
+  @spec wait_for_end(snowflake, integer | :infinity) :: :ok | {:error, String.t}
+  def wait_for_end(guild, timeout \\ :infinity) do
+    __MODULE__.listen_for_end(guild)
+    receive do
+      {:audio_stopped, ^guild} -> :ok
+    after
+      timeout -> {:error, "Timed out waiting for audio"}
     end
   end
 end

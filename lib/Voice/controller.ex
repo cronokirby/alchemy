@@ -4,8 +4,11 @@ defmodule Alchemy.Voice.Controller do
   alias Alchemy.Voice.Supervisor.VoiceRegistry
   alias Porcelain.Process, as: Proc
 
+  @empty_ms MapSet.new()
+
   defmodule State do
-    defstruct [:udp, :key, :ssrc, :ip, :port, :guild_id, :player, :ws]
+    defstruct [:udp, :key, :ssrc, :ip, :port, :guild_id, :player, :ws,
+               :kill_timer, listeners: @empty_ms]
   end
 
   def start_link(udp, key, ssrc, ip, port, guild_id, me) do
@@ -21,8 +24,14 @@ defmodule Alchemy.Voice.Controller do
   end
 
   def handle_cast({:send_audio, data}, state) do
+    # We need to do this because youtube streams don't cut off when they finish
+    # playing audio, so we need to manually check and kill.
+    unless state.kill_timer == nil do
+      Process.cancel_timer(state.kill_timer)
+    end
+    timer = Process.send_after(self(), :stop_playing, 120)
     :gen_udp.send(state.udp, state.ip, state.port, data)
-    {:noreply, state}
+    {:noreply, %{state | kill_timer: timer}}
   end
 
   def handle_call({:play, path, type}, _, state) do
@@ -39,15 +48,31 @@ defmodule Alchemy.Voice.Controller do
   end
 
   def handle_call(:stop_playing, _, state) do
-    unless state.player == nil do
-      Task.shutdown(state.player)
+    new = case state.player do
+      nil -> stop_playing(state)
+      _ -> state
     end
-    {:reply, :ok, state}
+    {:reply, :ok, new}
+  end
+
+  def handle_call(:add_listener, {pid, _}, state) do
+    {:reply, :ok, Map.update!(state, :listeners, &MapSet.put(&1, pid))}
+  end
+
+  def handle_info(:stop_playing, state) do
+    {:noreply, stop_playing(state)}
   end
 
   # ignore down messages from the task
   def handle_info(_, state) do
     {:noreply, state}
+  end
+
+  defp stop_playing(state) do
+    Task.shutdown(state.player)
+    MapSet.to_list(state.listeners)
+    |> Enum.each(&send(&1, {:audio_stopped, state.guild_id}))
+    %{state | listeners: @empty_ms}
   end
 
   ## Audio stuff ##
