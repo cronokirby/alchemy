@@ -547,4 +547,27 @@ defmodule Alchemy.Cogs do
         normal_cog()
     end
   end
+  @doc """
+  Returns a map from command name (string) to the command information.
+
+  Each command is either `{module, arity, function_name}`, or 
+  `{module, arity, function_name, parser}`.
+
+  This can be useful for providing some kind of help command, or telling
+  a user if a command is defined, e.g. :
+  ```elixir
+  Cogs.def iscommand(maybe) do
+    case Cogs.all_commands()[maybe] do
+      nil -> Cogs.say "\#{maybe} is not a command"
+      _   -> Cogs.say "\#{maybe} is a command"
+    end
+  end
+  ```
+  """
+  @spec all_commands :: map
+  def all_commands do
+    GenServer.call(Alchemy.Cogs.CommandHandler, :list)
+    |> Map.delete(:prefix)
+    |> Map.delete(:options)
+  end
 end
