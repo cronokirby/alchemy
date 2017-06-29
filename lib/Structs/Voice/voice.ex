@@ -82,6 +82,14 @@ defmodule Alchemy.Voice do
     self_mute: Boolean,
     suppress: Boolean
   }
+  @typedoc """
+  Represents the audio options that can be passed to different play methods.  
+
+  ## Options
+  - `vol` audio volume, in `%`. Can go above 100 to multiply, e.g. `150`.
+  """
+  @type audio_options :: [{:vol, integer}]
+
   @doc """
   Joins a voice channel in a guild.
 
@@ -129,15 +137,22 @@ defmodule Alchemy.Voice do
   Voice.play_file("666", "cool_song.mp3")
   ```
   """
-  @spec play_file(snowflake, Path.t) :: :ok | {:error, String.t}
-  def play_file(guild, file_path) do
+  @spec play_file(snowflake, Path.t, audio_options) :: :ok | {:error, String.t}
+  def play_file(guild, file_path, options \\ []) do
     with [{pid, _}|_] <- Registry.lookup(Registry.Voice, {guild, :controller}),
          true <- File.exists?(file_path)
     do
-      GenServer.call(pid, {:play, file_path, :file})
+      GenServer.call(pid, {:play, file_path, :file, options})
     else
       [] -> {:error, "You're not joined to voice in this guild"}
       false -> {:error, "This file does not exist"}
+    end
+  end
+
+  defp play_type(guild, type, data, options) do
+    case Registry.lookup(Registry.Voice, {guild, :controller}) do
+      [] -> {:error, "You're not joined to voice in this guild"}
+      [{pid, _}|_] -> GenServer.call(pid, {:play, data, type, options})
     end
   end
   @doc """
@@ -148,12 +163,19 @@ defmodule Alchemy.Voice do
   This function does not check the validity of this url, so if it's invalid,
   an error will get logged, and no audio will be played.
   """
-  @spec play_url(snowflake, String.t) :: :ok | {:error, String.t}
-  def play_url(guild, url) do
-    case Registry.lookup(Registry.Voice, {guild, :controller}) do
-      [] -> {:error, "You're not joined to voice in this guild"}
-      [{pid, _}|_] -> GenServer.call(pid, {:play, url, :yt})
-    end
+  @spec play_url(snowflake, String.t, audio_options) :: :ok | {:error, String.t}
+  def play_url(guild, url, options \\ []) do
+    play_type(guild, :url, url, options)
+  end
+  @doc """
+  Starts playing audio from an `iodata`, or a stream of `iodata`.
+
+  Similar to `play_url/2` except it doesn't create a stream from
+  `youtube-dl` for you.
+  """
+  @spec play_iodata(snowflake, iodata | Enumerable.t, audio_options) :: :ok | {:error, String.t}
+  def play_iodata(guild, data, options \\ []) do
+    play_type(guild, :iodata, data, options)
   end
   @doc """
   Stops playing audio on a guild's voice connection.
@@ -228,6 +250,7 @@ defmodule Alchemy.Voice do
 
   Returns `nil` if there is no connection.
   """
+  @spec which_channel(snowflake) :: snowflake | nil
   def which_channel(guild) do
     case Registry.lookup(Registry.Voice, {guild, :gateway}) do
       [{_, channel}|_] -> channel

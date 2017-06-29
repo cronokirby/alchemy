@@ -34,13 +34,13 @@ defmodule Alchemy.Voice.Controller do
     {:noreply, %{state | kill_timer: timer}}
   end
 
-  def handle_call({:play, path, type}, _, state) do
+  def handle_call({:play, path, type, options}, _, state) do
     self = self()
     if state.player != nil && Process.alive?(state.player.pid) do
       {:reply, {:error, "Already playing audio"}, state}
     else
       player = Task.async(fn ->
-        run_player(path, type, self,
+        run_player(path, type, options, self,
           %{ssrc: state.ssrc, key: state.key, ws: state.ws})
       end)
       {:reply, :ok, %{state | player: player}}
@@ -81,33 +81,42 @@ defmodule Alchemy.Voice.Controller do
     <<0x80, 0x78, sequence::size(16), time::size(32), ssrc::size(32)>>
   end
 
-  defp mk_stream(file_path) do
+  defp mk_stream(file_path, options) do
+    volume = (options[:vol] || 100) / 100
     %Proc{out: audio_stream} =
       Porcelain.spawn(Application.fetch_env!(:alchemy, :ffmpeg_path),
         ["-hide_banner", "-loglevel", "quiet", "-i","#{file_path}",
-         "-f", "data", "-map", "0:a", "-ar", "48k", "-ac",
-         "2", "-acodec", "libopus", "-b:a", "128k", "pipe:1"], [out: :stream])
+         "-f", "data", "-map", "0:a", "-ar", "48k", "-ac", "2", 
+         "-af", "volume=#{volume}",
+          "-acodec", "libopus", "-b:a", "128k", "pipe:1"], [out: :stream])
     audio_stream
   end
 
-  defp youtube_stream(url) do
+  defp url_stream(url, options) do
     %Proc{out: youtube} =
       Porcelain.spawn(Application.fetch_env!(:alchemy, :youtube_dl_path),
         ["-q", "-f", "bestaudio", "-o", "-", url], [out: :stream])
-    opts = [in: youtube, out: :stream]
+    io_data_stream(youtube, options)
+  end
+
+  defp io_data_stream(data, options) do
+    volume = (options[:vol] || 100) / 100
+    opts = [in: data, out: :stream] 
     %Proc{out: audio_stream} =
       Porcelain.spawn(Application.fetch_env!(:alchemy, :ffmpeg_path),
         ["-hide_banner", "-loglevel", "quiet", "-i","pipe:0",
-         "-f", "data", "-map", "0:a", "-ar", "48k", "-ac",
-         "2", "-acodec", "libopus", "-b:a", "128k", "pipe:1"], opts)
+         "-f", "data", "-map", "0:a", "-ar", "48k", "-ac", "2",
+         "-af", "volume=#{volume}",
+         "-acodec", "libopus", "-b:a", "128k", "pipe:1"], opts)
     audio_stream
-  end
+  end 
 
-  defp run_player(path, type, parent, state) do
+  defp run_player(path, type, options, parent, state) do
     send(state.ws, {:speaking, true})
     stream = case type do
-      :file -> mk_stream(path)
-      :yt -> youtube_stream(path)
+      :file -> mk_stream(path, options)
+      :url -> url_stream(path, options)
+      :iodata -> io_data_stream(path, options)
     end
     {seq, time, _} =
       stream
