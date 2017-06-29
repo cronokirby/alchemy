@@ -54,9 +54,11 @@ defmodule Alchemy.Cogs do
   the function corresponding to the command called, and will return preemptively
   if no such function is found. After that, `rest` is passed to the parser,
   which will try and extract arguments to pass to the function. The default
-  parsing method is simply splitting by whitespace. Thankfully,
+  parsing method is simply splitting by spaces, except inside quotes, e.g. :
+  `arg1 "this is arg 2" arg3`.
+  Thankfully,
   you can define a custom parser for a command via `Cogs.set_parser/2`. This
-  parser will act upong `rest`, and parse out the relevant arguments.
+  parser will act upon `rest`, and parse out the relevant arguments.
 
   ## The `message` argument
   When you define a function with `Cogs.def` the function gets expanded
