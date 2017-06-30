@@ -44,12 +44,6 @@ defmodule Alchemy.Cogs.CommandHandler do
     |> Enum.filter(&(&1 != nil))
   end
 
-  def split(args) do
-    args
-    |> String.split("\"")
-    |> Enum.map_every(2, &String.split/1)
-    |> List.flatten
-  end
 
   defp get_command(message, state) do
      prefix = state.prefix
@@ -59,7 +53,7 @@ defmodule Alchemy.Cogs.CommandHandler do
                  |> Enum.concat(["", ""]))
      case state[command] do
        {mod, arity, method} ->
-         command_tuple(mod, method, arity, &split/1, message, rest)
+         command_tuple(mod, method, arity, &String.split/1, message, rest)
        {mod, arity, method, parser} ->
          command_tuple(mod, method, arity, parser, message, rest)
        _ ->
