@@ -514,7 +514,7 @@ defmodule Alchemy.Cogs do
           {m, a, f, e} ->
             apply(m, f, [message | rest |> e.() |> Enum.take(a)])
           {m, a, f} ->
-            apply(m, f, [message | rest |> Alchemy.Cogs.CommandHandler.split |> Enum.take(a)])
+            apply(m, f, [message | rest |> Alchemy.Cogs.CommandHandler.ArgParser.parse |> Enum.take(a)])
           _x ->
             nil
         end
@@ -552,7 +552,7 @@ defmodule Alchemy.Cogs do
   @doc """
   Returns a map from command name (string) to the command information.
 
-  Each command is either `{module, arity, function_name}`, or 
+  Each command is either `{module, arity, function_name}`, or
   `{module, arity, function_name, parser}`.
 
   This can be useful for providing some kind of help command, or telling
