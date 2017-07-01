@@ -73,7 +73,7 @@ defmodule Alchemy.Discord.Api do
   def auth_headers(token) do
     client_type = Application.get_env(:alchemy, :self_bot, "Bot ")
     [{"Authorization", client_type <> "#{token}"},
-     {"User-Agent", "DiscordBot (https://github.com/cronokirby/alchemy, 0.4.1)"}]
+     {"User-Agent", "DiscordBot (https://github.com/cronokirby/alchemy, 0.5.0)"}]
   end
 
 
