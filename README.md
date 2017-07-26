@@ -22,6 +22,8 @@ end
 This is the stable documentation for the library, I highly recommend going
 through it, as most of the relevant information resides there.
 
+### QuickStart
+Run `mix alchemy.init` to generate a template bot file for your project.
 
 ### Getting Started
 The first thing we need to do is define some kind of application for our bot.
@@ -57,7 +59,7 @@ of `Client.start` in a variable.
 Now all we need to do to wire up this application, is to add it to our `mix.exs`:
 ```elixir
 def application do
-  [mod: {Mybot, []}]
+  [mod: {MyBot, []}]
 end
 ```
 This makes our bot automatically start when we run our project.
