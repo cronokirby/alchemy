@@ -18,7 +18,6 @@ erl_crash.dump
 *.ez
 t.exs
 lib/CogLib/
-lib/mix
 doc/
 mix.lock
 ttb_last_config
