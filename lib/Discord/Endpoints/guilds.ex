@@ -3,6 +3,7 @@ defmodule Alchemy.Discord.Guilds do
   alias Alchemy.Discord.Api
   alias Alchemy.{Channel, Invite, Guild, User, VoiceRegion}
   alias Alchemy.Guild.{GuildMember, Integration, Role}
+  alias Alchemy.AuditLog
 
   @root "https://discordapp.com/api/v6/guilds/"
 
@@ -204,5 +205,10 @@ defmodule Alchemy.Discord.Guilds do
   def sync_integration(token, guild_id, integration_id) do
     @root <> guild_id <> "/integrations/" <> integration_id <> "/sync"
     |> Api.post(token)
+  end
+
+  def get_audit_logs(token, guild_id) do
+    @root <> guild_id <> "/audit-log"
+    |> Api.get(token, AuditLog)
   end
 end
