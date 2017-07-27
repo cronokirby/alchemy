@@ -207,7 +207,7 @@ defmodule Alchemy.Discord.Guilds do
     |> Api.post(token)
   end
 
-  def get_audit_logs(token, guild_id) do
+  def get_audit_log(token, guild_id) do
     @root <> guild_id <> "/audit-log"
     |> Api.get(token, AuditLog)
   end
