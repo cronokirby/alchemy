@@ -114,7 +114,6 @@ defmodule Alchemy.AuditLog do
   defmodule Entry do
     @moduledoc false
     import Alchemy.Structs
-    alias Alchemy.AuditLog
 
     defstruct [:target_id,
                :changes,
@@ -125,34 +124,40 @@ defmodule Alchemy.AuditLog do
                :reason
               ]
 			  
-	@audit_log_events %{
-    1  => :guild_update,
-    10 => :channel_create,
-    11 => :channel_update,
-    12 => :channel_delete,
-    13 => :channel_overwrite_create,
-    14 => :channel_overwrite_update,
-    15 => :channel_overwrite_delete,
-    20 => :member_kick,
-    21 => :member_prune,
-    22 => :member_ban_add,
-    23 => :member_ban_remove,
-    24 => :member_update,
-	  25 => :member_role_update,
-	  30 => :role_create,
-	  31 => :role_update,
-	  32 => :role_delete,
-	  40 => :invite_create,
-	  41 => :invite_update,
-	  42 => :invite_delete,
-	  50 => :webhook_create,
-	  51 => :webhook_update,
-	  52 => :webhook_delete,
-	  60 => :emoji_create,
-	  61 => :emoji_update,
-	  72 => :message_delete
-   }
-	
+	  @audit_log_events %{
+      1  => :guild_update,
+      10 => :channel_create,
+      11 => :channel_update,
+      12 => :channel_delete,
+      13 => :channel_overwrite_create,
+      14 => :channel_overwrite_update,
+      15 => :channel_overwrite_delete,
+      20 => :member_kick,
+      21 => :member_prune,
+      22 => :member_ban_add,
+      23 => :member_ban_remove,
+      24 => :member_update,
+	    25 => :member_role_update,
+	    30 => :role_create,
+	    31 => :role_update,
+	    32 => :role_delete,
+	    40 => :invite_create,
+	    41 => :invite_update,
+	    42 => :invite_delete,
+	    50 => :webhook_create,
+	    51 => :webhook_update,
+	    52 => :webhook_delete,
+	    60 => :emoji_create,
+	    61 => :emoji_update,
+	    72 => :message_delete
+     }
+     
+    @events_to_int for {k, v} <- @audit_log_events, into: %{}, do: {v, k}
+
+    def action_to_int(k) do
+      @events_to_int[k]
+    end
+
     def from_map(map) do
       action_type = Map.get(@audit_log_events, map["action_type"])
       options = for {k, v} <- map["options"], into: %{} do
@@ -163,7 +168,7 @@ defmodule Alchemy.AuditLog do
         nil -> :pop
         x -> 
           {a, _} = Integer.parse(x)
-          a
+          {x, a}
       end)
       map
       |> field_map("action_type", fn _ -> action_type end)
@@ -214,8 +219,33 @@ defmodule Alchemy.AuditLog do
     end
   end
 
-  def get_guild_log(guild, options \\ %{}) do
-    {Guilds, :get_audit_log, [guild]}
+  @doc """
+  Returns an audit log entry for a guild.
+
+  Requires `:view_audit_log` permission.
+
+  ## Options
+  - `user_id`
+    Filters the log for a user id.
+  - `action_type`
+    The type of audit log event
+  - `before`
+    Filter the log before a certain entry id.
+  - `limit`
+    How many entries are returned (default 50, between 1 and 100).
+  """
+  @spec get_guild_log(snowflake, 
+                      user_id: snowflake, 
+                      action_type: action,
+                      before: snowflake,
+                      limit: integer) :: {:ok, __MODULE__.t} | {:error, term} 
+  def get_guild_log(guild, options \\ []) do
+    options = Keyword.get_and_update(options, :action_type, fn
+      nil -> :pop
+      x ->
+        {x, __MODULE__.Entry.action_to_int(x)}
+     end)
+    {Guilds, :get_audit_log, [guild, options]}
     |> send_req("/guilds/#{guild}/audit-log")
   end
 end
