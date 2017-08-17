@@ -1196,11 +1196,16 @@ defmodule Alchemy.Client do
     @doc """
     Updates the status of the client.
 
-    The status displays a "playing Game" message under the client, as well
+    The status displays either "playing Game", 
+    or a "streaming Game" message under the client, as well
     setting an inactivity based on idleness.
 
-    `game_name` specifies the name to update the game_status to, `nil`
-    will clear that status. `idle_since` can be specified, using
+    `playing: game` specifies that you're playing, but not streaming 
+    a game. `streaming: {game, twitch}` acts in a similar way, except
+    that it will also have a link to that twitch stream. You should only
+    pass in the handle, and not the full stream link, i.e. "foobar" instead
+    of "twitch.tv/foobar".
+    `idle_since` can be specified, using
     unix time, in milliseconds, to indicate for how long the client has been idle.
 
     ## Note on ratelimiting
@@ -1213,13 +1218,20 @@ defmodule Alchemy.Client do
     Client.update_status("Alchemy")
     ```
     """
-    @spec update_status(Integer, String.t) :: :ok | {:error, String.t}
-    def update_status(game_name, idle_since \\ nil) do
+    @spec update_status(Integer, playing: String.t, streaming: {String.t, String.t}) :: :ok | {:error, String.t}
+    def update_status(idle_since \\ nil, game_info)
+    def update_status(idle_since, playing: game) do
+      do_update_status(idle_since, {:playing, game})
+    end
+    def update_status(idle_since, streaming: {game, twitch_handle}) do
+      do_update_status(idle_since, {:streaming, game, twitch_handle})
+    end
+    defp do_update_status(idle_since, info) do
       pids = Supervisor.which_children(GatewayRates)
       |> Stream.map(fn {_, pid, _, _} -> pid end)
       try do
         Enum.map(pids, fn pid ->
-          GatewayLimiter.status_update(pid, idle_since, game_name)
+          GatewayLimiter.status_update(pid, idle_since, info)
           |> Task.await(24_000)
         end)
         :ok

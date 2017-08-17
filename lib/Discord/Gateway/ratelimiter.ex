@@ -27,9 +27,9 @@ defmodule Alchemy.Discord.Gateway.RateLimiter do
     Supervisor.start_child(__MODULE__.RateSupervisor, [pid])
   end
 
-  def status_update(pid, idle_since, game_name) do
+  def status_update(pid, idle_since, game_info) do
     Task.async(fn ->
-      payload = Payloads.status_update(idle_since, game_name)
+      payload = Payloads.status_update(idle_since, game_info)
       send_request(pid, {:status_update, payload})
     end)
   end

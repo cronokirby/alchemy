@@ -60,11 +60,16 @@ defmodule Alchemy.Discord.Payloads do
   end
 
 
-  def status_update(idle_since, nil) do
-    build_payload(:status_update, %{idle_since: idle_since, game: nil})
-  end
-  def status_update(idle_since, game_name) do
-    payload = %{idle_since: idle_since, game: %{name: game_name}}
+  def status_update(idle_since, info) do
+    game = case info do
+      nil -> 
+        nil
+      {:streaming, game_name, twitch} ->
+        %{name: game_name, type: 1, url: "https://twitch.tv/" <> twitch}
+      {:playing, game_name} ->
+        %{name: game_name, type: 0}
+    end
+    payload = %{since: idle_since, game: game}
     build_payload(:status_update, payload)
   end
 
