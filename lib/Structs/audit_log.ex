@@ -1,4 +1,4 @@
-defmodule AuditLog do
+defmodule Alchemy.AuditLog do
   @moduledoc """
   This module contains functions and types related to audit logs.
   """
@@ -22,7 +22,7 @@ defmodule AuditLog do
   @type t :: %__MODULE__{
     webhooks: Alchemy.Webhook.t,
     users: Alchemy.User.t,
-    audit_log_entries: [String.t]
+    audit_log_entries: [entry]
   }
   defstruct [:webhooks,
              :users,
@@ -33,19 +33,82 @@ defmodule AuditLog do
     |> field_map("webhooks", &map_struct(&1, Webhook))
     |> field_map("users", &map_struct(&1, User))
     |> field_map("audit_log_entries", &Enum.map(&1, fn x -> 
-       Entry.from_map(x) 
+       __MODULE__.Entry.from_map(x) 
     end))
   end
 
+  @typedoc """
+  An enumeration of action types.
+  """
+  @type action :: 
+    :guild_update |
+    :channel_create |
+    :channel_update |
+    :channel_delete |
+    :channel_overwrite_create |
+    :channel_overwrite_update |
+    :channel_overwrite_delete |
+    :member_kick |
+    :member_prune |
+    :member_ban_add |
+    :member_ban_remove |
+    :member_update |
+	  :member_role_update |
+	  :role_create |
+	  :role_update | 
+	  :role_delete | 
+	  :invite_create | 
+	  :invite_update |
+	  :invite_delete |
+	  :webhook_create |
+	  :webhook_update |
+	  :webhook_delete |
+	  :emoji_create |
+	  :emoji_update |
+	  :message_delete
 
+  @typedoc """
+  Additional information fields in an audit log based on `action_type`.
 
-  @type entry :: %{
+  `:member_prune` -> `[:delete_member_days, :members_removed]`
+  `:message_delete` -> `[:channel_id, :count]`
+  `:channel_overwrite_create | delete | update` -> [:id, :type, :role_name]
+  """
+  @type options :: %{
+    optional(:delete_member_days) => String.t,
+    optional(:members_removed) => String.t,
+    optional(:channel_id) => snowflake,
+    optional(:count) => integer,
+    optional(:id) => snowflake,
+    optional(:type) => String.t,
+    optional(:role_name) => String.t
+  }
+
+  @typedoc """
+  An entry in an audit log.
+
+  - `target_id`
+    The id of the affected entity.
+  - `changes`
+    The changes made to the `target_id`.
+  - `user_id`
+    The user who made the changes.
+  - `id`
+    The id of the entry
+  - `action_type`
+    The type of action that occurred
+  - `options`
+    Additional map of information for certain action types.
+  - `reason`
+    The reason for the change
+  """
+  @type entry :: %__MODULE__.Entry{
     target_id: String.t,
-    changes: [any],
+    changes: [change],
     user_id: snowflake,
     id: snowflake,
-    action_type: atom,
-    options: any
+    action_type: action,
+    options: options
   }
   
   defmodule Entry do
@@ -63,7 +126,7 @@ defmodule AuditLog do
               ]
 			  
 	@audit_log_events %{
-    1 => :guild_update,
+    1  => :guild_update,
     10 => :channel_create,
     11 => :channel_update,
     12 => :channel_delete,
@@ -96,12 +159,38 @@ defmodule AuditLog do
         # this is safe, because there's a set amount of keys.
         {String.to_atom(k), v}
       end 
+      |> Map.get_and_update(:count, fn
+        nil -> :pop
+        x -> 
+          {a, _} = Integer.parse(x)
+          a
+      end)
       map
       |> field_map("action_type", fn _ -> action_type end)
-      |> field_map("changes", &map_struct(&1, AuditLog.Change))
+      |> field_map("options", fn _ -> options end)
+      |> field_map("changes", &map_struct(&1, Alchemy.AuditLog.Change))
       |> to_struct(__MODULE__)
     end
   end
+
+  @typedoc """
+  The type of an audit log change.
+
+  - `new_value`
+    The new value after the change.
+  - `old_value`
+    The value prior to the change.
+  - `key`
+    The type of change that occurred. This also dictates the type of
+    `new_value` and `old_value`
+  
+  [more information on this relation](https://discordapp.com/developers/docs/resources/audit-log#audit-log-change-object-audit-log-change-key)
+  """
+  @type change :: %__MODULE__.Change{
+    new_value: any,
+    old_value: any,
+    key: String.t
+  }
 
   defmodule Change do
     @moduledoc false
