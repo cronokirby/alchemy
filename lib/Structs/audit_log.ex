@@ -63,18 +63,18 @@ defmodule AuditLog do
               ]
 			  
 	@audit_log_events %{
-      1 => :guild_update,
-      10 => :channel_create,
-      11 => :channel_update,
-      12 => :channel_delete,
-      13 => :channel_overwrite_create,
-      14 => :channel_overwrite_update,
-      15 => :channel_overwrite_delete,
-      20 => :member_kick,
-      21 => :member_prune,
-      22 => :member_ban_add,
-      23 => :member_ban_remove,
-      24 => :member_update,
+    1 => :guild_update,
+    10 => :channel_create,
+    11 => :channel_update,
+    12 => :channel_delete,
+    13 => :channel_overwrite_create,
+    14 => :channel_overwrite_update,
+    15 => :channel_overwrite_delete,
+    20 => :member_kick,
+    21 => :member_prune,
+    22 => :member_ban_add,
+    23 => :member_ban_remove,
+    24 => :member_update,
 	  25 => :member_role_update,
 	  30 => :role_create,
 	  31 => :role_update,
@@ -88,7 +88,7 @@ defmodule AuditLog do
 	  60 => :emoji_create,
 	  61 => :emoji_update,
 	  72 => :message_delete
-    }
+   }
 	
     def from_map(map) do
       action_type = Map.get(@audit_log_events, map["action_type"])
