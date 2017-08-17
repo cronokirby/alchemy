@@ -31,6 +31,8 @@ defmodule Alchemy.Permissions do
     Allows management and editing of the guild.
   - `:add_reactions`
     Allows adding reactions to message.
+  - `:view_audit_log`
+    Allows for viewing of audit logs.
   - `:read_messages`
     Allows reading messages in a channel. Without this, the user won't
     even see the channel.
@@ -84,6 +86,7 @@ defmodule Alchemy.Permissions do
     :manage_channels,
     :manage_guild,
     :add_reactions,
+    :view_audit_log,
     :read_messages,
     :send_messages,
     :send_tts_messages,
@@ -106,7 +109,7 @@ defmodule Alchemy.Permissions do
     :manage_emojis
   ]
 
-  @perm_map Stream.zip(@perms, Enum.map(0..17, &(1 <<< &1)))
+  @perm_map Stream.zip(@perms, Enum.map(0..28, &(1 <<< &1)))
             |> Enum.into(%{})
 
   @type permission :: atom
