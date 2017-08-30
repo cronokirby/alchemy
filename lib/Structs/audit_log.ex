@@ -27,7 +27,8 @@ defmodule Alchemy.AuditLog do
   defstruct [:webhooks,
              :users,
              :audit_log_entries]
-  
+
+  @doc false
   def from_map(map) do
     map
     |> field_map("webhooks", &map_struct(&1, Webhook))
