@@ -41,6 +41,9 @@ defmodule Alchemy.Channel do
   - `user_limit`
 
     The user limit of a voice channel, `nil` for text
+  - `nsfw`
+
+    If the channel is marked as NSFW by the API, `nil` by default
   """
   @type t :: %__MODULE__{
     id: String.t,
@@ -52,7 +55,8 @@ defmodule Alchemy.Channel do
     topic: String.t | nil,
     last_message_id: String.t | nil,
     bitrate: Integer | nil,
-    user_limit: Integer | nil
+    user_limit: Integer | nil,
+    nsfw: Boolean.t | nil
   }
   @derive Poison.Encoder
   defstruct [:id,
@@ -64,7 +68,8 @@ defmodule Alchemy.Channel do
               :topic,
               :last_message_id,
               :bitrate,
-              :user_limit]
+              :user_limit,
+              :nsfw]
   @typedoc """
   DMChannels represent a private message between 2 users; in this case,
   between a client and a user
