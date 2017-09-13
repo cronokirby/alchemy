@@ -75,6 +75,7 @@ defmodule Alchemy.Permissions do
   - `:manage_emojis`
     Allows for management and editing of emojis.
   """
+  alias Alchemy.Guild
   use Bitwise
 
 
@@ -154,5 +155,33 @@ defmodule Alchemy.Permissions do
   def contains?(_, permission) do
     raise ArgumentError, message: "#{permission} is not a valid permisson." <>
                                   "See documentation for a list of permissions."
+  end
+
+  @doc """
+  Gets the actual permissions of a member in a guild channel.
+
+  This will error if the channel_id passed isn't in the guild.
+  This will mismatch if the wrong structs are passed, or if the guild
+  doesn't have a channel field.
+  """
+  def channel_permissions(%Guild.GuildMember{} = member, 
+                          %Guild{channels: cs} = guild, channel_id) 
+  do
+    highest_role = Guild.highest_role(guild, member)    
+    channel = Enum.find(cs, & &1.id == channel_id)
+    case channel do
+      nil -> {:error, "#{channel_id} is not a channel in this guild"}
+      c -> {:ok, (highest_role.permission ||| channel.overwrite.allow) 
+                 &&& (~~~(channel.overwrite.deny))}
+    end
+  end
+  @doc """
+  Banged version of `channel_permissions/3`
+  """
+  def channel_permissions!(%Guild.GuildMember{} = member, %Guild{} = guild, channel_id) do
+    case channel_permissions(member, guild, channel_id) do
+      {:error, s} -> raise ArgumentError, message: s
+      {:ok, perms} -> perms
+    end
   end
 end
