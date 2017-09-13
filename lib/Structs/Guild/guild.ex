@@ -270,6 +270,21 @@ defmodule Alchemy.Guild do
     status: String.t
   }
 
+  @doc """
+  Finds the highest ranked role of a member in a guild.
+
+  This is useful, because the permissions and color 
+  of the highest role are the ones that apply to that member.
+  """
+  @spec highest_role(t, member) :: role
+  def highest_role(guild, member) do
+    guild.roles
+    |> Enum.sort_by(& &1.position)
+    # never null because of the @everyone role 
+    |> Enum.find(& &1 in member.roles) 
+  end
+
+  @doc false
   def from_map(map) do
     map
     |> field_map("roles", &(map_struct &1, Role))
