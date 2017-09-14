@@ -150,7 +150,8 @@ defmodule Alchemy.Permissions do
   """
   @spec contains?(Integer, permission) :: Boolean
   def contains?(bitset, permission) when permission in @perms do
-    (bitset &&& @perm_map[permission]) != 0
+    (bitset &&& @perm_map[:administrator]) != 0
+    or (bitset &&& @perm_map[permission]) != 0 
   end
   def contains?(_, permission) do
     raise ArgumentError, message: "#{permission} is not a valid permisson." <>
