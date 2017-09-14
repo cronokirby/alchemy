@@ -1,6 +1,10 @@
 defmodule Alchemy.Cogs do
+  alias Alchemy.Cache
+  alias Alchemy.Cogs.CommandHandler
   alias Alchemy.Cogs.EventRegistry
   alias Alchemy.Events
+  alias Alchemy.Guild
+  require Logger
   @moduledoc """
   This module provides quite a bit of sugar for registering commands.
 
@@ -81,10 +85,7 @@ defmodule Alchemy.Cogs do
   Cogs.disable(:ping)
   ```
   """
-  require Logger
-  alias Alchemy.Cogs.CommandHandler
-  alias Alchemy.Cache
-
+  
 
   @doc """
   Sets the client's command prefix to a specific string.
@@ -182,6 +183,8 @@ defmodule Alchemy.Cogs do
   @doc """
   Gets the id of the guild from which a command was triggered.
 
+  Returns `{:ok, id}`, or `{:error, why}`. Will never return ok outside
+  of a guild, naturally.
   This is to be used when the guild_id is necessary for an operation,
   but the full guild struct isn't needed.
   """
@@ -211,6 +214,8 @@ defmodule Alchemy.Cogs do
   @doc """
   Gets the member that triggered a command.
 
+  Returns either `{:ok, member}`, or `{:error, why}`. Will not return
+  ok if the command wasn't run in a guild.
   As opposed to `message.author`, this comes with a bit more info about who
   triggered the command. This is useful for when you want to use certain information
   in a command, such as permissions, for example.
@@ -313,10 +318,10 @@ defmodule Alchemy.Cogs do
   defmacro wait_for(:message, fun) do
     quote do
       EventRegistry.subscribe()
-      cCcChannelCCid = var!(message).channel_id
+      channel = var!(message).channel_id
       receive do
         {:discord_event, {:message_create,
-         [%{author: %{bot: false}, channel_id: ^cCcChannelCCid}] = args}} ->
+         [%{author: %{bot: false}, channel_id: ^channel}] = args}} ->
           apply(unquote(fun), args)
       after
         20_000 -> Process.exit(self(), :kill)
@@ -570,5 +575,45 @@ defmodule Alchemy.Cogs do
     GenServer.call(Alchemy.Cogs.CommandHandler, :list)
     |> Map.delete(:prefix)
     |> Map.delete(:options)
+  end
+  @doc """
+  Returns the base permissions for a member in a guild.
+
+  Functions similarly to `permissions`.
+  """
+  defmacro guild_permissions do
+    quote do
+      with {:ok, member} <- unquote(Macro.expand(member(), __ENV__)),
+           {:ok, guild}  <- unquote(Macro.expand(guild(), __ENV__))
+      do
+        {:ok, Alchemy.Guild.highest_role(guild, member).permissions}
+      end
+    end
+  end
+  @doc """
+  Returns the permission bitset of the current member in the channel the command
+  was called from.
+
+  If you just want the base permissions of the member in the guild, 
+  see `guild_permissions`.
+  Returns `{:ok, perms}`, or `{:error, why}`. Fails if not called from
+  a guild, or the guild or the member couldn't be fetched from the cache.
+  ## Example
+  ```elixir
+  Cogs.def perms do
+    with {:ok, permissions} <- Cogs.permissions() do
+      Cogs.say "Here's a list of your permissions `\#{Permissions.to_list(permissions)}`"
+    end
+  end
+  ```
+  """
+  defmacro permissions do
+    quote do
+      with {:ok, member} <- unquote(Macro.expand(member(), __ENV__)),
+           {:ok, guild}  <- unquote(Macro.expand(guild(), __ENV__))
+      do
+        Alchemy.Permissions.channel_permissions(member, guild, var!(message).channel_id)
+      end
+    end
   end
 end

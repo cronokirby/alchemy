@@ -230,7 +230,7 @@ defmodule Alchemy.Guild do
     Whether the role is "hoisted" above others in the sidebar.
   - `position`
     The position of the role in a guild.
-  - `permission`
+  - `permissions`
     The bitset of permissions for this role. See the `Permissions` module
     for more information.
   - `managed`

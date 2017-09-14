@@ -172,7 +172,7 @@ defmodule Alchemy.Permissions do
     channel = Enum.find(cs, & &1.id == channel_id)
     case channel do
       nil -> {:error, "#{channel_id} is not a channel in this guild"}
-      c -> {:ok, (highest_role.permission ||| channel.overwrite.allow) 
+      c -> {:ok, (highest_role.permissions ||| channel.overwrite.allow) 
                  &&& (~~~(channel.overwrite.deny))}
     end
   end
