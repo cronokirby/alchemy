@@ -307,7 +307,7 @@ defmodule Alchemy.Client do
    ```
    Sending files along with messages is simple as well.
    ```elixir
-   Client.send_message(chan_id, "here you go!", "foo.txt")
+   Client.send_message(chan_id, "here you go!", file: "foo.txt")
    ```
    """
    @spec send_message(String.t,
