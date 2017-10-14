@@ -145,9 +145,6 @@ defmodule Alchemy.Voice.Controller do
 
   # this also takes care of adjusting for sleeps taking too long
   defp do_sleep(elapsed, delay \\ 20) do
-    case elapsed - :os.system_time(:milli_seconds) + delay do
-      x when x < 0 -> 0
-      x -> x
-    end
+    max(0, elapsed - :os.system_time(:milli_seconds) + delay)
   end
 end
