@@ -222,8 +222,9 @@ defmodule Alchemy.Cogs do
   """
   defmacro member do
     quote do
-      {:ok, cCcCc} = Cache.guild_id(var!(message).channel_id)
-      Cache.member(cCcCc, var!(message).author.id)
+      with {:ok, guild} <- Cache.guild_id(var!(message).channel_id) do
+        Cache.member(guild, var!(message).author.id)
+      end
     end
   end
   @doc """
@@ -583,8 +584,8 @@ defmodule Alchemy.Cogs do
   """
   defmacro guild_permissions do
     quote do
-      with {:ok, member} <- unquote(Macro.expand(member(), __ENV__)),
-           {:ok, guild}  <- unquote(Macro.expand(guild(), __ENV__))
+      with {:ok, guild}  <- Cache.guild(channel: var!(message).channel_id),
+           {:ok, member} <- Cache.member(guild.id, var!(message).author.id)
       do
         {:ok, Alchemy.Guild.highest_role(guild, member).permissions}
       end
@@ -609,8 +610,8 @@ defmodule Alchemy.Cogs do
   """
   defmacro permissions do
     quote do
-      with {:ok, member} <- unquote(Macro.expand(member(), __ENV__)),
-           {:ok, guild}  <- unquote(Macro.expand(guild(), __ENV__))
+      with {:ok, guild}  <- Cache.guild(channel: var!(message).channel_id),
+           {:ok, member} <- Cache.member(guild.id, var!(message).author.id)
       do
         Alchemy.Permissions.channel_permissions(member, guild, var!(message).channel_id)
       end
