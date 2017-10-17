@@ -94,13 +94,14 @@ or `Alchemy.Voice.play_url/2`. Here's an example command to show off these
 features:
 ```elixir
 Cogs.def play(url) do
-  {:ok, id} = Cogs.guild_id()
-  # joins the default channel for this guild
-  # this will check if a connection already exists for you
-  Voice.join(id, id)
-  Voice.play_url(id, url)
-  Cogs.say "Now playing #{url}"
-end
+    {:ok, guild} = Cogs.guild()
+    default_voice_channel = Enum.find(guild.channels, &match?(%{type: 2}, &1))
+    # joins the default channel for this guild
+    # this will check if a connection already exists for you
+    Alchemy.Voice.join(guild.id, default_voice_channel.id)
+    Alchemy.Voice.play_url(guild.id, url)
+    Cogs.say "Now playing #{url}"
+  end
 ```
 
 ### Porcelain
