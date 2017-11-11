@@ -22,7 +22,7 @@ defmodule Alchemy.Channel do
     The name of the channel
   - `type`
 
-    `:text`, `:voice`, or `:group`
+    `:text`, `:voice`, `:group`, or `:guild_category`
   - `position`
 
     Sorting position of the channel

@@ -19,6 +19,7 @@ defmodule Alchemy.DMChannel do
       1 -> :private
       2 -> :voice
       3 -> :group
+      4 -> :guild_category
     end
   end
 
@@ -29,5 +30,4 @@ defmodule Alchemy.DMChannel do
     |> field_map("recipients", &map_struct(&1, User))
     |> to_struct(__MODULE__)
   end
-
 end
