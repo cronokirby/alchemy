@@ -290,9 +290,9 @@ defmodule Alchemy.Guild do
     |> field_map("roles", &(map_struct &1, Role))
     |> field_map("emojis", &(map_struct &1, Emoji))
     |> field_map("voice_states", &(map_struct &1, VoiceState))
-    |> field_map("members", &(map_struct &1, GuildMember))
-    |> field_map("channels", &(map_struct &1, Channel))
-    |> field_map("presences", &(map_struct &1, Presence))
+    |> fields_from_map("members", GuildMember)
+    |> fields_from_map("channels", Channel)
+    |> fields_from_map("presences", Presence)
     |> to_struct(__MODULE__)
   end
 end
