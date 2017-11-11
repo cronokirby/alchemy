@@ -42,6 +42,6 @@ defmodule Alchemy.Structs do
   end
 
   def fields_from_map(map, key, module) do
-    field_map(key, &Enum.map(&1, fn x -> module.from_map(x) end))
+    field_map(map, key, &Enum.map(&1, fn x -> module.from_map(x) end))
   end
 end
