@@ -11,7 +11,6 @@ defmodule Alchemy.Channel.TextChannel do
              :topic,
              :nsfw,
              :last_message_id,
-             :icon,
              :parent_id,
              :last_pin_timestamp]
 
