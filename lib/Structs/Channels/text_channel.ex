@@ -9,7 +9,7 @@ defmodule Alchemy.Channel.TextChannel do
              :permission_overwrites,
              :name,
              :topic,
-             :nswf,
+             :nsfw,
              :last_message_id,
              :icon,
              :parent_id,
