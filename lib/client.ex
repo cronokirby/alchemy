@@ -191,7 +191,6 @@ defmodule Alchemy.Client do
    ```
    """
    @spec get_channel(snowflake) :: {:ok, Channel.t}
-                                 | {:ok, Channel.dm_channel}
                                  | {:error, term}
    def get_channel(channel_id) do
      {Channels, :get_channel, [channel_id]}
@@ -242,13 +241,12 @@ defmodule Alchemy.Client do
     {:ok, channel} = Client.delete_channel(id)
      case channel do
        %DMChannel{} -> "this is a private channel!"
-       %Channel{} -> "this is a normal channel!"
+       %TextChannel{} -> "this is a normal channel!"
      end
    end
    ```
    """
    @spec delete_channel(snowflake) :: {:ok, Channel.t}
-                                    | {:ok, Channel.dm_channel}
                                     | {:error, term}
    def delete_channel(channel_id) do
      {Channels, :delete_channel, [channel_id]}
