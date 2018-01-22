@@ -6,7 +6,6 @@ defmodule Alchemy.DMChannel do
 
   @derive [Poison.Encoder]
   defstruct [:id,
-             :type,
              :recipients,
              :last_message_id
             ]
@@ -26,7 +25,6 @@ defmodule Alchemy.DMChannel do
 
   def from_map(map) do
     map
-    |> field_map("type", &channel_type/1)
     |> field_map("recipients", &map_struct(&1, User))
     |> to_struct(__MODULE__)
   end
