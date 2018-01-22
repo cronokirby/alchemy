@@ -210,6 +210,8 @@ defmodule Alchemy.Client do
    the voice channel to take
    - `user_limit` ~ *voice only* ~ the max amount of users allowed in this channel.
    From `1` to `99`, or `0` for no limit.
+   - `nsfw` whether or not the channel is nsfw
+   - `parent_id` the id of the new parent category for a channel
 
    ## Examples
    ```elixir
@@ -224,7 +226,9 @@ defmodule Alchemy.Client do
                       position: Integer,
                       topic: String.t,
                       bitrate: Integer,
-                      user_limit: Integer) :: {:ok, Channel.t}
+                      user_limit: Integer,
+                      nsfw: Boolean.t,
+                      parent_id: snowflake) :: {:ok, Channel.t}
                                             | {:error, term}
    def edit_channel(channel_id, options) do
      {Channels, :modify_channel, [channel_id, options]}
