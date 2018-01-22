@@ -1,95 +1,14 @@
 defmodule Alchemy.Channel do
   alias Alchemy.OverWrite
-  alias Alchemy.DMChannel
-  alias Alchemy.Channel.{Invite, Invite.InviteChannel, Invite.InviteGuild}
-  import Alchemy.DMChannel, only: [channel_type: 1]
+  alias Alchemy.Channel.{Invite, Invite.InviteChannel, Invite.InviteGuild,
+                         TextChannel, ChannelCategory, VoiceChannel,
+                         DMChannel, GroupDMChannel}
+  alias Alchemy.User
   import Alchemy.Structs
   @moduledoc """
   This module contains useful functions for operating on `Channels`.
   """
-  @typedoc """
-  Represents a standard channel in a Guild.
-
-  - `id`
-
-    The id of this specific channel. Will be the same as the guild for the "#general"
-    channel
-  - `guild_id`
-
-    The id of the guild this channel is a part of
-  - `name`
-
-    The name of the channel
-  - `type`
-
-    `:text`, `:voice`, `:group`, or `:guild_category`
-  - `position`
-
-    Sorting position of the channel
-  - `permission_overwrites`
-
-    An array of `%OverWrite{}` objects
-  - `topic`
-
-    The topic of a channel, `nil` for voice
-  - `last_message_id`
-
-    The id of the last message sent in the channel, `nil` for voice
-  - `bitrate`
-
-    The bitrate of a voice channel, `nil` for text
-  - `user_limit`
-
-    The user limit of a voice channel, `nil` for text
-  - `nsfw`
-
-    If the channel is marked as NSFW by the API, `nil` by default
-  """
-  @type t :: %__MODULE__{
-    id: String.t,
-    guild_id: String.t,
-    name: String.t,
-    type: atom,
-    position: Integer,
-    permission_overwrites: [overwrite],
-    topic: String.t | nil,
-    last_message_id: String.t | nil,
-    bitrate: Integer | nil,
-    user_limit: Integer | nil,
-    nsfw: Boolean.t | nil
-  }
-  @derive Poison.Encoder
-  defstruct [:id,
-              :guild_id,
-              :name,
-              :type,
-              :position,
-              :permission_overwrites,
-              :topic,
-              :last_message_id,
-              :bitrate,
-              :user_limit,
-              :nsfw]
-  @typedoc """
-  DMChannels represent a private message between 2 users; in this case,
-  between a client and a user
-
-  - `id`
-
-    the private channel's id
-  - `recipients`
-
-    the users with which the private channel is open
-  - `last_message_id`
-
-    The id of the last message sent
-  """
-  @type dm_channel :: %DMChannel{
-    id: String.t,
-    type: atom,
-    recipients: User.t,
-    last_message_id: String.t
-  }
+  
   @typedoc """
   Represents a permission OverWrite object
 
@@ -205,13 +124,197 @@ defmodule Alchemy.Channel do
     type: String.t
   }
 
+  @typedoc """
+  Represents a normal text channel in a guild
 
-  @doc false
-  def from_map(map) do
-    map
-    |> field_map("permission_overwrites", &(map_struct &1, OverWrite))
-    |> field_map("type", &channel_type/1)
-    |> to_struct(__MODULE__)
-  end
+  _ `id`
 
+    The id of the channel
+  - `guild_id`
+
+    The id of the guild this channel belongs to
+  - `position`
+
+    The sorting position of this channel
+  - `permission_overwrites`
+
+    An array of `%OverWrite{}` structs
+  - `name`
+
+    The name of this channel
+  - `topic`
+
+    The topic of the channel
+  - `nsfw`
+
+    Whether or not the channel is considered nsfw
+  - `last_message_id`
+    
+    The id of the last message sent in the channel, if any
+  - `parent_id`
+
+    The id of the category this channel belongs to, if any
+  - `last_pin_timestamp`
+
+    The timestamp of the last channel pin, if any
+  """
+  @type text_channel :: %TextChannel{
+    id: snowflake,
+    guild_id: snowflake,
+    position: Integer,
+    permission_overwrites: [overwrite],
+    name: String.t,
+    topic: String.t | nil,
+    nsfw: Boolean.t,
+    parent_id: snowflake | nil,
+    last_message_id: snowflake | nil,
+    last_pin_timestamp: String.t | nil
+  }
+
+  @typedoc """
+  Represents a channel category in a guild.
+
+  - `id`
+
+    The id of this category
+  - `guild_id`
+
+    The of the guild this category belongs to
+  - `position`
+
+    The sorting position of this category
+  - `permission_overwrites`
+
+    An array of permission overwrites
+  - `name`
+
+    The name of this category
+  - `nsfw`
+
+    Whether or not this category is considered nsfw
+  """
+  @type channel_category :: %ChannelCategory{
+    id: snowflake,
+    guild_id: snowflake,
+    position: Integer,
+    permission_overwrites: [overwrite],
+    name: String.t,
+    nsfw: Boolean.t
+  }
+
+  @typedoc """
+  Represents a voice channel in a guild.
+
+  - `id`
+
+    The id of this channel
+  - `guild_id`
+
+    The id of the guild this channel belongs to
+  - `position`
+    
+    The sorting position of this channel in the guild
+  - `permission_overwrites`
+
+    An array of permission overwrites for this channel
+  - `name`
+
+    The name of this channel
+  - `nsfw`
+  
+    Whether or not this channel is considered nsfw
+  - `bitrate`
+
+    The bitrate for this channel
+  - `user_limit`
+
+    The max amount of users in this channel, `0` for no limit
+  - `parent_id`
+
+    The id of the category this channel belongs to, if any
+  """
+  @type voice_channel :: %VoiceChannel{
+    id: snowflake,
+    guild_id: snowflake,
+    position: Integer,
+    permission_overwrites: [overwrite],
+    name: String.t,
+    nsfw: Boolean.t,
+    bitrate: Integer,
+    user_limit: Integer,
+    parent_id: snowflake | nil
+  }
+
+  @typedoc """
+  Represents a private message between the bot and another user.
+
+  - `id`
+
+    The id of this channel
+  - `recipients`
+
+    A list of users receiving this channel
+  - `last_message_id`
+
+    The id of the last message sent, if any
+  """
+  @type dm_channel :: %DMChannel{
+    id: snowflake,
+    recipients: [User.t],
+    last_message_id: snowflake | nil
+  }
+
+  @typedoc """
+  Represents a dm channel between multiple users.
+
+  - `id`
+
+    The id of this channel
+  - `owner_id`
+
+    The id of the owner of this channel
+  - `icon`
+
+    The hash of the image icon for this channel, if it has one
+  - `name`
+
+    The name of this channel
+  - `recipients`
+
+    A list of recipients of this channel
+  - `last_message_id`
+    The id of the last message sent in this channel, if any
+  """
+  @type group_dm_channel :: %GroupDMChannel{
+    id: snowflake,
+    owner_id: snowflake,
+    icon: String.t | nil,
+    name: String.t,
+    recipients: [User.t],
+    last_message_id: snowflake | nil
+  }
+
+  @typedoc """
+  The general channel type, representing one of 5 variants.
+
+  The best way of dealing with this type is pattern matching against one of the 5 structs.
+  """
+  @type t :: 
+     text_channel 
+    | voice_channel 
+    | channel_category 
+    | dm_channel
+    | group_dm_channel
+
+  
+    @doc false
+    def from_map(map) do
+      case map["type"] do
+        0 -> TextChannel.from_map(map)
+        1 -> DMChannel.from_map(map)
+        2 -> VoiceChannel.from_map(map)
+        3 -> GroupDMChannel.from_map(map)
+        4 -> ChannelCategory.from_map(map)
+      end
+    end
 end

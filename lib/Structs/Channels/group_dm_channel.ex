@@ -1,15 +1,16 @@
-defmodule Alchemy.Channel.DMChannel do
+defmodule Alchemy.Channel.GroupDMChannel do
   @moduledoc false
   alias Alchemy.User
   import Alchemy.Structs
 
-
-  @derive [Poison.Encoder]
   defstruct [:id,
+             :owner_id,
+             :icon,
+             :name,
              :recipients,
              :last_message_id
             ]
-
+  
   def from_map(map) do
     map
     |> field_map("recipients", &map_struct(&1, User))
