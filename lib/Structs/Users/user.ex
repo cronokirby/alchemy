@@ -113,4 +113,11 @@ defmodule Alchemy.User do
   def avatar_url(_user, _type, _size) do
     raise ArgumentError, message: "invalid type and/or size"
   end
+
+  @doc """
+  Returns a string that mentions a user when used in a message
+  """
+  def mention(user) do
+    "<@#{user.id}>"
+  end
 end
