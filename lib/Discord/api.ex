@@ -57,7 +57,10 @@ defmodule Alchemy.Discord.Api do
 
 
   def image_data(url) do
-    {:ok, HTTPoison.get(url).body |> Base.encode64}
+    case HTTPoison.get(url) do
+      {:ok, res} -> {:ok, Base.encode64(res.body)}
+      {:error, e} -> {:error, e.reason}
+    end
   end
 
   # Fetches an image, encodes it base64, and then formats it in discord's
