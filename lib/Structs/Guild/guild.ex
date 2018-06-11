@@ -284,6 +284,32 @@ defmodule Alchemy.Guild do
     |> Enum.find(& &1 in member.roles) 
   end
 
+  defmacrop is_valid_guild_icon_url(type, size) do
+    quote do
+      unquote(type) in ["jpg", "jpeg", "png", "webp"] and
+      unquote(size) in [128, 256, 512, 1024, 2048]
+    end
+  end
+  @doc """
+  Get the icon image URL for the given guild.
+  If the guild does not have any icon, returns `nil`.
+
+  ## Parameters
+  - `type`: The returned image format. Can be any of `jpg`, `jpeg`, `png`, or `webp`.
+  - `size`: The desired size of the returned image. Must be a power of two.
+  If the parameters do not match these conditions, an `ArgumentError` is raised.
+  """
+  @spec icon_url(__MODULE__.t, String.t, 16..2048) :: String.t
+  def icon_url(guild, type \\ "png", size \\ 256) when is_valid_guild_icon_url(type, size) do
+    case guild.icon do
+      nil -> nil
+      hash -> "https://cdn.discordapp.com/icons/#{guild.id}/#{hash}.#{type}?size=#{size}"
+    end
+  end
+  def icon_url(_guild, _type, _size) do
+    raise ArgumentError, message: "invalid icon URL type and / or size"
+  end
+
   @doc false
   def from_map(map) do
     map
