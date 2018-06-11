@@ -25,7 +25,7 @@ defmodule Alchemy.Guild do
     The image hash of the icon image.
   - `splash`
     The image hash of the splash image. Not a lot of guilds have a hash.
-  - `owner`
+  - `owner_id`
     The user id of the guild's owner.
   - `region`
     The region of the guild.
@@ -72,7 +72,7 @@ defmodule Alchemy.Guild do
     name: String.t,
     icon: String.t,
     splash: String.t | nil,
-    owner: snowflake,
+    owner_id: snowflake,
     region: String.t,
     afk_channel_id: String.t | nil,
     afk_timeout: Integer,
@@ -97,7 +97,7 @@ defmodule Alchemy.Guild do
              :name,
              :icon,
              :splash,
-             :owner,
+             :owner_id,
              :region,
              :afk_channel_id,
              :afk_timeout,
