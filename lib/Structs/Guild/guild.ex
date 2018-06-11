@@ -25,7 +25,7 @@ defmodule Alchemy.Guild do
     The image hash of the icon image.
   - `splash`
     The image hash of the splash image. Not a lot of guilds have a hash.
-  - `owner_id`
+  - `owner`
     The user id of the guild's owner.
   - `region`
     The region of the guild.
