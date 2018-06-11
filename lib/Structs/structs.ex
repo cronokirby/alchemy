@@ -48,5 +48,6 @@ defmodule Alchemy.Structs do
     case map[key] do
         nil -> map
         _ -> fields_from_map(map, key, module)
+    end
   end
 end
