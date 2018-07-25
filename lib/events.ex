@@ -358,6 +358,36 @@ defmodule Alchemy.Events do
     handle(:message_delete_bulk, func)
   end
   @doc """
+  Registers a handle triggering whenever a user reacts to a message.
+
+  `args` : `snowflake, snowflake, snowflake %{"animated" => boolean, "id" => integer, "name" => String.t}`
+
+  Receives the id of the user that reacted, the channel_id where it happened, the message_id and the emoji
+  """
+  defmacro on_reaction_add(func) do
+    handle(:message_reaction_add, func)
+  end
+  @doc """
+  Registers a handle triggering whenever a user deletes a reaction to a message.
+
+  `args` : `snowflake, snowflake, snowflake, %{"animated" => boolean, "id" => integer, "name" => String.t}`
+
+  Receives the id of the user that reacted/deleted, the channel_id where it happened, the message_id and the emoji
+  """
+  defmacro on_reaction_remove(func) do
+    handle(:message_reaction_remove, func)
+  end
+  @doc """
+  Registere a handle triggering whenever a user deletes all reactions to a message.
+
+  `args` : `snowflake, snowflake`
+
+  Receives the channel_id and message_id
+  """
+  defmacro on_reaction_remove_all(func) do
+    handle(:message_reaction_remove_all, func)
+  end
+  @doc """
   Registers a handle triggering whenever the presence of a user gets updated
   in a guild.
 
