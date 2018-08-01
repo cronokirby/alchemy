@@ -135,6 +135,21 @@ defmodule Alchemy.Discord.Events do
   end
 
 
+  def handle("MESSAGE_REACTION_ADD", %{"user_id" => user_id, "channel_id" => channel_id, "message_id" => message_id, "emoji" => emoji}) do
+    {:message_reaction_add, [user_id, channel_id, message_id, emoji]}
+  end
+
+
+  def handle("MESSAGE_REACTION_REMOVE", %{"user_id" => user_id, "channel_id" => channel_id, "message_id" => message_id, "emoji" => emoji}) do
+    {:message_reaction_remove, [user_id, channel_id, message_id, emoji]}
+  end
+
+
+  def handle("MESSAGE_REACTION_REMOVE_ALL", %{"channel_id" => channel_id, "message_id" => message_id}) do
+    {:message_reaction_remove_all, [channel_id, message_id]}
+  end
+
+
   def handle("PRESENCE_UPDATE", %{"guild_id" => _id} = presence) do
     Guilds.update_presence(presence)
     {:presence_update, [Presence.from_map(presence)]}
