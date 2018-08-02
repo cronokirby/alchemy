@@ -115,6 +115,51 @@ defmodule Alchemy.Permissions do
 
   @type permission :: atom
 
+
+  @doc """
+  Adds a permission to a permission bitset using the atom keyword.
+
+  ## Examples
+
+    iex> Alchemy.Permissions.add_permission(0, :create_instant_invite)
+    1
+
+    iex> Alchemy.Permissions.add_permission(1, :create_instant_invite)
+    1
+
+  """
+  @spec add_permission(Integer, permission) :: Integer
+  def add_permission(bitset, permission) when permission in @perms do
+    bitset ||| @perm_map[permission]
+  end
+
+  def add_permission(_bitset, permission) do
+    raise ArgumentError, message: "#{permission} is not a valid permisson." <>
+                                  "See documentation for a list of permissions."
+  end
+
+  @doc """
+  Removes a permission from a permission bitset.
+
+  ## Examples
+
+    iex> Alchemy.Permissions.remove_permission(0, :create_instant_invite)
+    0
+
+    iex> Alchemy.Permissions.remove_permission(1, :create_instant_invite)
+    0
+
+  """
+  @spec remove_permission(Integer, permission) :: Integer
+  def remove_permission(bitset, permission) when permission in @perms do
+    bitset &&& bnot(@perm_map[permission])
+  end
+
+  def remove_permission(_bitset, permission) do
+    raise ArgumentError, message: "#{permission} is not a valid permisson." <>
+                                  "See documentation for a list of permissions."
+  end
+
   @doc """
   Converts a permission bitset into a legible list of atoms.
 
@@ -151,7 +196,7 @@ defmodule Alchemy.Permissions do
   @spec contains?(Integer, permission) :: Boolean
   def contains?(bitset, permission) when permission in @perms do
     (bitset &&& @perm_map[:administrator]) != 0
-    or (bitset &&& @perm_map[permission]) != 0 
+    or (bitset &&& @perm_map[permission]) != 0
   end
   def contains?(_, permission) do
     raise ArgumentError, message: "#{permission} is not a valid permisson." <>
@@ -165,14 +210,14 @@ defmodule Alchemy.Permissions do
   This will mismatch if the wrong structs are passed, or if the guild
   doesn't have a channel field.
   """
-  def channel_permissions(%Guild.GuildMember{} = member, 
-                          %Guild{channels: cs} = guild, channel_id) 
+  def channel_permissions(%Guild.GuildMember{} = member,
+                          %Guild{channels: cs} = guild, channel_id)
   do
-    highest_role = Guild.highest_role(guild, member)    
+    highest_role = Guild.highest_role(guild, member)
     channel = Enum.find(cs, & &1.id == channel_id)
     case channel do
       nil -> {:error, "#{channel_id} is not a channel in this guild"}
-      _ -> {:ok, (highest_role.permissions ||| channel.overwrite.allow) 
+      _ -> {:ok, (highest_role.permissions ||| channel.overwrite.allow)
                  &&& (~~~(channel.overwrite.deny))}
     end
   end
