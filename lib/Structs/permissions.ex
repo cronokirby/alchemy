@@ -129,15 +129,9 @@ defmodule Alchemy.Permissions do
   """
   @spec to_list(Integer) :: [permission]
   def to_list(bitset) do
-    bitset
-    |> Integer.to_charlist(2)
-    |> Enum.reverse
-    |> Stream.zip(@perms)
-    |> Enum.reduce([], fn
-      # 49 represents 1, 48 represents 0. CharLists are weird...
-      {49, perm}, acc -> [perm | acc]
-      {48, _}, acc -> acc
-    end)
+    @perm_map
+    |> Enum.reduce([], fn {k, v}, acc when (v &&& bitset) != 0 -> [k | acc]
+                          _, acc -> acc end)
   end
   @doc """
   Checks for the presence of a permission in a permission bitset.
