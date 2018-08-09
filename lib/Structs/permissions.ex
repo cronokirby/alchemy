@@ -110,7 +110,9 @@ defmodule Alchemy.Permissions do
     :manage_emojis
   ]
 
-  @perm_map Stream.zip(@perms, Enum.map(0..28, &(1 <<< &1)))
+  @nil_flags [0x00000100, 0x00000200, 0x00080000]
+
+  @perm_map Stream.zip(@perms, Enum.map(0..30, &(1 <<< &1)) -- @nil_flags)
             |> Enum.into(%{})
 
   @type permission :: atom
@@ -151,7 +153,7 @@ defmodule Alchemy.Permissions do
   @spec contains?(Integer, permission) :: Boolean
   def contains?(bitset, permission) when permission in @perms do
     (bitset &&& @perm_map[:administrator]) != 0
-    or (bitset &&& @perm_map[permission]) != 0 
+    or (bitset &&& @perm_map[permission]) != 0
   end
   def contains?(_, permission) do
     raise ArgumentError, message: "#{permission} is not a valid permisson." <>
@@ -165,14 +167,14 @@ defmodule Alchemy.Permissions do
   This will mismatch if the wrong structs are passed, or if the guild
   doesn't have a channel field.
   """
-  def channel_permissions(%Guild.GuildMember{} = member, 
-                          %Guild{channels: cs} = guild, channel_id) 
+  def channel_permissions(%Guild.GuildMember{} = member,
+                          %Guild{channels: cs} = guild, channel_id)
   do
-    highest_role = Guild.highest_role(guild, member)    
+    highest_role = Guild.highest_role(guild, member)
     channel = Enum.find(cs, & &1.id == channel_id)
     case channel do
       nil -> {:error, "#{channel_id} is not a channel in this guild"}
-      _ -> {:ok, (highest_role.permissions ||| channel.overwrite.allow) 
+      _ -> {:ok, (highest_role.permissions ||| channel.overwrite.allow)
                  &&& (~~~(channel.overwrite.deny))}
     end
   end
