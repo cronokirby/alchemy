@@ -1,7 +1,7 @@
 defmodule Alchemy.Discord.Users do
   @moduledoc false
   alias Alchemy.Discord.Api
-  alias Alchemy.{DMChannel, User, UserGuild}
+  alias Alchemy.{Channel.DMChannel, User, UserGuild}
 
   @root "https://discordapp.com/api/v6/users/"
 
