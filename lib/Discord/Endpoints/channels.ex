@@ -39,7 +39,7 @@ defmodule Alchemy.Discord.Channels do
 
 
   def channel_message(token, channel_id, message_id) do
-    @root <> channel_id <> "/messages" <> message_id
+    @root <> channel_id <> "/messages/" <> message_id
     |> Api.get(token, Message)
   end
 
