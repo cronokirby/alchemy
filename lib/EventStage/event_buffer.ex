@@ -1,5 +1,6 @@
 defmodule Alchemy.EventStage.EventBuffer do
-  @moduledoc false # This is the entry point for the event pipeline
+  # This is the entry point for the event pipeline
+  @moduledoc false
   # The websockets notify this module of events, and this
   # stage buffers them until the handlers are ready.
   use GenStage
@@ -31,6 +32,7 @@ defmodule Alchemy.EventStage.EventBuffer do
   def dispatch(queue, 0, events) do
     {:noreply, Enum.reverse(events), {queue, 0}}
   end
+
   def dispatch(queue, demand, events) do
     # This recursion will end in 2 ways:
     # events < demand: we end up here, reverse events
@@ -39,6 +41,7 @@ defmodule Alchemy.EventStage.EventBuffer do
     case :queue.out(queue) do
       {{:value, event}, queue} ->
         dispatch(queue, demand - 1, [event | events])
+
       {:empty, queue} ->
         {:noreply, Enum.reverse(events), {queue, demand}}
     end

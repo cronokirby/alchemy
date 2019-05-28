@@ -7,23 +7,25 @@ defmodule Alchemy.Discord.Api do
 
   # Converts a keyword list into json
   def encode(options) do
-    options |> Enum.into(%{}) |> Poison.encode!
+    options |> Enum.into(%{}) |> Poison.encode!()
   end
 
   def query([]) do
     ""
   end
+
   def query(options) do
-    "?" <> Enum.map_join(options, "&", fn {opt, val} ->
-      "#{opt}=#{val}"
-    end)
+    "?" <>
+      Enum.map_join(options, "&", fn {opt, val} ->
+        "#{opt}=#{val}"
+      end)
   end
 
   # returns a function to be used in api requests
   def parse_map(mod) do
     fn json ->
       json
-      |> fn x -> Poison.Parser.parse!(x, %{}) end.()
+      |> (fn x -> Poison.Parser.parse!(x, %{}) end).()
       |> Enum.map(&mod.from_map/1)
     end
   end
@@ -32,6 +34,7 @@ defmodule Alchemy.Discord.Api do
 
   def get(url, token, body) do
     IO.puts("#{url}, #{token}, #{body}")
+
     request(:get, url, token)
     |> handle(body)
   end
@@ -56,9 +59,8 @@ defmodule Alchemy.Discord.Api do
     |> handle(body)
   end
 
-
   def image_data(url) do
-    {:ok, HTTPoison.get(url).body |> Base.encode64}
+    {:ok, HTTPoison.get(url).body |> Base.encode64()}
   end
 
   # Fetches an image, encodes it base64, and then formats it in discord's
@@ -73,33 +75,37 @@ defmodule Alchemy.Discord.Api do
   # gets the auth headers, checking for selfbot
   def auth_headers(token) do
     client_type = Application.get_env(:alchemy, :self_bot, "Bot ")
-    [{"Authorization", client_type <> "#{token}"},
-     {"User-Agent", "DiscordBot (https://github.com/cronokirby/alchemy, 0.6.0)"}]
-  end
 
+    [
+      {"Authorization", client_type <> "#{token}"},
+      {"User-Agent", "DiscordBot (https://github.com/cronokirby/alchemy, 0.6.0)"}
+    ]
+  end
 
   def request(type, url, token) do
     apply(HTTPoison, type, [url, auth_headers(token)])
   end
+
   def request(type, url, data, token) do
-    headers = [{"Content-Type", "application/json"}|auth_headers(token)]
+    headers = [{"Content-Type", "application/json"} | auth_headers(token)]
     apply(HTTPoison, type, [url, data, headers])
   end
-
 
   def handle(response, :no_parser) do
     handle_response(response, :no_parser)
   end
+
   def handle(response, module) when is_atom(module) do
     handle_response(response, &module.from_map(Poison.Parser.parse!(&1, %{})))
   end
+
   def handle(response, parser) when is_function(parser) do
     handle_response(response, parser)
   end
+
   def handle(response, struct) do
     handle_response(response, &Poison.decode!(&1, as: struct))
   end
-
 
   defp handle_response({:error, %HTTPoison.Error{reason: why}}, _) do
     {:error, why}
@@ -111,16 +117,18 @@ defmodule Alchemy.Discord.Api do
   end
 
   defp handle_response({:ok, %{status_code: code} = response}, :no_parser)
-  when code in 200..299 do
+       when code in 200..299 do
     rate_info = RateLimits.rate_info(response)
     {:ok, nil, rate_info}
   end
+
   defp handle_response({:ok, %{status_code: code} = response}, decoder)
-  when code in 200..299 do
+       when code in 200..299 do
     rate_info = RateLimits.rate_info(response)
     struct = decoder.(response.body)
     {:ok, struct, rate_info}
   end
+
   defp handle_response({:ok, response}, _) do
     {:error, response.body}
   end
@@ -128,9 +136,10 @@ defmodule Alchemy.Discord.Api do
   # This is necessary in a few places to bypass the error handling:
   # i.e. the Gateway url requests.
   def get!(url) do
-    HTTPoison.get! url
+    HTTPoison.get!(url)
   end
+
   def get!(url, token) do
-    HTTPoison.get! url, auth_headers(token)
+    HTTPoison.get!(url, auth_headers(token))
   end
 end

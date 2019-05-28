@@ -9,9 +9,7 @@ defmodule Alchemy.Cache.Supervisor do
   # as well as a GenServer keeping a registry of these children.
   # PrivateChannels; A Supervisor / GenServer combo, like Guilds, but with less info
   # stored.
-  alias Alchemy.Cache.{Guilds, Guilds.GuildSupervisor,
-                       PrivChannels,
-                       User, Channels}
+  alias Alchemy.Cache.{Guilds, Guilds.GuildSupervisor, PrivChannels, User, Channels}
   use Supervisor
 
   def start_link do
@@ -30,12 +28,12 @@ defmodule Alchemy.Cache.Supervisor do
     supervise(children, strategy: :one_for_one)
   end
 
-
   # used to handle the READY event
   def ready(user, priv_channels, guilds) do
     # we pipe this into to_list to force evaluationd
     Task.async_stream(guilds, &Guilds.add_guild/1)
-    |> Enum.to_list
+    |> Enum.to_list()
+
     PrivChannels.add_channels(priv_channels)
     User.set_user(user)
   end

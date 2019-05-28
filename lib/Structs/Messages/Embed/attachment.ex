@@ -1,13 +1,7 @@
 defmodule Alchemy.Attachment do
-  @moduledoc false # documented in Alchemy.Embed
-
+  # documented in Alchemy.Embed
+  @moduledoc false
 
   @derive Poison.Encoder
-  defstruct [:id,
-             :filename,
-             :size,
-             :url,
-             :proxy_url,
-             :height,
-             :width]
+  defstruct [:id, :filename, :size, :url, :proxy_url, :height, :width]
 end

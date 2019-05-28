@@ -3,14 +3,8 @@ defmodule Alchemy.Channel.GroupDMChannel do
   alias Alchemy.User
   import Alchemy.Structs
 
-  defstruct [:id,
-             :owner_id,
-             :icon,
-             :name,
-             :recipients,
-             :last_message_id
-            ]
-  
+  defstruct [:id, :owner_id, :icon, :name, :recipients, :last_message_id]
+
   def from_map(map) do
     map
     |> field_map("recipients", &map_struct(&1, User))

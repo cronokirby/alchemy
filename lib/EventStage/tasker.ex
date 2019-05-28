@@ -1,5 +1,6 @@
 defmodule Alchemy.EventStage.Tasker do
-  @moduledoc false # Serves as the final stage, recieving
+  # Serves as the final stage, recieving
+  @moduledoc false
   # functions and commands to run in new tasks
   use ConsumerSupervisor
   alias Alchemy.EventStage.{CommandStage, EventStage}

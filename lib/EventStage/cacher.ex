@@ -1,5 +1,6 @@
 defmodule Alchemy.EventStage.Cacher do
-  @moduledoc false # This stage serves to update the cache
+  # This stage serves to update the cache
+  @moduledoc false
   # before passing events on.
   # To leverage the concurrent cache, this module
   # is intended to be duplicated for each scheduler.
@@ -24,9 +25,11 @@ defmodule Alchemy.EventStage.Cacher do
     # I think that using async_stream here would be redundant,
     # as we're already duplicating this stage. This might warrant future
     # testing, and would be an easy change to implement
-    cached = Enum.map(events, fn {type, payload} ->
-      Events.handle(type, payload)
-    end)
+    cached =
+      Enum.map(events, fn {type, payload} ->
+        Events.handle(type, payload)
+      end)
+
     {:noreply, cached, state}
   end
 end

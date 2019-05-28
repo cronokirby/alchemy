@@ -3,25 +3,24 @@ defmodule Alchemy.Guild.Integration do
   alias Alchemy.User
   import Alchemy.Structs
 
-
-  defstruct [:id,
-             :name,
-             :type,
-             :enabled,
-             :syncing,
-             :role_id,
-             :expire_behaviour,
-             :expire_grace_period,
-             :user,
-             :account,
-             :synced_at]
-
+  defstruct [
+    :id,
+    :name,
+    :type,
+    :enabled,
+    :syncing,
+    :role_id,
+    :expire_behaviour,
+    :expire_grace_period,
+    :user,
+    :account,
+    :synced_at
+  ]
 
   defmodule Account do
-      @moduledoc false
-      defstruct [:id, :name]
+    @moduledoc false
+    defstruct [:id, :name]
   end
-
 
   def from_map(map) do
     map

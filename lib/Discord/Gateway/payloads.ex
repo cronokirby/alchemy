@@ -3,22 +3,22 @@ defmodule Alchemy.Discord.Payloads do
   # These contain functions that construct payloads.
   # For deconstruction, see Alchemy.Discord.Events
 
-
   def opcode(op) do
-     %{dispatch: 0,
-       heartbeat: 1,
-       identify: 2,
-       status_update: 3,
-       voice_update: 4,
-       voice_ping: 5,
-       resume: 6,
-       reconnect: 7,
-       req_guild_members: 8,
-       invalid: 9,
-       hello: 10,
-       ACK: 11}[op]
+    %{
+      dispatch: 0,
+      heartbeat: 1,
+      identify: 2,
+      status_update: 3,
+      voice_update: 4,
+      voice_ping: 5,
+      resume: 6,
+      reconnect: 7,
+      req_guild_members: 8,
+      invalid: 9,
+      hello: 10,
+      ACK: 11
+    }[op]
   end
-
 
   # Constructs a sendable payload string, from an opcode, and data, in map form
   def build_payload(op, data) do
@@ -26,49 +26,52 @@ defmodule Alchemy.Discord.Payloads do
     Poison.encode!(payload)
   end
 
-
   def properties(os) do
-    %{"$os" => os,
+    %{
+      "$os" => os,
       "$browser" => "alchemy",
       "$device" => "alchemy",
       "$referrer" => "",
-      "$referring_domain" => ""}
+      "$referring_domain" => ""
+    }
   end
 
-
   def identify_msg(token, shard) do
-    {os, _} = :os.type
-    identify = %{token: token,
-                 properties: properties(os),
-                 compress: true,
-                 large_threshold: 250,
-                 shard: shard}
+    {os, _} = :os.type()
+
+    identify = %{
+      token: token,
+      properties: properties(os),
+      compress: true,
+      large_threshold: 250,
+      shard: shard
+    }
+
     build_payload(:identify, identify)
   end
 
-
   def resume_msg(state) do
-     resume = %{token: state.token,
-                session_id: state.session_id,
-                seq: state.seq}
+    resume = %{token: state.token, session_id: state.session_id, seq: state.seq}
     build_payload(:resume, resume)
   end
 
-
   def heartbeat(seq) do
-     build_payload(:heartbeat, seq)
+    build_payload(:heartbeat, seq)
   end
 
-
   def status_update(idle_since, info) do
-    game = case info do
-      nil -> 
-        nil
-      {:streaming, game_name, twitch} ->
-        %{name: game_name, type: 1, url: "https://twitch.tv/" <> twitch}
-      {:playing, game_name} ->
-        %{name: game_name, type: 0}
-    end
+    game =
+      case info do
+        nil ->
+          nil
+
+        {:streaming, game_name, twitch} ->
+          %{name: game_name, type: 1, url: "https://twitch.tv/" <> twitch}
+
+        {:playing, game_name} ->
+          %{name: game_name, type: 0}
+      end
+
     payload = %{since: idle_since, game: game}
     build_payload(:status_update, payload)
   end
@@ -79,8 +82,7 @@ defmodule Alchemy.Discord.Payloads do
   end
 
   def voice_update(guild_id, channel_id, mute, deaf) do
-    payload = %{guild_id: guild_id, channel_id: channel_id,
-                self_mute: mute, self_deaf: deaf}
+    payload = %{guild_id: guild_id, channel_id: channel_id, self_mute: mute, self_deaf: deaf}
     build_payload(:voice_update, payload)
   end
 end

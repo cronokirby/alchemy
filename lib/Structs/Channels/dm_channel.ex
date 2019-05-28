@@ -3,12 +3,8 @@ defmodule Alchemy.Channel.DMChannel do
   alias Alchemy.User
   import Alchemy.Structs
 
-
   @derive [Poison.Encoder]
-  defstruct [:id,
-             :recipients,
-             :last_message_id
-            ]
+  defstruct [:id, :recipients, :last_message_id]
 
   def from_map(map) do
     map

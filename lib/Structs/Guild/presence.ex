@@ -4,11 +4,7 @@ defmodule Alchemy.Guild.Presence do
   @moduledoc false
 
   @derive Poison.Encoder
-  defstruct [:user,
-             :roles,
-             :game,
-             :guild_id,
-             :status]
+  defstruct [:user, :roles, :game, :guild_id, :status]
 
   def from_map(map) do
     map
@@ -16,5 +12,4 @@ defmodule Alchemy.Guild.Presence do
     |> field_map?("game", &Map.get(&1, "name"))
     |> to_struct(__MODULE__)
   end
-
 end

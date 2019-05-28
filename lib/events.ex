@@ -35,6 +35,7 @@ defmodule Alchemy.Events do
   alias Alchemy.Cogs.EventHandler
   require Alchemy.EventMacros
   import Alchemy.EventMacros
+
   @doc """
   Unloads all the hooks in a module from the handler.
 
@@ -57,8 +58,9 @@ defmodule Alchemy.Events do
   @spec unload(atom) :: :ok
   def unload(module) do
     EventHandler.unload(module)
-    Logger.info "*#{inspect module}* removed from the event handler"
+    Logger.info("*#{inspect(module)}* removed from the event handler")
   end
+
   @doc """
   Unhooks a function from the event handler.
 
@@ -87,8 +89,9 @@ defmodule Alchemy.Events do
   @spec disable(atom, atom) :: :ok
   def disable(module, function) do
     EventHandler.disable(module, function)
-    Logger.info "*#{module}.#{function}* unhooked from the event handler"
+    Logger.info("*#{module}.#{function}* unhooked from the event handler")
   end
+
   @doc """
   Registers a handle triggering whenever a channel gets created.
 
@@ -105,6 +108,7 @@ defmodule Alchemy.Events do
   defmacro on_channel_create(func) do
     handle(:channel_create, func)
   end
+
   @doc """
   Registers a handle triggering whenever a user starts a DM with the client.
 
@@ -123,6 +127,7 @@ defmodule Alchemy.Events do
   defmacro on_DMChannel_create(func) do
     handle(:dm_channel_create, func)
   end
+
   @doc """
   Registers a handle triggering whenever a user closes a DM with the client.
 
@@ -131,6 +136,7 @@ defmodule Alchemy.Events do
   defmacro on_DMChannel_delete(func) do
     handle(:dm_channel_delete, func)
   end
+
   @doc """
   Registers a handle triggering whenever a guild channel gets removed.
 
@@ -139,6 +145,7 @@ defmodule Alchemy.Events do
   defmacro on_channel_delete(func) do
     handle(:channel_delete, func)
   end
+
   @doc """
   Registers a handle triggering whenever this client joins a guild.
 
@@ -150,6 +157,7 @@ defmodule Alchemy.Events do
   defmacro on_guild_join(func) do
     handle(:guild_create, func)
   end
+
   @doc """
   Registers a handle triggering whenever a guild gets updated.
 
@@ -161,6 +169,7 @@ defmodule Alchemy.Events do
   defmacro on_guild_update(func) do
     handle(:guild_update, func)
   end
+
   @doc """
   Registers a handle triggering whenever a guild comes back online.
 
@@ -173,6 +182,7 @@ defmodule Alchemy.Events do
   defmacro on_guild_online(func) do
     handle(:guild_online, func)
   end
+
   @doc """
   Registers a handle triggering whenever the client leaves a guild.
 
@@ -183,6 +193,7 @@ defmodule Alchemy.Events do
   defmacro on_guild_leave(func) do
     handle(:guild_delete, func)
   end
+
   @doc """
   Registers a handle triggering whenever a guild channel gets updated.
 
@@ -198,6 +209,7 @@ defmodule Alchemy.Events do
   defmacro on_channel_update(func) do
     handle(:channel_update, func)
   end
+
   @doc """
   Registers a handle triggering whenever a user gets banned from a guild.
 
@@ -215,6 +227,7 @@ defmodule Alchemy.Events do
   defmacro on_user_ban(func) do
     handle(:guild_ban, func)
   end
+
   @doc """
   Registers a handle triggering whenever a user gets unbanned from a guild.
 
@@ -232,6 +245,7 @@ defmodule Alchemy.Events do
   defmacro on_user_unban(func) do
     handle(:guild_unban, func)
   end
+
   @doc """
   Registers a handle triggering whenever a guild's emojis get updated.
 
@@ -243,6 +257,7 @@ defmodule Alchemy.Events do
   defmacro on_emoji_update(func) do
     handle(:emoji_update, func)
   end
+
   @doc """
   Registers a handle triggering whenever a guild's integrations get updated.
 
@@ -255,6 +270,7 @@ defmodule Alchemy.Events do
   defmacro on_integrations_update(func) do
     handle(:integrations_update, func)
   end
+
   @doc """
   Registers a handle triggering whenever a member joins a guild.
 
@@ -266,6 +282,7 @@ defmodule Alchemy.Events do
   defmacro on_member_join(func) do
     handle(:member_join, func)
   end
+
   @doc """
   Registers a handle triggering when a member leaves a guild.
 
@@ -276,6 +293,7 @@ defmodule Alchemy.Events do
   defmacro on_member_leave(func) do
     handle(:member_leave, func)
   end
+
   @doc """
   Registers a handle triggering when the status of a member changes in a guild.
 
@@ -286,6 +304,7 @@ defmodule Alchemy.Events do
   defmacro on_member_update(func) do
     handle(:member_update, func)
   end
+
   @doc """
   Registers a handle triggering whenever a role gets created in a guild.
 
@@ -296,6 +315,7 @@ defmodule Alchemy.Events do
   defmacro on_role_create(func) do
     handle(:role_create, func)
   end
+
   @doc """
   Registers a handle triggering whenever a role gets deleted from a guild.
 
@@ -307,6 +327,7 @@ defmodule Alchemy.Events do
   defmacro on_role_delete(func) do
     handle(:role_delete, func)
   end
+
   @doc """
   Registers a handle triggering whenever a message gets sent.
 
@@ -324,6 +345,7 @@ defmodule Alchemy.Events do
   defmacro on_message(func) do
     handle(:message_create, func)
   end
+
   @doc """
   Registers a handle triggering whenever a message gets edited.
 
@@ -335,6 +357,7 @@ defmodule Alchemy.Events do
   defmacro on_message_edit(func) do
     handle(:message_update, func)
   end
+
   @doc """
   Registers a handle triggering whenever a single message gets deleted.
 
@@ -346,6 +369,7 @@ defmodule Alchemy.Events do
   defmacro on_message_delete(func) do
     handle(:message_delete, func)
   end
+
   @doc """
   Registers a handle triggering whenever messages get bulk deleted from a channel.
 
@@ -357,6 +381,7 @@ defmodule Alchemy.Events do
   defmacro on_bulk_delete(func) do
     handle(:message_delete_bulk, func)
   end
+
   @doc """
   Registers a handle triggering whenever a user reacts to a message.
 
@@ -367,6 +392,7 @@ defmodule Alchemy.Events do
   defmacro on_reaction_add(func) do
     handle(:message_reaction_add, func)
   end
+
   @doc """
   Registers a handle triggering whenever a user deletes a reaction to a message.
 
@@ -377,6 +403,7 @@ defmodule Alchemy.Events do
   defmacro on_reaction_remove(func) do
     handle(:message_reaction_remove, func)
   end
+
   @doc """
   Registere a handle triggering whenever a user deletes all reactions to a message.
 
@@ -387,6 +414,7 @@ defmodule Alchemy.Events do
   defmacro on_reaction_remove_all(func) do
     handle(:message_reaction_remove_all, func)
   end
+
   @doc """
   Registers a handle triggering whenever the presence of a user gets updated
   in a guild.
@@ -398,6 +426,7 @@ defmodule Alchemy.Events do
   defmacro on_presence_update(func) do
     handle(:presence_update, func)
   end
+
   @doc """
   Registers a handle triggering whenever a user starts typing in a channel.
 
@@ -409,6 +438,7 @@ defmodule Alchemy.Events do
   defmacro on_typing(func) do
     handle(:typing_start, func)
   end
+
   @doc """
   Registers a handle triggering whenever this user changes their settings.
 
@@ -419,6 +449,7 @@ defmodule Alchemy.Events do
   defmacro on_settings_update(func) do
     handle(:user_settings_update, func)
   end
+
   @doc """
   Registers a handle triggering whenever this user changes.
 
@@ -429,6 +460,7 @@ defmodule Alchemy.Events do
   defmacro on_user_update(func) do
     handle(:user_update, func)
   end
+
   @doc """
   Registers a handle triggering whenever someone leaves / joins a voice
   channel.
@@ -440,6 +472,7 @@ defmodule Alchemy.Events do
   defmacro on_voice_update(func) do
     handle(:voice_state_update, func)
   end
+
   @doc """
   Registers a handle triggering whenever a shard receives a
   READY event.
@@ -456,6 +489,7 @@ defmodule Alchemy.Events do
   defmacro on_ready(func) do
     handle(:ready, func)
   end
+
   @doc """
   Registers a handle triggering whenever a shard receives a member
   chunk.
@@ -470,20 +504,20 @@ defmodule Alchemy.Events do
   defmacro on_member_chunk(func) do
     handle(:member_chunk, func)
   end
+
   @doc false
   # Requires and aliases this module, as well as adds a @handles attribute,
   # necessary to use the other macros
   defmacro __using__(_opts) do
     quote do
-     alias Alchemy.Events
-     require Events
+      alias Alchemy.Events
+      require Events
 
-     @handles []
+      @handles []
 
-     @before_compile Events
+      @before_compile Events
     end
   end
-
 
   @doc false
   # For every handle in the attribute, a handler is added to the EventManager

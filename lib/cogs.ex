@@ -5,6 +5,7 @@ defmodule Alchemy.Cogs do
   alias Alchemy.Events
   alias Alchemy.Guild
   require Logger
+
   @moduledoc """
   This module provides quite a bit of sugar for registering commands.
 
@@ -85,7 +86,6 @@ defmodule Alchemy.Cogs do
   Cogs.disable(:ping)
   ```
   """
-  
 
   @doc """
   Sets the client's command prefix to a specific string.
@@ -97,10 +97,11 @@ defmodule Alchemy.Cogs do
   Cogs.set_prefix("!!")
   ```
   """
-  @spec set_prefix(String.t) :: :ok
+  @spec set_prefix(String.t()) :: :ok
   def set_prefix(prefix) do
     CommandHandler.set_prefix(prefix)
   end
+
   @doc """
   Unloads a module from the handler.
 
@@ -126,8 +127,9 @@ defmodule Alchemy.Cogs do
   @spec unload(atom) :: :ok
   def unload(module) do
     CommandHandler.unload(module)
-    Logger.info "*#{inspect module}* unloaded from cogs"
+    Logger.info("*#{inspect(module)}* unloaded from cogs")
   end
+
   @doc """
   Disables a command.
 
@@ -159,8 +161,9 @@ defmodule Alchemy.Cogs do
   @spec disable(atom) :: :ok
   def disable(command) do
     CommandHandler.disable(command)
-    Logger.info "Command *#{command}* disabled"
+    Logger.info("Command *#{command}* disabled")
   end
+
   @doc """
   Sends a message to the same channel as the message triggering a command.
 
@@ -175,11 +178,14 @@ defmodule Alchemy.Cogs do
   """
   defmacro say(content, options \\ []) do
     quote do
-      Alchemy.Client.send_message(var!(message).channel_id,
-                                  unquote(content),
-                                  unquote(options))
+      Alchemy.Client.send_message(
+        var!(message).channel_id,
+        unquote(content),
+        unquote(options)
+      )
     end
   end
+
   @doc """
   Gets the id of the guild from which a command was triggered.
 
@@ -193,6 +199,7 @@ defmodule Alchemy.Cogs do
       Cache.guild_id(var!(message).channel_id)
     end
   end
+
   @doc """
   Gets the guild struct from which a command was triggered.
 
@@ -211,6 +218,7 @@ defmodule Alchemy.Cogs do
       Cache.guild(channel: var!(message).channel_id)
     end
   end
+
   @doc """
   Gets the member that triggered a command.
 
@@ -227,6 +235,7 @@ defmodule Alchemy.Cogs do
       end
     end
   end
+
   @doc """
   Allows you to register a custom message parser for a command.
 
@@ -243,20 +252,24 @@ defmodule Alchemy.Cogs do
   end
   ```
   """
-  @type parser :: (String.t -> Enum.t)
+  @type parser :: (String.t() -> Enum.t())
   defmacro set_parser(name, parser) do
     parser = Macro.escape(parser)
+
     quote do
       @commands update_in(@commands, [Atom.to_string(unquote(name))], fn
-        nil ->
-          {__MODULE__, 0, unquote(name), unquote(parser)}
-        {mod, x, name} ->
-          {mod, x, name, unquote(parser)}
-        full ->
-          full
-      end)
+                  nil ->
+                    {__MODULE__, 0, unquote(name), unquote(parser)}
+
+                  {mod, x, name} ->
+                    {mod, x, name, unquote(parser)}
+
+                  full ->
+                    full
+                end)
     end
   end
+
   @doc """
   Makes all commands in this module sub commands of a group.
 
@@ -284,6 +297,7 @@ defmodule Alchemy.Cogs do
       @command_group {:group, unquote(str)}
     end
   end
+
   @doc """
   Halts the current command until an event is received.
 
@@ -320,20 +334,24 @@ defmodule Alchemy.Cogs do
     quote do
       EventRegistry.subscribe()
       channel = var!(message).channel_id
+
       receive do
-        {:discord_event, {:message_create,
-         [%{author: %{bot: false}, channel_id: ^channel}] = args}} ->
+        {:discord_event,
+         {:message_create, [%{author: %{bot: false}, channel_id: ^channel}] = args}} ->
           apply(unquote(fun), args)
       after
         20_000 -> Process.exit(self(), :kill)
       end
     end
   end
+
   defmacro wait_for(type, fun) do
     # convert the special cases we set in the Events module
     type = Events.convert_type(type)
+
     quote do
       EventRegistry.subscribe()
+
       receive do
         {:discord_event, {unquote(type), args}} ->
           apply(unquote(fun), args)
@@ -342,6 +360,7 @@ defmodule Alchemy.Cogs do
       end
     end
   end
+
   @doc """
   Waits for a specific event satisfying a condition.
 
@@ -373,35 +392,39 @@ defmodule Alchemy.Cogs do
   """
   defmacro wait_for(:message, condition, fun) do
     m = __MODULE__
+
     quote do
       EventRegistry.subscribe()
-      unquote(m).wait(:message, unquote(condition),
-                                unquote(fun), var!(message).channel_id)
+      unquote(m).wait(:message, unquote(condition), unquote(fun), var!(message).channel_id)
     end
   end
+
   defmacro wait_for(type, condition, fun) do
     type = Events.convert_type(type)
     m = __MODULE__
+
     quote do
       EventRegistry.subscribe()
       unquote(m).wait(unquote(type), unquote(condition), unquote(fun))
     end
   end
+
   # Loops until the correct command is received
   @doc false
   def wait(:message, condition, fun, channel_id) do
     receive do
-      {:discord_event, {:message_create,
-       [%{author: %{bot: false}, channel_id: ^channel_id}] = args}} ->
+      {:discord_event,
+       {:message_create, [%{author: %{bot: false}, channel_id: ^channel_id}] = args}} ->
         if apply(condition, args) do
           apply(fun, args)
         else
           wait(:message, condition, fun, channel_id)
         end
-     after
-       20_000 -> Process.exit(self(), :kill)
+    after
+      20_000 -> Process.exit(self(), :kill)
     end
   end
+
   @doc false
   def wait(type, condition, fun) do
     receive do
@@ -415,6 +438,7 @@ defmodule Alchemy.Cogs do
       20_000 -> Process.exit(self(), :kill)
     end
   end
+
   @doc """
   Registers a new command, under the name of the function.
 
@@ -442,18 +466,23 @@ defmodule Alchemy.Cogs do
   """
   defmacro def(func, body) do
     {name, arity, new_func} = inject(func, body)
+
     quote do
       arity = unquote(arity)
+
       @commands update_in(@commands, [Atom.to_string(unquote(name))], fn
-        nil ->
-          {__MODULE__, arity, unquote(name)}
-        {mod, x, name} when x < arity ->
-          {mod, arity, name}
-        {mod, x, name, parser} when x < arity ->
-          {mod, arity, name, parser}
-        val ->
-          val
-      end)
+                  nil ->
+                    {__MODULE__, arity, unquote(name)}
+
+                  {mod, x, name} when x < arity ->
+                    {mod, arity, name}
+
+                  {mod, x, name, parser} when x < arity ->
+                    {mod, arity, name, parser}
+
+                  val ->
+                    val
+                end)
       unquote(new_func)
     end
   end
@@ -461,12 +490,16 @@ defmodule Alchemy.Cogs do
   defp inject({:when, ctx, [{name, _, args} | func_rest]} = guard, body) do
     args = args || []
     injected = [{:message, [], ctx[:context]} | args]
-    new_guard = Macro.prewalk(guard, fn {a, b, _} ->
-      {a, b, [{name, ctx, injected} | func_rest]}
-    end)
+
+    new_guard =
+      Macro.prewalk(guard, fn {a, b, _} ->
+        {a, b, [{name, ctx, injected} | func_rest]}
+      end)
+
     new_func = {:def, ctx, [new_guard, body]}
     {name, length(args), new_func}
   end
+
   defp inject({name, ctx, args}, body) do
     args = args || []
     injected = [{:message, [], ctx[:context]} | args]
@@ -491,16 +524,21 @@ defmodule Alchemy.Cogs do
       defmacro __using__(_opts) do
         commands = Macro.escape(@commands)
         module = __MODULE__
+
         quote do
-          Alchemy.Cogs.CommandHandler.add_commands(unquote(module),
-            unquote(commands) |> Enum.map(fn
+          Alchemy.Cogs.CommandHandler.add_commands(
+            unquote(module),
+            unquote(commands)
+            |> Enum.map(fn
               {k, {mod, arity, name, quoted}} ->
                 {eval, _} = Code.eval_quoted(quoted)
                 {k, {mod, arity, name, eval}}
+
               {k, v} ->
                 {k, v}
             end)
-            |> Enum.into(%{}))
+            |> Enum.into(%{})
+          )
         end
       end
     end
@@ -508,18 +546,20 @@ defmodule Alchemy.Cogs do
 
   defp grouped_cog(str, commands) do
     quote do
-
       def cOGS_COMMANDS_GROUPER(message, rest) do
         [sub, rest] =
           rest
           |> String.split(" ", parts: 2)
           |> Enum.concat([""])
           |> Enum.take(2)
+
         case unquote(commands)[sub] do
           {m, a, f, e} ->
             apply(m, f, [message | rest |> e.() |> Enum.take(a)])
+
           {m, a, f} ->
-            apply(m, f, [message | rest |> String.split |> Enum.take(a)])
+            apply(m, f, [message | rest |> String.split() |> Enum.take(a)])
+
           _x ->
             nil
         end
@@ -527,12 +567,15 @@ defmodule Alchemy.Cogs do
 
       defmacro __using__(_opts) do
         module = __MODULE__
-        commands = %{unquote(str) =>
-          {module, 1, :cOGS_COMMANDS_GROUPER, &List.wrap/1}}
-          |> Macro.escape
+
+        commands =
+          %{unquote(str) => {module, 1, :cOGS_COMMANDS_GROUPER, &List.wrap/1}}
+          |> Macro.escape()
+
         quote do
           Alchemy.Cogs.CommandHandler.add_commands(
-            unquote(module), unquote(commands)
+            unquote(module),
+            unquote(commands)
           )
         end
       end
@@ -541,6 +584,7 @@ defmodule Alchemy.Cogs do
 
   defmacro __before_compile__(env) do
     module = env.module
+
     case Module.get_attribute(module, :command_group) do
       {:group, str} ->
         # Replace the map with the AST representing it, keeping the lambdas
@@ -549,11 +593,14 @@ defmodule Alchemy.Cogs do
           |> Enum.map(fn {k, v} ->
             {k, {:{}, [], Tuple.to_list(v)}}
           end)
+
         grouped_cog(str, {:%{}, [], commands})
+
       nil ->
         normal_cog()
     end
   end
+
   @doc """
   Returns a map from command name (string) to the command information.
 
@@ -577,6 +624,7 @@ defmodule Alchemy.Cogs do
     |> Map.delete(:prefix)
     |> Map.delete(:options)
   end
+
   @doc """
   Returns the base permissions for a member in a guild.
 
@@ -584,13 +632,13 @@ defmodule Alchemy.Cogs do
   """
   defmacro guild_permissions do
     quote do
-      with {:ok, guild}  <- Cache.guild(channel: var!(message).channel_id),
-           {:ok, member} <- Cache.member(guild.id, var!(message).author.id)
-      do
+      with {:ok, guild} <- Cache.guild(channel: var!(message).channel_id),
+           {:ok, member} <- Cache.member(guild.id, var!(message).author.id) do
         {:ok, Alchemy.Guild.highest_role(guild, member).permissions}
       end
     end
   end
+
   @doc """
   Returns the permission bitset of the current member in the channel the command
   was called from.
@@ -610,9 +658,8 @@ defmodule Alchemy.Cogs do
   """
   defmacro permissions do
     quote do
-      with {:ok, guild}  <- Cache.guild(channel: var!(message).channel_id),
-           {:ok, member} <- Cache.member(guild.id, var!(message).author.id)
-      do
+      with {:ok, guild} <- Cache.guild(channel: var!(message).channel_id),
+           {:ok, member} <- Cache.member(guild.id, var!(message).author.id) do
         Alchemy.Permissions.channel_permissions(member, guild, var!(message).channel_id)
       end
     end

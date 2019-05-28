@@ -2,16 +2,17 @@ defmodule Alchemy.Guild do
   alias Alchemy.{Channel, User, Voice, VoiceState}
   alias Alchemy.Guild.{Emoji, GuildMember, Integration, Presence, Role}
   import Alchemy.Structs
+
   @moduledoc """
   Guilds represent a collection of users in a "server". This module contains
   information about the types, and subtypes related to guilds, as well
   as some useful functions related to them.
   """
-  @type snowflake :: String.t
+  @type snowflake :: String.t()
   @typedoc """
   An iso_8601 timestamp.
   """
-  @type timestamp :: String.t
+  @type timestamp :: String.t()
   @typedoc """
   Represents a guild.
 
@@ -68,55 +69,57 @@ defmodule Alchemy.Guild do
 
   """
   @type t :: %__MODULE__{
-    id: snowflake,
-    name: String.t,
-    icon: String.t,
-    splash: String.t | nil,
-    owner_id: snowflake,
-    region: String.t,
-    afk_channel_id: String.t | nil,
-    afk_timeout: Integer,
-    embed_enabled: Boolean,
-    verification_level: Integer,
-    default_message_notifications: Integer,
-    roles: [Guild.role],
-    emojis: [emoji],
-    features: [String.t],
-    mfa_level: Integer,
-    joined_at: timestamp,
-    large: Boolean,
-    unavailable: Boolean,
-    member_count: Integer,
-    voice_states: [Voice.state],
-    members: [member],
-    channels: [Channel.t],
-    presences: [Presence.t]
-  }
+          id: snowflake,
+          name: String.t(),
+          icon: String.t(),
+          splash: String.t() | nil,
+          owner_id: snowflake,
+          region: String.t(),
+          afk_channel_id: String.t() | nil,
+          afk_timeout: Integer,
+          embed_enabled: Boolean,
+          verification_level: Integer,
+          default_message_notifications: Integer,
+          roles: [Guild.role()],
+          emojis: [emoji],
+          features: [String.t()],
+          mfa_level: Integer,
+          joined_at: timestamp,
+          large: Boolean,
+          unavailable: Boolean,
+          member_count: Integer,
+          voice_states: [Voice.state()],
+          members: [member],
+          channels: [Channel.t()],
+          presences: [Presence.t()]
+        }
 
-  defstruct [:id,
-             :name,
-             :icon,
-             :splash,
-             :owner_id,
-             :region,
-             :afk_channel_id,
-             :afk_timeout,
-             :embed_enabled,
-             :verification_level,
-             :default_message_notifications,
-             :roles,
-             :emojis,
-             :features,
-             :mfa_level,
-             :joined_at,
-             :large,
-             :unavailable,
-             :member_count,
-             :voice_states,
-             :members,
-             :channels,
-             :presences
-             ]
+  defstruct [
+    :id,
+    :name,
+    :icon,
+    :splash,
+    :owner_id,
+    :region,
+    :afk_channel_id,
+    :afk_timeout,
+    :embed_enabled,
+    :verification_level,
+    :default_message_notifications,
+    :roles,
+    :emojis,
+    :features,
+    :mfa_level,
+    :joined_at,
+    :large,
+    :unavailable,
+    :member_count,
+    :voice_states,
+    :members,
+    :channels,
+    :presences
+  ]
+
   @typedoc """
   Represents a member in a guild.
 
@@ -134,13 +137,13 @@ defmodule Alchemy.Guild do
     Whether the user is currently muted.
   """
   @type member :: %GuildMember{
-    user: User.t,
-    nick: String.t | nil,
-    roles: [snowflake],
-    joined_at: timestamp,
-    deaf: Boolean,
-    mute: Boolean
-  }
+          user: User.t(),
+          nick: String.t() | nil,
+          roles: [snowflake],
+          joined_at: timestamp,
+          deaf: Boolean,
+          mute: Boolean
+        }
   @typedoc """
   Represents a custom emoji in a guild.
 
@@ -159,12 +162,12 @@ defmodule Alchemy.Guild do
     Whether or not this emoji is managed.
   """
   @type emoji :: %Emoji{
-    id: String.t,
-    name: String.t,
-    roles: [String.t],
-    require_colons: Boolean,
-    managed: Boolean
-  }
+          id: String.t(),
+          name: String.t(),
+          roles: [String.t()],
+          require_colons: Boolean,
+          managed: Boolean
+        }
   @typedoc """
   Represents the account of an integration.
 
@@ -174,9 +177,9 @@ defmodule Alchemy.Guild do
     The name of the account.
   """
   @type integration_account :: %Integration.Account{
-    id: snowflake,
-    name: String.t
-  }
+          id: snowflake,
+          name: String.t()
+        }
   @typedoc """
   Represents an guild's integration with a service, (i.e. twitch)
 
@@ -204,18 +207,18 @@ defmodule Alchemy.Guild do
     When this integration was last synced.
   """
   @type integration :: %Integration{
-    id: snowflake,
-    name: String.t,
-    type: String.t,
-    enabled: Boolean,
-    syncing: Boolean,
-    role_id: snowflake,
-    expire_behaviour: Integer,
-    expire_grace_period: Integer,
-    user: User.t,
-    account: integration_account,
-    synced_at: timestamp
-  }
+          id: snowflake,
+          name: String.t(),
+          type: String.t(),
+          enabled: Boolean,
+          syncing: Boolean,
+          role_id: snowflake,
+          expire_behaviour: Integer,
+          expire_grace_period: Integer,
+          user: User.t(),
+          account: integration_account,
+          synced_at: timestamp
+        }
 
   @typedoc """
   Represents a role in a guild.
@@ -239,15 +242,15 @@ defmodule Alchemy.Guild do
     Whether this role is mentionable.
   """
   @type role :: %Role{
-    id: snowflake,
-    name: String.t,
-    color: Integer,
-    hoist: Boolean,
-    position: Integer,
-    permissions: Integer,
-    managed: Boolean,
-    mentionable: Boolean,
-  }
+          id: snowflake,
+          name: String.t(),
+          color: Integer,
+          hoist: Boolean,
+          position: Integer,
+          permissions: Integer,
+          managed: Boolean,
+          mentionable: Boolean
+        }
   @typedoc """
   Represents the presence of a user in a guild.
 
@@ -263,12 +266,12 @@ defmodule Alchemy.Guild do
     "idle", "online", or "offline"
   """
   @type presence :: %Presence{
-    user: User.t,
-    roles: [snowflake],
-    game: String.t | nil,
-    guild_id: snowflake,
-    status: String.t
-  }
+          user: User.t(),
+          roles: [snowflake],
+          game: String.t() | nil,
+          guild_id: snowflake,
+          status: String.t()
+        }
 
   @doc """
   Finds the highest ranked role of a member in a guild.
@@ -281,15 +284,16 @@ defmodule Alchemy.Guild do
     guild.roles
     |> Enum.sort_by(& &1.position)
     # never null because of the @everyone role 
-    |> Enum.find(& &1 in member.roles) 
+    |> Enum.find(&(&1 in member.roles))
   end
 
   defmacrop is_valid_guild_icon_url(type, size) do
     quote do
       unquote(type) in ["jpg", "jpeg", "png", "webp"] and
-      unquote(size) in [128, 256, 512, 1024, 2048]
+        unquote(size) in [128, 256, 512, 1024, 2048]
     end
   end
+
   @doc """
   Get the icon image URL for the given guild.
   If the guild does not have any icon, returns `nil`.
@@ -299,13 +303,14 @@ defmodule Alchemy.Guild do
   - `size`: The desired size of the returned image. Must be a power of two.
   If the parameters do not match these conditions, an `ArgumentError` is raised.
   """
-  @spec icon_url(__MODULE__.t, String.t, 16..2048) :: String.t
+  @spec icon_url(__MODULE__.t(), String.t(), 16..2048) :: String.t()
   def icon_url(guild, type \\ "png", size \\ 256) when is_valid_guild_icon_url(type, size) do
     case guild.icon do
       nil -> nil
       hash -> "https://cdn.discordapp.com/icons/#{guild.id}/#{hash}.#{type}?size=#{size}"
     end
   end
+
   def icon_url(_guild, _type, _size) do
     raise ArgumentError, message: "invalid icon URL type and / or size"
   end
@@ -313,9 +318,9 @@ defmodule Alchemy.Guild do
   @doc false
   def from_map(map) do
     map
-    |> field_map("roles", &(map_struct &1, Role))
-    |> field_map("emojis", &(map_struct &1, Emoji))
-    |> field_map?("voice_states", &(map_struct &1, VoiceState))
+    |> field_map("roles", &map_struct(&1, Role))
+    |> field_map("emojis", &map_struct(&1, Emoji))
+    |> field_map?("voice_states", &map_struct(&1, VoiceState))
     |> fields_from_map?("members", GuildMember)
     |> fields_from_map?("channels", Channel)
     |> fields_from_map?("presences", Presence)

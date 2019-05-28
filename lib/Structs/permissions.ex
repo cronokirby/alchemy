@@ -78,7 +78,6 @@ defmodule Alchemy.Permissions do
   alias Alchemy.Guild
   use Bitwise
 
-
   @perms [
     :create_instant_invite,
     :kick_members,
@@ -130,9 +129,12 @@ defmodule Alchemy.Permissions do
   @spec to_list(Integer) :: [permission]
   def to_list(bitset) do
     @perm_map
-    |> Enum.reduce([], fn {k, v}, acc when (v &&& bitset) != 0 -> [k | acc]
-                          _, acc -> acc end)
+    |> Enum.reduce([], fn
+      {k, v}, acc when (v &&& bitset) != 0 -> [k | acc]
+      _, acc -> acc
+    end)
   end
+
   @doc """
   Checks for the presence of a permission in a permission bitset.
 
@@ -146,12 +148,15 @@ defmodule Alchemy.Permissions do
   """
   @spec contains?(Integer, permission) :: Boolean
   def contains?(bitset, permission) when permission in @perms do
-    (bitset &&& @perm_map[:administrator]) != 0
-    or (bitset &&& @perm_map[permission]) != 0
+    (bitset &&& @perm_map[:administrator]) != 0 or
+      (bitset &&& @perm_map[permission]) != 0
   end
+
   def contains?(_, permission) do
-    raise ArgumentError, message: "#{permission} is not a valid permisson." <>
-                                  "See documentation for a list of permissions."
+    raise ArgumentError,
+      message:
+        "#{permission} is not a valid permisson." <>
+          "See documentation for a list of permissions."
   end
 
   @doc """
@@ -161,17 +166,21 @@ defmodule Alchemy.Permissions do
   This will mismatch if the wrong structs are passed, or if the guild
   doesn't have a channel field.
   """
-  def channel_permissions(%Guild.GuildMember{} = member,
-                          %Guild{channels: cs} = guild, channel_id)
-  do
+  def channel_permissions(%Guild.GuildMember{} = member, %Guild{channels: cs} = guild, channel_id) do
     highest_role = Guild.highest_role(guild, member)
-    channel = Enum.find(cs, & &1.id == channel_id)
+    channel = Enum.find(cs, &(&1.id == channel_id))
+
     case channel do
-      nil -> {:error, "#{channel_id} is not a channel in this guild"}
-      _ -> {:ok, (highest_role.permissions ||| channel.overwrite.allow)
-                 &&& (~~~(channel.overwrite.deny))}
+      nil ->
+        {:error, "#{channel_id} is not a channel in this guild"}
+
+      _ ->
+        {:ok,
+         (highest_role.permissions ||| channel.overwrite.allow) &&&
+           ~~~channel.overwrite.deny}
     end
   end
+
   @doc """
   Banged version of `channel_permissions/3`
   """

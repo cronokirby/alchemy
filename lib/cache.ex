@@ -14,8 +14,7 @@ defmodule Alchemy.Cache do
   alias Alchemy.Discord.Gateway.RateLimiter, as: Gateway
   import Alchemy.Structs, only: [to_struct: 2]
 
-
-  @type snowflake :: String.t
+  @type snowflake :: String.t()
   @doc """
   Gets the corresponding guild_id for a channel.
 
@@ -25,13 +24,14 @@ defmodule Alchemy.Cache do
   need for getting the whole struct. Because of how the registry is set up, getting
   the entire guild requires a whole extra step, that passes through this one anyways.
   """
-  @spec guild_id(snowflake) :: {:ok, snowflake} | {:error, String.t}
+  @spec guild_id(snowflake) :: {:ok, snowflake} | {:error, String.t()}
   def guild_id(channel_id) do
     case :ets.lookup(:channels, channel_id) do
-       [{_, id}] -> {:ok, id}
-       [] ->  {:error, "Failed to find a channel entry for #{channel_id}."}
+      [{_, id}] -> {:ok, id}
+      [] -> {:error, "Failed to find a channel entry for #{channel_id}."}
     end
   end
+
   @doc """
   Fetches a guild from the cache by a given id.
 
@@ -45,82 +45,94 @@ defmodule Alchemy.Cache do
   - `channel`
     Using this keyword will fetch the information for the guild a channel belongs to.
   """
-  @spec guild(snowflake) :: {:ok, Guild.t} | {:error, String.t}
+  @spec guild(snowflake) :: {:ok, Guild.t()} | {:error, String.t()}
   def guild(channel: channel_id) do
     with {:ok, id} <- guild_id(channel_id) do
       guild(id)
     end
   end
+
   def guild(guild_id) do
     case Guilds.safe_call(guild_id, :show) do
       {:error, :no_guild} ->
         {:error, "You don't seem to be in this guild"}
+
       {:ok, %{"unavailable" => true}} ->
         {:error, "This guild hasn't been loaded in the cache yet"}
+
       {:ok, guild} ->
-        {:ok, guild |> Guilds.de_index |> Guild.from_map}
+        {:ok, guild |> Guilds.de_index() |> Guild.from_map()}
     end
   end
-
 
   defp access(guild_id, section, id, module) when is_atom(module) do
     access(guild_id, section, id, &module.from_map/1)
   end
+
   defp access(guild_id, section, id, function) do
     maybe_val =
       with {:ok, guild} <- Guilds.safe_call(guild_id, {:section, section}) do
         {:ok, guild[id]}
       end
+
     case maybe_val do
       {:error, :no_guild} ->
         {:error, "You don't seem to be in this guild"}
+
       {:ok, nil} ->
         {:error, "Failed to find an entry for #{id} in section #{section}"}
+
       {:ok, some} ->
         {:ok, function.(some)}
     end
   end
+
   @doc """
   Gets a member from a cache, by guild and member id.
   """
-  @spec member(snowflake, snowflake) :: {:ok, Guild.member} | {:error, String.t}
+  @spec member(snowflake, snowflake) :: {:ok, Guild.member()} | {:error, String.t()}
   def member(guild_id, member_id) do
     access(guild_id, "members", member_id, GuildMember)
   end
+
   @doc """
   Gets a specific role in a guild.
   """
-  @spec role(snowflake, snowflake) :: {:ok, Guild.role} | {:error, String.t}
+  @spec role(snowflake, snowflake) :: {:ok, Guild.role()} | {:error, String.t()}
   def role(guild_id, role_id) do
     access(guild_id, "roles", role_id, &to_struct(&1, Role))
   end
+
   @doc """
   Gets the presence of a user in a certain guild.
 
   This contains info such as their status, and roles.
   """
-  @spec presence(snowflake, snowflake) :: {:ok, Presence.t} | {:error, String.t}
+  @spec presence(snowflake, snowflake) :: {:ok, Presence.t()} | {:error, String.t()}
   def presence(guild_id, user_id) do
     access(guild_id, "presences", user_id, Presence)
   end
+
   @doc """
   Retrieves a custom emoji by id in a guild.
   """
-  @spec emoji(snowflake, snowflake) :: {:ok, Guild.emoji} | {:error, String.t}
+  @spec emoji(snowflake, snowflake) :: {:ok, Guild.emoji()} | {:error, String.t()}
   def emoji(guild_id, emoji_id) do
     access(guild_id, "emojis", emoji_id, &to_struct(&1, Emoji))
   end
+
   @doc """
   Retrieves a user's voice state by id in a guild.
   """
-  @spec voice_state(snowflake, snowflake) :: {:ok, Voice.state} | {:error, String.t}
+  @spec voice_state(snowflake, snowflake) :: {:ok, Voice.state()} | {:error, String.t()}
   def voice_state(guild_id, user_id) do
     access(guild_id, "voice_states", user_id, &to_struct(&1, VoiceState))
   end
+
   @doc """
   Retrieves a specific channel in a guild.
   """
-  @spec channel(snowflake, snowflake) :: {:ok, Channel.t} | {:error, String.t}
+  @spec channel(snowflake, snowflake) :: {:ok, Channel.t()} | {:error, String.t()}
   def channel(guild_id, channel_id) do
     access(guild_id, "channels", channel_id, Channel)
   end
@@ -128,13 +140,16 @@ defmodule Alchemy.Cache do
   # Returns the corresponding protocol for an atom key.
   # This is mainly needed for `search/2`
   defp cache_sections(key) do
-    %{members: {"members", &GuildMember.from_map/1},
+    %{
+      members: {"members", &GuildMember.from_map/1},
       roles: {"roles", &to_struct(&1, Role)},
       presences: {"presences", &Presence.from_map/1},
       voice_states: {"voice_states", &to_struct(&1, VoiceState)},
       emojis: {"emojis", &to_struct(&1, Emoji)},
-      channels: {"channels", &Channel.from_map/1}}[key]
+      channels: {"channels", &Channel.from_map/1}
+    }[key]
   end
+
   @doc """
   Searches across all guild for information.
 
@@ -171,44 +186,55 @@ defmodule Alchemy.Cache do
       val["unavailable"] != true
     end)
     |> Stream.map(fn {:ok, val} ->
-      val |> Guilds.de_index |> Guild.from_map
+      val |> Guilds.de_index() |> Guild.from_map()
     end)
     |> Enum.filter(filter)
   end
+
   def search(:private_channels, filter) do
     fold = fn {_id, val}, acc ->
-      if filter.(val) do [val | acc] else acc end
+      if filter.(val) do
+        [val | acc]
+      else
+        acc
+      end
     end
+
     :ets.foldr(fold, [], :priv_channels)
   end
+
   def search(section, filter) do
     {key, de_indexer} = cache_sections(section)
-     Supervisor.which_children(GuildSupervisor)
-     |> Stream.map(fn {_, pid, _, _} -> pid end)
-     |> Task.async_stream(&GenServer.call(&1, {:section, key}))
-     |> Stream.flat_map(fn {:ok, v} -> Map.values(v) end)
-     |> Stream.map(de_indexer)
-     |> Enum.filter(filter)
+
+    Supervisor.which_children(GuildSupervisor)
+    |> Stream.map(fn {_, pid, _, _} -> pid end)
+    |> Task.async_stream(&GenServer.call(&1, {:section, key}))
+    |> Stream.flat_map(fn {:ok, v} -> Map.values(v) end)
+    |> Stream.map(de_indexer)
+    |> Enum.filter(filter)
   end
+
   @doc """
   Fetches a private_channel in the cache by id of the channel.
 
   Takes a DMChannel id. Alternatively, `user: user_id` can be passed to find
   the private channel related to a user.
   """
-  @spec private_channel(snowflake) :: {:ok, Channel.dm_channel} | {:error, String.t}
+  @spec private_channel(snowflake) :: {:ok, Channel.dm_channel()} | {:error, String.t()}
   def private_channel(user: user_id) do
     case :ets.lookup(:priv_channels, user_id) do
       [{_, id}] -> private_channel(id)
       [] -> {:error, "Failed to find a DM channel for this user: #{user_id}"}
     end
   end
+
   def private_channel(channel_id) do
     case :ets.lookup(:priv_channels, channel_id) do
-       [{_, channel}] -> {:ok, DMChannel.from_map(channel)}
-       [] ->  {:error, "Failed to find a DM channel entry for #{channel_id}."}
+      [{_, channel}] -> {:ok, DMChannel.from_map(channel)}
+      [] -> {:error, "Failed to find a DM channel entry for #{channel_id}."}
     end
   end
+
   @doc """
   Gets the user struct for this client from the cache.
 
@@ -219,11 +245,12 @@ defmodule Alchemy.Cache do
   end
   ```
   """
-  @spec user :: User.t
+  @spec user :: User.t()
   def user do
     GenServer.call(Alchemy.Cache.User, :get)
     |> to_struct(User)
   end
+
   @doc """
   Requests the loading of offline guild members for a guild.
 

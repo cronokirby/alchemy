@@ -3,12 +3,7 @@ defmodule Alchemy.Guild.GuildMember do
   import Alchemy.Structs
   @moduledoc false
 
-  defstruct [:user,
-             :nick,
-             :roles,
-             :joined_at,
-             :deaf,
-             :mute]
+  defstruct [:user, :nick, :roles, :joined_at, :deaf, :mute]
 
   def from_map(map) do
     map

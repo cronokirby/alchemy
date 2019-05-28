@@ -5,28 +5,19 @@ defmodule Alchemy.Webhook do
   alias Alchemy.{Embed, User}
   import Alchemy.Discord.RateManager, only: [send_req: 2]
 
-  @type snowflake :: String.t
-
+  @type snowflake :: String.t()
 
   @type t :: %__MODULE__{
-    id: snowflake,
-    guild_id: snowflake | nil,
-    channel_id: snowflake,
-    user: User.t | nil,
-    name: String.t | nil,
-    avatar: String.t | nil,
-    token: String.t
-  }
+          id: snowflake,
+          guild_id: snowflake | nil,
+          channel_id: snowflake,
+          user: User.t() | nil,
+          name: String.t() | nil,
+          avatar: String.t() | nil,
+          token: String.t()
+        }
 
-
-  defstruct [:id,
-             :guild_id,
-             :channel_id,
-             :user,
-             :name,
-             :avatar,
-             :token]
-
+  defstruct [:id, :guild_id, :channel_id, :user, :name, :avatar, :token]
 
   @doc """
   Creates a new webhook in a channel.
@@ -41,12 +32,14 @@ defmodule Alchemy.Webhook do
   {:ok, hook} = Webhook.create("66666", "The Devil")
   ```
   """
-  @spec create(snowflake, String.t, [avatar: String.t]) :: {:ok, __MODULE__.t}
-                                                         | {:error, term}
+  @spec create(snowflake, String.t(), avatar: String.t()) ::
+          {:ok, __MODULE__.t()}
+          | {:error, term}
   def create(channel_id, name, options \\ []) do
     {Webhooks, :create_webhook, [channel_id, name, options]}
     |> send_req("/channels/webhooks")
   end
+
   @doc """
   Returns a list of all webhooks in a channel.
 
@@ -55,11 +48,12 @@ defmodule Alchemy.Webhook do
   {:ok, [%Webhook{} | _]} = Webhook.in_channel("6666")
   ```
   """
-  @spec in_channel(snowflake) :: {:ok, [__MODULE__.t]} | {:error, term}
+  @spec in_channel(snowflake) :: {:ok, [__MODULE__.t()]} | {:error, term}
   def in_channel(channel_id) do
     {Webhooks, :channel_webhooks, [channel_id]}
     |> send_req("/channels/webhooks")
   end
+
   @doc """
   Returns a list of all webhooks in a guild.
 
@@ -68,11 +62,12 @@ defmodule Alchemy.Webhook do
   {:ok, [%Webhook{} | _]} = Webhook.in_guild("99999")
   ```
   """
-  @spec in_guild(atom) :: {:ok, [__MODULE__.t]} | {:error, term}
+  @spec in_guild(atom) :: {:ok, [__MODULE__.t()]} | {:error, term}
   def in_guild(guild_id) do
     {Webhooks, :guild_webhooks, [guild_id]}
     |> send_req("/guilds/webhooks")
   end
+
   @doc """
   Modifies the settings of a webhook.
 
@@ -91,13 +86,14 @@ defmodule Alchemy.Webhook do
   Webhook.edit(hook, name: "Captain Hook")
   ```
   """
-  @spec edit(__MODULE__.t,
-             [name: String.t, avatar: String.t]) :: {:ok, __MODULE__.t}
-                                                  | {:error, term}
+  @spec edit(__MODULE__.t(), name: String.t(), avatar: String.t()) ::
+          {:ok, __MODULE__.t()}
+          | {:error, term}
   def edit(%__MODULE__{id: id, token: token}, options) do
     {Webhooks, :modify_webhook, [id, token, options]}
     |> send_req("/webhooks")
   end
+
   @doc """
   Deletes a webhook.
 
@@ -108,11 +104,12 @@ defmodule Alchemy.Webhook do
   Webhook.delete(wh)
   ```
   """
-  @spec delete(__MODULE__.t) :: {:ok, __MODULE__.t} | {:error, term}
+  @spec delete(__MODULE__.t()) :: {:ok, __MODULE__.t()} | {:error, term}
   def delete(%__MODULE__{id: id, token: token}) do
     {Webhooks, :delete_webhook, [id, token]}
     |> send_req("/webhooks")
   end
+
   @doc """
   Sends a message to a webhook.
 
@@ -141,16 +138,24 @@ defmodule Alchemy.Webhook do
                username: user.username)
   ```
   """
-  @spec send(__MODULE__.t, {:embed, Embed.t} | {:content, String.t},
-             avatar_url: String.t, username: String.t, tts: Boolean) ::
-             {:ok, nil} | {:error, term}
+  @spec send(__MODULE__.t(), {:embed, Embed.t()} | {:content, String.t()},
+          avatar_url: String.t(),
+          username: String.t(),
+          tts: Boolean
+        ) ::
+          {:ok, nil} | {:error, term}
   def send(%__MODULE__{id: id, token: token}, {type, content}, options \\ []) do
-    {type, content} = case {type, content} do
-      {:embed, em} ->
-        {:embeds, [Embed.build(em)]}
-      x -> x
-    end
+    {type, content} =
+      case {type, content} do
+        {:embed, em} ->
+          {:embeds, [Embed.build(em)]}
+
+        x ->
+          x
+      end
+
     options = Keyword.put(options, type, content)
+
     {Webhooks, :execute_webhook, [id, token, options]}
     |> send_req("/webhooks")
   end

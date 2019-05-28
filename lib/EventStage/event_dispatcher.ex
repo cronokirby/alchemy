@@ -1,5 +1,6 @@
 defmodule Alchemy.EventStage.EventDispatcher do
-  @moduledoc false # Serves as a small consumer of the 3rd stage,
+  # Serves as a small consumer of the 3rd stage,
+  @moduledoc false
   # forwarding events to notify processes subscribed in the EventRegistry
   use GenStage
   alias Alchemy.Cogs.EventRegistry

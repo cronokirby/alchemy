@@ -1,78 +1,80 @@
 defmodule Alchemy.Embed do
-    @moduledoc """
-    A module containing structs and functions relative to Embeds.
+  @moduledoc """
+  A module containing structs and functions relative to Embeds.
 
-    Embeds allow you to format messages in a structured, and quite pretty way; much more
-    than can be done with simple text.
-    For a basic idea of how embeds work, check this
-    [link](https://cdn.discordapp.com/attachments/84319995256905728/252292324967710721/embed.png).
+  Embeds allow you to format messages in a structured, and quite pretty way; much more
+  than can be done with simple text.
+  For a basic idea of how embeds work, check this
+  [link](https://cdn.discordapp.com/attachments/84319995256905728/252292324967710721/embed.png).
 
-    ## Example Usage
-    ```elixir
-    Cogs.def embed do
-      %Embed{}
-      |> title("The BEST embed")
-      |> description("the best description")
-      |> image("http://i.imgur.com/4AiXzf8.jpg")
-      |> Embed.send
-    end
-    ```
-    Note that this is equivalent to:
-    ```elixir
-    Cogs.def embed do
-      %Embed{title: "The BEST embed",
-             description: "the best description",
-             image: "http://i.imgur.com/4AiXzf8.jpg"}
-      |> Embed.send
-    end
-    ```
-    ## File Attachments
-    The fields that take urls can also take a special "attachment"
-    url referencing files uploaded alongside the embed.
-    ```elixir
-    Cogs.def foo do
-      %Embed{}
-      |> image("attachment://foo.png")
-      |> Embed.send("", file: "foo.png")
-    end
-    ```
-    """
+  ## Example Usage
+  ```elixir
+  Cogs.def embed do
+    %Embed{}
+    |> title("The BEST embed")
+    |> description("the best description")
+    |> image("http://i.imgur.com/4AiXzf8.jpg")
+    |> Embed.send
+  end
+  ```
+  Note that this is equivalent to:
+  ```elixir
+  Cogs.def embed do
+    %Embed{title: "The BEST embed",
+           description: "the best description",
+           image: "http://i.imgur.com/4AiXzf8.jpg"}
+    |> Embed.send
+  end
+  ```
+  ## File Attachments
+  The fields that take urls can also take a special "attachment"
+  url referencing files uploaded alongside the embed.
+  ```elixir
+  Cogs.def foo do
+    %Embed{}
+    |> image("attachment://foo.png")
+    |> Embed.send("", file: "foo.png")
+  end
+  ```
+  """
   import Alchemy.Structs
   alias Alchemy.Attachment
   alias Alchemy.Embed.{Footer, Image, Video, Provider, Author, Field, Thumbnail}
   alias Alchemy.Embed
 
-
-  @type url :: String.t
+  @type url :: String.t()
   @type t :: %__MODULE__{
-    title: String.t,
-    type: String.t,
-    description: String.t,
-    url: String.t,
-    timestamp: String.t,
-    color: Integer,
-    footer: footer,
-    image: image,
-    thumbnail: thumbnail,
-    video: video,
-    provider: provider,
-    author: author,
-    fields: [field]
-  }
+          title: String.t(),
+          type: String.t(),
+          description: String.t(),
+          url: String.t(),
+          timestamp: String.t(),
+          color: Integer,
+          footer: footer,
+          image: image,
+          thumbnail: thumbnail,
+          video: video,
+          provider: provider,
+          author: author,
+          fields: [field]
+        }
   @derive Poison.Encoder
-  defstruct [:title,
-             :type,
-             :description,
-             :url,
-             :timestamp,
-             :color,
-             :footer,
-             :image,
-             :thumbnail,
-             :video,
-             :provider,
-             :author,
-             fields: []]
+  defstruct [
+    :title,
+    :type,
+    :description,
+    :url,
+    :timestamp,
+    :color,
+    :footer,
+    :image,
+    :thumbnail,
+    :video,
+    :provider,
+    :author,
+    fields: []
+  ]
+
   @typedoc """
   Represents the author of an embed.
 
@@ -90,11 +92,11 @@ defmodule Alchemy.Embed do
     A proxied url for the author's icon image
   """
   @type author :: %Author{
-    name: String.t,
-    url: url,
-    icon_url: url,
-    proxy_icon_url: url
-  }
+          name: String.t(),
+          url: url,
+          icon_url: url,
+          proxy_icon_url: url
+        }
   @typedoc """
   Represents a file attached to an embed.
 
@@ -121,14 +123,14 @@ defmodule Alchemy.Embed do
     The width of a file, if it's an image
   """
   @type attachment :: %Attachment{
-    id: String.t,
-    filename: String.t,
-    size: Integer,
-    url: url,
-    proxy_url: url,
-    height: Integer | nil,
-    width: Integer | nil
-  }
+          id: String.t(),
+          filename: String.t(),
+          size: Integer,
+          url: url,
+          proxy_url: url,
+          height: Integer | nil,
+          width: Integer | nil
+        }
   @typedoc """
   Represents a field in an embed.
 
@@ -143,10 +145,10 @@ defmodule Alchemy.Embed do
     Whether or not the field should be aligned with other inline fields.
   """
   @type field :: %Field{
-    name: String.t,
-    value: String.t,
-    inline: Boolean
-  }
+          name: String.t(),
+          value: String.t(),
+          inline: Boolean
+        }
   @typedoc """
   Represents an Embed footer.
 
@@ -162,10 +164,10 @@ defmodule Alchemy.Embed do
     no purpose.
   """
   @type footer :: %Footer{
-    text: String.t,
-    icon_url: url,
-    proxy_icon_url: url
-  }
+          text: String.t(),
+          icon_url: url,
+          proxy_icon_url: url
+        }
   @typedoc """
   Represents the image of an embed.
 
@@ -185,11 +187,11 @@ defmodule Alchemy.Embed do
     The width of the image.
   """
   @type image :: %Image{
-    url: url,
-    proxy_url: url,
-    height: Integer,
-    width: Integer
-  }
+          url: url,
+          proxy_url: url,
+          height: Integer,
+          width: Integer
+        }
   @typedoc """
   Represents the provider of an embed.
 
@@ -203,9 +205,9 @@ defmodule Alchemy.Embed do
     The source of the provider
   """
   @type provider :: %Provider{
-    name: String.t,
-    url: url
-  }
+          name: String.t(),
+          url: url
+        }
   @typedoc """
   Represents the thumnail of an embed.
 
@@ -223,11 +225,11 @@ defmodule Alchemy.Embed do
     The width of the thumbnail
   """
   @type thumbnail :: %Thumbnail{
-    url: url,
-    proxy_url: url,
-    height: Integer,
-    width: Integer
-  }
+          url: url,
+          proxy_url: url,
+          height: Integer,
+          width: Integer
+        }
   @typedoc """
   Represents a video attached to an embed.
 
@@ -243,11 +245,10 @@ defmodule Alchemy.Embed do
     The width of the video
   """
   @type video :: %Video{
-    url: url,
-    height: Integer,
-    width: Integer
-  }
-
+          url: url,
+          height: Integer,
+          width: Integer
+        }
 
   @doc false
   def from_map(map) do
@@ -261,19 +262,22 @@ defmodule Alchemy.Embed do
     |> to_struct(__MODULE__)
   end
 
-
-  @doc false # removes all the null keys from the map
+  # removes all the null keys from the map
+  @doc false
   # This will also convert datetime objects into iso_8601
   def build(struct) when is_map(struct) do
     {_, struct} = Map.pop(struct, :__struct__)
+
     struct
     |> Enum.filter(fn {_, v} -> v != nil and v != [] end)
     |> Enum.map(fn {k, v} -> {k, build(v)} end)
     |> Enum.into(%{})
   end
+
   def build(value) do
     value
   end
+
   @doc """
   Adds a title to an embed.
   ## Examples
@@ -284,10 +288,11 @@ defmodule Alchemy.Embed do
     |> Embed.send
   end
   """
-  @spec title(Embed.t, String.t) :: Embed.t
+  @spec title(Embed.t(), String.t()) :: Embed.t()
   def title(embed, string) do
     %{embed | title: string}
   end
+
   @doc """
   Sets the url for an embed.
 
@@ -300,10 +305,11 @@ defmodule Alchemy.Embed do
   end
   ```
   """
-  @spec url(Embed.t, url) :: Embed.t
+  @spec url(Embed.t(), url) :: Embed.t()
   def url(embed, url) do
     %{embed | url: url}
   end
+
   @doc """
   Adds a description to an embed.
 
@@ -316,10 +322,11 @@ defmodule Alchemy.Embed do
   end
   ```
   """
-  @spec description(Embed.t, String.t) :: Embed.t
+  @spec description(Embed.t(), String.t()) :: Embed.t()
   def description(embed, string) do
     %{embed | description: string}
   end
+
   @doc """
   Adds author information to an embed.
 
@@ -346,14 +353,16 @@ defmodule Alchemy.Embed do
   end
   ```
   """
-  @spec author(Embed.t, [name: String.t, url: url, icon_url: url] | Author.t) ::
-               Embed.t
+  @spec author(Embed.t(), [name: String.t(), url: url, icon_url: url] | Author.t()) ::
+          Embed.t()
   def author(embed, %Author{} = author) do
     %{embed | author: author}
   end
+
   def author(embed, options) do
     %{embed | author: Enum.into(options, %{})}
   end
+
   @doc """
   Sets the color of an embed
 
@@ -371,10 +380,11 @@ defmodule Alchemy.Embed do
   end
   ```
   """
-  @spec color(Embed.t, Integer) :: Embed.t
+  @spec color(Embed.t(), Integer) :: Embed.t()
   def color(embed, integer) do
     %{embed | color: integer}
   end
+
   @doc """
   Adds a footer to an embed.
 
@@ -397,13 +407,15 @@ defmodule Alchemy.Embed do
   end
   ```
   """
-  @spec footer(Embed.t, [text: String.t, icon_url: url] | Footer.t) :: Embed.t
+  @spec footer(Embed.t(), [text: String.t(), icon_url: url] | Footer.t()) :: Embed.t()
   def footer(embed, %Footer{} = footer) do
     %{embed | footer: footer}
   end
+
   def footer(embed, options) do
     %{embed | footer: Enum.into(options, %{})}
   end
+
   @doc """
   Adds a field to an embed.
 
@@ -430,12 +442,15 @@ defmodule Alchemy.Embed do
   |> field("Inline2", "<- look a field")
   ```
   """
-  @spec field(Embed.t, String.t, String.t) :: Embed.t
+  @spec field(Embed.t(), String.t(), String.t()) :: Embed.t()
   def field(embed, name, value, options \\ []) do
-    field = %{name: name, value: value}
-            |> Map.merge(Enum.into(options, %{}))
+    field =
+      %{name: name, value: value}
+      |> Map.merge(Enum.into(options, %{}))
+
     %{embed | fields: embed.fields ++ [field]}
   end
+
   @doc """
   Adds a thumbnail to an embed.
 
@@ -445,10 +460,11 @@ defmodule Alchemy.Embed do
   |> thumbnail("http://i.imgur.com/4AiXzf8.jpg")
   ```
   """
-  @spec thumbnail(Embed.t, url) :: Embed.t
+  @spec thumbnail(Embed.t(), url) :: Embed.t()
   def thumbnail(embed, url) do
     %{embed | thumbnail: %{url: url}}
   end
+
   @doc """
   Sets the main image of the embed.
 
@@ -457,10 +473,11 @@ defmodule Alchemy.Embed do
   %Embed{}
   |> image("http://i.imgur.com/4AiXzf8.jpg")
   """
-  @spec image(Embed.t, url) :: Embed.t
+  @spec image(Embed.t(), url) :: Embed.t()
   def image(embed, url) do
     %{embed | image: %{url: url}}
   end
+
   @doc """
   Adds a timestamp to an embed.
 
@@ -469,10 +486,11 @@ defmodule Alchemy.Embed do
   ## Examples
   %Embed{} |> timestamp(DateTime.utc_now())
   """
-  @spec timestamp(Embed.t, DateTime.t) :: DateTime.t
+  @spec timestamp(Embed.t(), DateTime.t()) :: DateTime.t()
   def timestamp(embed, %DateTime{} = time) do
-    %{embed | timestamp: DateTime.to_iso8601(time) }
+    %{embed | timestamp: DateTime.to_iso8601(time)}
   end
+
   @doc """
   Sends an embed to the same channel as the message triggering a command.
 
@@ -495,7 +513,7 @@ defmodule Alchemy.Embed do
       Alchemy.Client.send_message(
         var!(message).channel_id,
         unquote(content),
-        [{:embed, unquote(embed)}|unquote(options)]
+        [{:embed, unquote(embed)} | unquote(options)]
       )
     end
   end

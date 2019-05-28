@@ -1,5 +1,6 @@
 defmodule Alchemy.Cogs.EventRegistry do
-  @moduledoc false # Serves as a registry for processes wanting
+  # Serves as a registry for processes wanting
+  @moduledoc false
   # to subscribe to events. The dispatch will then be used to allow
   # for dynamic hooking into events.
 
@@ -7,12 +8,10 @@ defmodule Alchemy.Cogs.EventRegistry do
     Registry.start_link(keys: :duplicate, name: __MODULE__)
   end
 
-
   def subscribe do
     # the calling process will be sent in
     Registry.register(__MODULE__, :subscribed, nil)
   end
-
 
   def dispatch(events) do
     Registry.dispatch(__MODULE__, :subscribed, fn entries ->

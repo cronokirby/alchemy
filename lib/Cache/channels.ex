@@ -1,7 +1,7 @@
 defmodule Alchemy.Cache.Channels do
-  @moduledoc false # Simply used to keep a map from channel_id => guild_id
+  # Simply used to keep a map from channel_id => guild_id
+  @moduledoc false
   use GenServer
-
 
   def start_link do
     GenServer.start_link(__MODULE__, :ok, name: __MODULE__)
@@ -15,23 +15,22 @@ defmodule Alchemy.Cache.Channels do
   def add_channels(nil, _) do
     nil
   end
+
   def add_channels(channels, guild_id) do
     GenServer.call(__MODULE__, {:add, channels, guild_id})
   end
-
 
   def remove_channel(id) do
     GenServer.call(__MODULE__, {:remove, id})
   end
 
-
   def handle_call({:add, channels, guild_id}, _, table) do
     for channel <- channels do
       :ets.insert(table, {channel["id"], guild_id})
     end
+
     {:reply, :ok, table}
   end
-
 
   def handle_call({:remove, id}, _, table) do
     :ets.delete(table, id)

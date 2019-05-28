@@ -3,18 +3,18 @@ defmodule Alchemy.Channel.Invite do
   alias Alchemy.Channel.Invite.{InviteChannel, InviteGuild}
   import Alchemy.Structs
 
-
-  defstruct [:code,
-             :guild,
-             :channel,
-             :inviter,
-             :uses,
-             :max_uses,
-             :max_age,
-             :temporary,
-             :created_at,
-             :revoked]
-
+  defstruct [
+    :code,
+    :guild,
+    :channel,
+    :inviter,
+    :uses,
+    :max_uses,
+    :max_age,
+    :temporary,
+    :created_at,
+    :revoked
+  ]
 
   def from_map(map) do
     map
@@ -22,5 +22,4 @@ defmodule Alchemy.Channel.Invite do
     |> field("channel", InviteChannel)
     |> to_struct(__MODULE__)
   end
-
 end

@@ -1,5 +1,6 @@
 defmodule Alchemy.EventStage.CommandStage do
-  @moduledoc false # One of the 2 parts of the third stage of the pipeline
+  # One of the 2 parts of the third stage of the pipeline
+  @moduledoc false
   # This serves to figure out which message create events
   # contain a command needing to be run, and then send those forward
   # to the final stage
@@ -13,9 +14,12 @@ defmodule Alchemy.EventStage.CommandStage do
 
   def init(limit) do
     selector = fn {event, _args} -> event == :message_create end
-    producers = for x <- 1..limit do
-      {Module.concat(Cacher, :"#{x}"), selector: selector}
-    end
+
+    producers =
+      for x <- 1..limit do
+        {Module.concat(Cacher, :"#{x}"), selector: selector}
+      end
+
     {:producer_consumer, :ok, subscribe_to: producers}
   end
 

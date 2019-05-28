@@ -1,5 +1,6 @@
 defmodule Alchemy.EventStage.EventStage do
-  @moduledoc false # Serves as the 2nd part of the 3rd stage
+  # Serves as the 2nd part of the 3rd stage
+  @moduledoc false
   # Takes the events, and finds out which handler functions to call,
   # before sending them down to the last stage.
   use GenStage

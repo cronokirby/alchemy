@@ -1,15 +1,16 @@
 defmodule Alchemy.Message do
   import Alchemy.Structs
   alias Alchemy.{User, Attachment, Embed, Reaction, Reaction.Emoji}
+
   @moduledoc """
   This module contains the types and functions related to messages in discord.
   """
 
-  @type snowflake :: String.t
+  @type snowflake :: String.t()
   @typedoc """
   Represents an iso8601 timestamp.
   """
-  @type timestamp :: String.t
+  @type timestamp :: String.t()
   @typedoc """
   Represents a message in a channel.
 
@@ -46,41 +47,42 @@ defmodule Alchemy.Message do
     The id of the webhook that sent this message, if it was sent by a webhook.
   """
   @type t :: %__MODULE__{
-    id: snowflake,
-    channel_id: snowflake,
-    author: User.t,
-    content: String,
-    timestamp: timestamp,
-    edited_timestamp: String | nil,
-    tts: Boolean,
-    mention_everyone: Boolean,
-    mentions: [User.t],
-    mention_roles: [snowflake],
-    attachments: [Attachment.t],
-    embeds: [Embed.t],
-    reactions: [Reaction.t],
-    nonce: snowflake,
-    pinned: Boolean,
-    webhook_id: String.t | nil
-  }
+          id: snowflake,
+          channel_id: snowflake,
+          author: User.t(),
+          content: String,
+          timestamp: timestamp,
+          edited_timestamp: String | nil,
+          tts: Boolean,
+          mention_everyone: Boolean,
+          mentions: [User.t()],
+          mention_roles: [snowflake],
+          attachments: [Attachment.t()],
+          embeds: [Embed.t()],
+          reactions: [Reaction.t()],
+          nonce: snowflake,
+          pinned: Boolean,
+          webhook_id: String.t() | nil
+        }
 
-  defstruct [:id,
-             :channel_id,
-             :author,
-             :content,
-             :timestamp,
-             :edited_timestamp,
-             :tts,
-             :mention_everyone,
-             :mentions,
-             :mention_roles,
-             :attachments,
-             :embeds,
-             :reactions,
-             :nonce,
-             :pinned,
-             :webhook_id
-             ]
+  defstruct [
+    :id,
+    :channel_id,
+    :author,
+    :content,
+    :timestamp,
+    :edited_timestamp,
+    :tts,
+    :mention_everyone,
+    :mentions,
+    :mention_roles,
+    :attachments,
+    :embeds,
+    :reactions,
+    :nonce,
+    :pinned,
+    :webhook_id
+  ]
 
   @typedoc """
   Represents a reaction to a message.
@@ -93,10 +95,10 @@ defmodule Alchemy.Message do
     Information about the emoji used.
   """
   @type reaction :: %Reaction{
-    count: Integer,
-    me: Boolean,
-    emoji: Emoji.t
-  }
+          count: Integer,
+          me: Boolean,
+          emoji: Emoji.t()
+        }
   @typedoc """
   Represents an emoji used to react to a message.
 
@@ -106,9 +108,9 @@ defmodule Alchemy.Message do
     The name of this emoji.
   """
   @type emoji :: %Emoji{
-    id: String.t | nil,
-    name: String.t
-  }
+          id: String.t() | nil,
+          name: String.t()
+        }
 
   @doc false
   def from_map(map) do
@@ -144,20 +146,29 @@ defmodule Alchemy.Message do
   - `:channels`
     A mention of a channel.
   """
-  @spec find_mentions(String.t, mention_type) :: [snowflake]
+  @spec find_mentions(String.t(), mention_type) :: [snowflake]
   def find_mentions(content, type) do
-    matcher = case type do
-      :roles -> matcher("@&")
-      :nicknames -> matcher("@!")
-      :channels -> matcher("#")
-      :users -> fn
-        "@!" <> r -> r
-        "@"  <> r -> r
-        _ -> nil
+    matcher =
+      case type do
+        :roles ->
+          matcher("@&")
+
+        :nicknames ->
+          matcher("@!")
+
+        :channels ->
+          matcher("#")
+
+        :users ->
+          fn
+            "@!" <> r -> r
+            "@" <> r -> r
+            _ -> nil
+          end
       end
-    end
+
     Regex.scan(~r/<([#@]?[!&]?[0-9]+)>/, content, capture: :all_but_first)
-    |> Stream.concat
+    |> Stream.concat()
     |> Stream.map(matcher)
     |> Enum.filter(&(&1 != nil))
   end

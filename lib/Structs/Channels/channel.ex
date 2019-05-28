@@ -1,14 +1,24 @@
 defmodule Alchemy.Channel do
   alias Alchemy.OverWrite
-  alias Alchemy.Channel.{Invite, Invite.InviteChannel, Invite.InviteGuild,
-                         TextChannel, ChannelCategory, VoiceChannel,
-                         DMChannel, GroupDMChannel}
+
+  alias Alchemy.Channel.{
+    Invite,
+    Invite.InviteChannel,
+    Invite.InviteGuild,
+    TextChannel,
+    ChannelCategory,
+    VoiceChannel,
+    DMChannel,
+    GroupDMChannel
+  }
+
   alias Alchemy.User
   import Alchemy.Structs
+
   @moduledoc """
   This module contains useful functions for operating on `Channels`.
   """
-  
+
   @typedoc """
   Represents a permission OverWrite object
 
@@ -26,15 +36,15 @@ defmodule Alchemy.Channel do
     the bit set of that permission
   """
   @type overwrite :: %OverWrite{
-    id: String.t,
-    type: String.t,
-    allow: Integer,
-    deny: Integer
-  }
+          id: String.t(),
+          type: String.t(),
+          allow: Integer,
+          deny: Integer
+        }
 
-  @type snowflake :: String.t
-  @type hash :: String.t
-  @type datetime :: String.t
+  @type snowflake :: String.t()
+  @type hash :: String.t()
+  @type datetime :: String.t()
 
   @typedoc """
   Represents an Invite object along with the metadata.
@@ -71,17 +81,17 @@ defmodule Alchemy.Channel do
     Whether this invite was revoked
   """
   @type invite :: %Invite{
-    code: String.t,
-    guild: invite_guild,
-    channel: invite_channel,
-    inviter: User.t,
-    uses: Integer,
-    max_uses: Integer,
-    max_age: Integer,
-    temporary: Boolean,
-    created_at: datetime,
-    revoked: Boolean
-  }
+          code: String.t(),
+          guild: invite_guild,
+          channel: invite_channel,
+          inviter: User.t(),
+          uses: Integer,
+          max_uses: Integer,
+          max_age: Integer,
+          temporary: Boolean,
+          created_at: datetime,
+          revoked: Boolean
+        }
   @typedoc """
   Represents the guild an invite is for.
 
@@ -99,12 +109,12 @@ defmodule Alchemy.Channel do
     The hash of the guild icon (or `nil`)
   """
 
-  @type invite_guild ::%InviteGuild{
-    id: snowflake,
-    name: String.t,
-    splash: hash,
-    icon: hash
-  }
+  @type invite_guild :: %InviteGuild{
+          id: snowflake,
+          name: String.t(),
+          splash: hash,
+          icon: hash
+        }
   @typedoc """
   Represents the channel an invite is for
 
@@ -119,10 +129,10 @@ defmodule Alchemy.Channel do
     The type of the channel, either "text" or "voice"
   """
   @type invite_channel :: %InviteChannel{
-    id: snowflake,
-    name: String.t,
-    type: String.t
-  }
+          id: snowflake,
+          name: String.t(),
+          type: String.t()
+        }
 
   @typedoc """
   Represents a normal text channel in a guild
@@ -159,17 +169,17 @@ defmodule Alchemy.Channel do
     The timestamp of the last channel pin, if any
   """
   @type text_channel :: %TextChannel{
-    id: snowflake,
-    guild_id: snowflake,
-    position: Integer,
-    permission_overwrites: [overwrite],
-    name: String.t,
-    topic: String.t | nil,
-    nsfw: Boolean.t,
-    parent_id: snowflake | nil,
-    last_message_id: snowflake | nil,
-    last_pin_timestamp: String.t | nil
-  }
+          id: snowflake,
+          guild_id: snowflake,
+          position: Integer,
+          permission_overwrites: [overwrite],
+          name: String.t(),
+          topic: String.t() | nil,
+          nsfw: Boolean.t(),
+          parent_id: snowflake | nil,
+          last_message_id: snowflake | nil,
+          last_pin_timestamp: String.t() | nil
+        }
 
   @typedoc """
   Represents a channel category in a guild.
@@ -194,13 +204,13 @@ defmodule Alchemy.Channel do
     Whether or not this category is considered nsfw
   """
   @type channel_category :: %ChannelCategory{
-    id: snowflake,
-    guild_id: snowflake,
-    position: Integer,
-    permission_overwrites: [overwrite],
-    name: String.t,
-    nsfw: Boolean.t
-  }
+          id: snowflake,
+          guild_id: snowflake,
+          position: Integer,
+          permission_overwrites: [overwrite],
+          name: String.t(),
+          nsfw: Boolean.t()
+        }
 
   @typedoc """
   Represents a voice channel in a guild.
@@ -221,7 +231,7 @@ defmodule Alchemy.Channel do
 
     The name of this channel
   - `nsfw`
-  
+
     Whether or not this channel is considered nsfw
   - `bitrate`
 
@@ -234,16 +244,16 @@ defmodule Alchemy.Channel do
     The id of the category this channel belongs to, if any
   """
   @type voice_channel :: %VoiceChannel{
-    id: snowflake,
-    guild_id: snowflake,
-    position: Integer,
-    permission_overwrites: [overwrite],
-    name: String.t,
-    nsfw: Boolean.t,
-    bitrate: Integer,
-    user_limit: Integer,
-    parent_id: snowflake | nil
-  }
+          id: snowflake,
+          guild_id: snowflake,
+          position: Integer,
+          permission_overwrites: [overwrite],
+          name: String.t(),
+          nsfw: Boolean.t(),
+          bitrate: Integer,
+          user_limit: Integer,
+          parent_id: snowflake | nil
+        }
 
   @typedoc """
   Represents a private message between the bot and another user.
@@ -259,10 +269,10 @@ defmodule Alchemy.Channel do
     The id of the last message sent, if any
   """
   @type dm_channel :: %DMChannel{
-    id: snowflake,
-    recipients: [User.t],
-    last_message_id: snowflake | nil
-  }
+          id: snowflake,
+          recipients: [User.t()],
+          last_message_id: snowflake | nil
+        }
 
   @typedoc """
   Represents a dm channel between multiple users.
@@ -286,35 +296,34 @@ defmodule Alchemy.Channel do
     The id of the last message sent in this channel, if any
   """
   @type group_dm_channel :: %GroupDMChannel{
-    id: snowflake,
-    owner_id: snowflake,
-    icon: String.t | nil,
-    name: String.t,
-    recipients: [User.t],
-    last_message_id: snowflake | nil
-  }
+          id: snowflake,
+          owner_id: snowflake,
+          icon: String.t() | nil,
+          name: String.t(),
+          recipients: [User.t()],
+          last_message_id: snowflake | nil
+        }
 
   @typedoc """
   The general channel type, representing one of 5 variants.
 
   The best way of dealing with this type is pattern matching against one of the 5 structs.
   """
-  @type t :: 
-     text_channel 
-    | voice_channel 
-    | channel_category 
-    | dm_channel
-    | group_dm_channel
+  @type t ::
+          text_channel
+          | voice_channel
+          | channel_category
+          | dm_channel
+          | group_dm_channel
 
-  
-    @doc false
-    def from_map(map) do
-      case map["type"] do
-        0 -> TextChannel.from_map(map)
-        1 -> DMChannel.from_map(map)
-        2 -> VoiceChannel.from_map(map)
-        3 -> GroupDMChannel.from_map(map)
-        4 -> ChannelCategory.from_map(map)
-      end
+  @doc false
+  def from_map(map) do
+    case map["type"] do
+      0 -> TextChannel.from_map(map)
+      1 -> DMChannel.from_map(map)
+      2 -> VoiceChannel.from_map(map)
+      3 -> GroupDMChannel.from_map(map)
+      4 -> ChannelCategory.from_map(map)
     end
+  end
 end
