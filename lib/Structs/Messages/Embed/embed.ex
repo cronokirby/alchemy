@@ -267,8 +267,8 @@ defmodule Alchemy.Embed do
   def build(struct) when is_map(struct) do
     {_, struct} = Map.pop(struct, :__struct__)
     struct
-    |> Enum.filter_map(fn {_, v} -> v != nil and v != [] end,
-                       fn {k, v} -> {k, build(v)} end)
+    |> Enum.filter(fn {_, v} -> v != nil and v != [] end)
+    |> Enum.map(fn {k, v} -> {k, build(v)} end)
     |> Enum.into(%{})
   end
   def build(value) do

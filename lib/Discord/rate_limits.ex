@@ -33,7 +33,7 @@ defmodule Alchemy.Discord.RateLimits do
 
   # Used in the case of a 429 error, expected to "decide" what response to give
   def rate_info(%{status_code: 429, headers: h, body: body}) do
-    body = Poison.Parser.parse! body
+    body = Poison.Parser.parse!(body, %{})
     timeout = body["retry_after"]
     if body["global"] do
       {:global, timeout}

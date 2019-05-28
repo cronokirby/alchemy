@@ -5,7 +5,7 @@ defmodule Alchemy.Mixfile do
   def project do
     [app: :alchemy,
      version: "0.6.1",
-     elixir: "~> 1.4",
+     elixir: "~> 1.8",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      description: description(),
@@ -23,14 +23,14 @@ defmodule Alchemy.Mixfile do
 
 
   defp deps do
-    [{:httpoison, "~> 0.13.0"},
-     {:earmark, "~> 0.1", only: :dev},
-     {:websocket_client, "~> 1.2"},
-     {:ex_doc, "~> 0.11", only: :dev},
-     {:poison, "~> 3.0"},
-     {:gen_stage, "~> 0.11"},
+    [{:httpoison, "~> 1.5"},
+     {:earmark, "~> 1.3", only: :dev},
+     {:websocket_client, "~> 1.3"},
+     {:ex_doc, "~> 0.20", only: :dev},
+     {:poison, "~> 4.0"},
+     {:gen_stage, "~> 0.14"},
      {:porcelain, "~> 2.0"},
-     {:kcl, "~> 1.0.0"}]
+     {:kcl, "~> 1.1"}]
   end
 
   defp description do

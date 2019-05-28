@@ -4,7 +4,7 @@ defmodule Alchemy.Cogs.EventRegistry do
   # for dynamic hooking into events.
 
   def start_link do
-    Registry.start_link(:duplicate, __MODULE__, [])
+    Registry.start_link(keys: :duplicate, name: __MODULE__)
   end
 
 

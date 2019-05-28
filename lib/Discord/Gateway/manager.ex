@@ -23,14 +23,14 @@ defmodule Alchemy.Discord.Gateway.Manager do
   ### Private Utility ###
 
   defp get_url(_token, selfbot: _) do
-    {:ok, json} = Api.get!("https://discordapp.com/api/v6/gateway").body
-                  |> Poison.Parser.parse
+    json = Api.get!("https://discordapp.com/api/v6/gateway").body
+                  |> fn x -> Poison.Parser.parse!(x, %{}) end.()
     {json["url"] <> "?v=6&encoding=json", 1}
   end
   defp get_url(token, []) do
     url = "https://discordapp.com/api/v6/gateway/bot"
-    {:ok, json} = Api.get!(url, token).body
-                  |> Poison.Parser.parse
+    json = Api.get!(url, token).body
+                  |> fn x -> Poison.Parser.parse!(x, %{}) end.()
     {json["url"] <> "?v=6&encoding=json",
      json["shards"]}
   end

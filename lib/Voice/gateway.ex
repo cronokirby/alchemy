@@ -85,7 +85,7 @@ defmodule Alchemy.Voice.Gateway do
   end
 
   def websocket_handle({:text, msg}, _, state) do
-    msg |> Poison.Parser.parse! |> dispatch(state)
+    msg |> fn x -> Poison.Parser.parse!(x, %{}) end.() |> dispatch(state)
   end
 
   def dispatch(%{"op" => 2, "d" => payload}, state) do

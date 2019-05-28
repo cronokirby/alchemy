@@ -23,7 +23,7 @@ defmodule Alchemy.Discord.Api do
   def parse_map(mod) do
     fn json ->
       json
-      |> Poison.Parser.parse!
+      |> fn x -> Poison.Parser.parse!(x, %{}) end.()
       |> Enum.map(&mod.from_map/1)
     end
   end
@@ -31,6 +31,7 @@ defmodule Alchemy.Discord.Api do
   ### Request API ###
 
   def get(url, token, body) do
+    IO.puts("#{url}, #{token}, #{body}")
     request(:get, url, token)
     |> handle(body)
   end
@@ -90,7 +91,7 @@ defmodule Alchemy.Discord.Api do
     handle_response(response, :no_parser)
   end
   def handle(response, module) when is_atom(module) do
-    handle_response(response, &module.from_map(Poison.Parser.parse!(&1)))
+    handle_response(response, &module.from_map(Poison.Parser.parse!(&1, %{})))
   end
   def handle(response, parser) when is_function(parser) do
     handle_response(response, parser)

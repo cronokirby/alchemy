@@ -8,7 +8,7 @@ defmodule Alchemy.Discord.Channels do
 
 
   def parse_channel(json) do
-    parsed = Parser.parse!(json)
+    parsed = Parser.parse!(json, %{})
     if parsed["type"] == 1 do
       DMChannel.from_map(parsed)
     else
@@ -166,7 +166,7 @@ defmodule Alchemy.Discord.Channels do
   def get_pinned_messages(token, channel_id) do
     parser = fn json ->
       json
-      |> Parser.parse!
+      |> fn x -> Parser.parse!(x, %{}) end.()
       |> Enum.map(&Message.from_map/1)
     end
     @root <> channel_id <> "/pins"

@@ -41,10 +41,10 @@ defmodule Alchemy.Discord.Gateway do
 
   # Messages are either raw, or compressed JSON
   def websocket_handle({:binary, msg}, _conn_state, state) do
-      msg |> :zlib.uncompress |> Poison.Parser.parse! |> dispatch(state)
+      msg |> :zlib.uncompress |> fn x -> Poison.Parser.parse!(x, %{}) end.() |> dispatch(state)
   end
   def websocket_handle({:text, msg}, _conn_state, state) do
-      msg |> Poison.Parser.parse! |> dispatch(state)
+      msg |> fn x -> Poison.Parser.parse!(x, %{}) end.() |> dispatch(state)
   end
 
 
