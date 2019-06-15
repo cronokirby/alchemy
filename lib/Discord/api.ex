@@ -33,8 +33,6 @@ defmodule Alchemy.Discord.Api do
   ### Request API ###
 
   def get(url, token, body) do
-    IO.puts("#{url}, #{token}, #{body}")
-
     request(:get, url, token)
     |> handle(body)
   end
