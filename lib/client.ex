@@ -969,7 +969,7 @@ defmodule Alchemy.Client do
           mute: Boolean,
           deaf: Boolean,
           channel_id: snowflake
-        ) :: {:ok, Guild.member()} | {:error, term}
+        ) :: {:ok, nil} | {:error, term}
   def edit_member(guild_id, user_id, options) do
     {Guilds, :modify_member, [guild_id, user_id, options]}
     |> send_req("/guilds/#{guild_id}/members")
@@ -1324,11 +1324,11 @@ defmodule Alchemy.Client do
   @doc """
   Updates the status of the client.
 
-  The status displays either "playing Game", 
+  The status displays either "playing Game",
   or a "streaming Game" message under the client, as well
   setting an inactivity based on idleness.
 
-  `playing: game` specifies that you're playing, but not streaming 
+  `playing: game` specifies that you're playing, but not streaming
   a game. `streaming: {game, twitch}` acts in a similar way, except
   that it will also have a link to that twitch stream. You should only
   pass in the handle, and not the full stream link, i.e. "foobar" instead

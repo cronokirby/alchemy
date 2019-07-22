@@ -74,7 +74,7 @@ defmodule Alchemy.Discord.Guilds do
 
   def modify_member(token, guild_id, user_id, options) do
     (@root <> guild_id <> "/members/" <> user_id)
-    |> Api.patch(token, Api.encode(options), GuildMember)
+    |> Api.patch(token, Api.encode(options))
   end
 
   def modify_nick(token, guild_id, nick) do
