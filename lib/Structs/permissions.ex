@@ -117,7 +117,7 @@ defmodule Alchemy.Permissions do
   @type permission :: atom
 
   @doc """
-  Converts a permission bitset into a legible list of atoms.
+  Converts a permission bitset into a legible list of atoms. This is the reverse operation of `to_bitset/1`.
 
   For checking if a specific permission is in that list, use `contains?/2`
   instead.
@@ -133,6 +133,23 @@ defmodule Alchemy.Permissions do
       {k, v}, acc when (v &&& bitset) != 0 -> [k | acc]
       _, acc -> acc
     end)
+  end
+
+  @doc """
+  Converts a list of permission atoms into a bitset. This is the reverse operation of `to_list/1`.
+
+  ## Examples
+  ```elixir
+  bitset = Permissions.to_bitset([:send_messages, :speak])
+  ```
+  """
+  @spec to_bitset([permission]) :: Integer
+  def to_bitset(list) do
+    @perm_map
+    |> Enum.reduce(0,
+      fn {k, v}, acc ->
+        if Enum.member?(list, k), do: acc ||| v, else: acc
+      end)
   end
 
   @doc """
