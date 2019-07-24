@@ -98,15 +98,16 @@ defmodule Alchemy.Discord.Events do
   end
 
   def handle("GUILD_ROLE_UPDATE", %{"guild_id" => id, "role" => new_role = %{"id" => role_id}}) do
+    guild_result = Guilds.safe_call(id, {:section, "roles"})
     old_role =
-      case Guilds.safe_call(id, {:section, "roles"}) do
-        {:ok, guild} ->
-          case guild[role_id] do
-            nil  -> nil
-            role -> to_struct(role, Role)
-          end
-        {:error, _reason} -> nil
+      with {:ok, guild} <- guild_result,
+           role when not is_nil(role) <- guild[role_id]
+      do
+        to_struct(role, Role)
+      else
+        _ -> nil
       end
+
     Guilds.update_role(id, new_role)
     new_role = to_struct(new_role, Role)
     {:role_update, [old_role, new_role, id]}
