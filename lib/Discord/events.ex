@@ -5,7 +5,6 @@ defmodule Alchemy.Discord.Events do
   # This module is then used by EventStage.Cache
   alias Alchemy.{Channel, Channel.DMChannel, Guild.Emoji, Guild, Message, User, VoiceState}
   alias Alchemy.Guild.{GuildMember, Presence, Role}
-  alias Alchemy.Cache.Supervisor, as: Cache
   alias Alchemy.Cache.{Channels, Guilds, PrivChannels}
   import Alchemy.Structs
 
@@ -154,12 +153,6 @@ defmodule Alchemy.Discord.Events do
   end
 
   def handle("READY", payload) do
-    Cache.ready(
-      payload["user"],
-      payload["private_channels"],
-      payload["guilds"]
-    )
-
     {:ready, payload["shard"]}
   end
 
