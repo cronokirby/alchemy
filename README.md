@@ -13,7 +13,7 @@ as defining a function!
 Simply add *Alchemy* to your dependencies in your `mix.exs` file:
 ```elixir
 def deps do
-  [{:alchemy, "~> 0.6.0", hex: :discord_alchemy}]
+  [{:alchemy, "~> 0.6.4", hex: :discord_alchemy}]
 end
 ```
 
