@@ -317,6 +317,19 @@ defmodule Alchemy.Events do
   end
 
   @doc """
+  Registers a handle triggering whenever a role gets updated in a guild.
+
+  `args` : `Alchemy.Guild.role, Alchemy.Guild.role, snowflake`
+
+  Receives the old role, the new role and the id of the guild that it belongs
+  to. The old role may be `nil` if it was not already cached when the event
+  was received.
+  """
+  defmacro on_role_update(func) do
+    handle(:role_update, func)
+  end
+
+  @doc """
   Registers a handle triggering whenever a role gets deleted from a guild.
 
   `args` : `snowflake, snowflake`

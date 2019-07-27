@@ -96,6 +96,22 @@ defmodule Alchemy.Discord.Events do
     {:role_create, [to_struct(role, Role), id]}
   end
 
+  def handle("GUILD_ROLE_UPDATE", %{"guild_id" => id, "role" => new_role = %{"id" => role_id}}) do
+    guild_result = Guilds.safe_call(id, {:section, "roles"})
+    old_role =
+      with {:ok, guild} <- guild_result,
+           role when not is_nil(role) <- guild[role_id]
+      do
+        to_struct(role, Role)
+      else
+        _ -> nil
+      end
+
+    Guilds.update_role(id, new_role)
+    new_role = to_struct(new_role, Role)
+    {:role_update, [old_role, new_role, id]}
+  end
+
   def handle("GUILD_ROLE_DELETE", %{"guild_id" => guild_id, "role_id" => id}) do
     Guilds.remove_role(guild_id, id)
     {:role_delete, [id, guild_id]}
