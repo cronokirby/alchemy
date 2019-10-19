@@ -4,7 +4,6 @@ defmodule Alchemy.Voice.Gateway do
   alias Alchemy.Voice.Supervisor.Server
   alias Alchemy.Voice.Controller
   alias Alchemy.Voice.UDP
-  alias Alchemy.Discord.Gateway.RateLimiter
   require Logger
 
   defmodule Payloads do
@@ -83,9 +82,6 @@ defmodule Alchemy.Voice.Gateway do
       :gen_udp.close(state.udp)
     end
 
-    Supervisor.terminate_child(Alchemy.Voice.Supervisor.Gateway, self())
-    Alchemy.Discord.Gateway.RateLimiter.change_voice_state(state[:guild_id], nil)
-
     {:ok, state}
   end
 
@@ -145,9 +141,6 @@ defmodule Alchemy.Voice.Gateway do
   def websocket_terminate(why, _conn_state, state) do
     Logger.debug("Voice Gateway for #{state.guild_id} terminated, "
                  <> "reason: #{inspect why}")
-
-    Supervisor.terminate_child(Alchemy.Voice.Supervisor.Gateway, self())
-    Alchemy.Discord.Gateway.RateLimiter.change_voice_state(state[:guild_id], nil)
 
     :ok
   end
