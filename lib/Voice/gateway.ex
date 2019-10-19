@@ -4,6 +4,7 @@ defmodule Alchemy.Voice.Gateway do
   alias Alchemy.Voice.Supervisor.Server
   alias Alchemy.Voice.Controller
   alias Alchemy.Voice.UDP
+  alias Alchemy.Discord.Gateway.RateLimiter
   require Logger
 
   defmodule Payloads do
@@ -30,7 +31,7 @@ defmodule Alchemy.Voice.Gateway do
 
     def heartbeat do
       now = DateTime.utc_now() |> DateTime.to_unix
-      build_payload(now * 1000, :heartbeat)
+      build_payload(now * 100, :heartbeat)
     end
 
     def select(my_ip, my_port) do
@@ -81,6 +82,10 @@ defmodule Alchemy.Voice.Gateway do
     if state.udp do
       :gen_udp.close(state.udp)
     end
+
+    Supervisor.terminate_child(Alchemy.Voice.Supervisor.Gateway, self())
+    Alchemy.Discord.Gateway.RateLimiter.change_voice_state(state[:guild_id], nil)
+
     {:ok, state}
   end
 
@@ -90,18 +95,22 @@ defmodule Alchemy.Voice.Gateway do
 
   def dispatch(%{"op" => 2, "d" => payload}, state) do
     {my_ip, my_port, discord_ip, udp} =
-      UDP.open_udp(state.url, payload["port"], payload["ssrc"])
+      UDP.open_udp(payload["ip"], payload["port"], payload["ssrc"])
     new_state =
       %{state | my_ip: my_ip, my_port: my_port,
                 discord_ip: discord_ip, discord_port: payload["port"],
                 udp: udp, ssrc: payload["ssrc"]}
-    send(self(), {:heartbeat, payload["heartbeat_interval"]})
     {:reply, {:text, Payloads.select(my_ip, my_port)}, new_state}
   end
 
   def dispatch(%{"op" => 4, "d" => payload}, state) do
     send(self(), {:start_controller, self()})
     {:ok, %{state | key: :erlang.list_to_binary(payload["secret_key"])}}
+  end
+
+  def dispatch(%{"op" => 8, "d" => payload}, state) do
+    send(self(), {:heartbeat, floor(payload["heartbeat_interval"] * 0.75)})
+    {:ok, state}
   end
 
   def dispatch(_, state) do
@@ -136,6 +145,10 @@ defmodule Alchemy.Voice.Gateway do
   def websocket_terminate(why, _conn_state, state) do
     Logger.debug("Voice Gateway for #{state.guild_id} terminated, "
                  <> "reason: #{inspect why}")
+
+    Supervisor.terminate_child(Alchemy.Voice.Supervisor.Gateway, self())
+    Alchemy.Discord.Gateway.RateLimiter.change_voice_state(state[:guild_id], nil)
+
     :ok
   end
 end
