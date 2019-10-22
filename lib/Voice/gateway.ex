@@ -19,25 +19,28 @@ defmodule Alchemy.Voice.Gateway do
 
     def build_payload(data, op) do
       %{op: @opcodes[op], d: data}
-      |> Poison.encode!
+      |> Poison.encode!()
     end
 
     def identify(server_id, user_id, session, token) do
-      %{"server_id" => server_id, "user_id" => user_id,
-        "session_id" => session, "token" => token}
-        |> build_payload(:identify)
+      %{"server_id" => server_id, "user_id" => user_id, "session_id" => session, "token" => token}
+      |> build_payload(:identify)
     end
 
     def heartbeat do
-      now = DateTime.utc_now() |> DateTime.to_unix
-      build_payload(now * 100, :heartbeat)
+      now = DateTime.utc_now() |> DateTime.to_unix()
+      build_payload(now * 1000, :heartbeat)
     end
 
     def select(my_ip, my_port) do
-      %{"protocol" => "udp", "data" => %{
-        "address" => my_ip, "port" => my_port,
-        "mode" => "xsalsa20_poly1305"
-      }}
+      %{
+        "protocol" => "udp",
+        "data" => %{
+          "address" => my_ip,
+          "port" => my_port,
+          "mode" => "xsalsa20_poly1305"
+        }
+      }
       |> build_payload(:select)
     end
 
@@ -49,16 +52,37 @@ defmodule Alchemy.Voice.Gateway do
 
   defmodule State do
     @moduledoc false
-    defstruct [:token, :guild_id, :channel, :user_id, :url, :session, :udp,
-               :discord_ip, :discord_port, :my_ip, :my_port, :ssrc, :key]
+    defstruct [
+      :token,
+      :guild_id,
+      :channel,
+      :user_id,
+      :url,
+      :session,
+      :udp,
+      :discord_ip,
+      :discord_port,
+      :my_ip,
+      :my_port,
+      :ssrc,
+      :key
+    ]
   end
 
   def start_link(url, token, session, user_id, guild_id, channel) do
     :crypto.start()
     :ssl.start()
     url = String.replace(url, ":80", "")
-    state = %State{token: token, guild_id: guild_id, user_id: user_id,
-                   url: url, session: session, channel: channel}
+
+    state = %State{
+      token: token,
+      guild_id: guild_id,
+      user_id: user_id,
+      url: url,
+      session: session,
+      channel: channel
+    }
+
     :websocket_client.start_link("wss://" <> url, __MODULE__, state)
   end
 
@@ -70,14 +94,17 @@ defmodule Alchemy.Voice.Gateway do
     # keeping track of the channel helps avoid pointless voice connections
     # by letting people ping the registry instead.
     Registry.register(Registry.Voice, {state.guild_id, :gateway}, state.channel)
-    Logger.debug "Voice Gateway for #{state.guild_id} connected"
+    Logger.debug("Voice Gateway for #{state.guild_id} connected")
     send(self(), :send_identify)
     {:ok, state}
   end
 
   def ondisconnect(reason, state) do
-    Logger.debug("Voice Gateway for #{state.guild_id} disconnected, "
-                 <> "reason: #{inspect reason}")
+    Logger.debug(
+      "Voice Gateway for #{state.guild_id} disconnected, " <>
+        "reason: #{inspect(reason)}"
+    )
+
     if state.udp do
       :gen_udp.close(state.udp)
     end
@@ -86,16 +113,23 @@ defmodule Alchemy.Voice.Gateway do
   end
 
   def websocket_handle({:text, msg}, _, state) do
-    msg |> fn x -> Poison.Parser.parse!(x, %{}) end.() |> dispatch(state)
+    msg |> (fn x -> Poison.Parser.parse!(x, %{}) end).() |> dispatch(state)
   end
 
   def dispatch(%{"op" => 2, "d" => payload}, state) do
     {my_ip, my_port, discord_ip, udp} =
       UDP.open_udp(payload["ip"], payload["port"], payload["ssrc"])
-    new_state =
-      %{state | my_ip: my_ip, my_port: my_port,
-                discord_ip: discord_ip, discord_port: payload["port"],
-                udp: udp, ssrc: payload["ssrc"]}
+
+    new_state = %{
+      state
+      | my_ip: my_ip,
+        my_port: my_port,
+        discord_ip: discord_ip,
+        discord_port: payload["port"],
+        udp: udp,
+        ssrc: payload["ssrc"]
+    }
+
     {:reply, {:text, Payloads.select(my_ip, my_port)}, new_state}
   end
 
@@ -114,8 +148,7 @@ defmodule Alchemy.Voice.Gateway do
   end
 
   def websocket_info(:send_identify, _, state) do
-    payload = Payloads.identify(state.guild_id, state.user_id,
-                                state.session, state.token)
+    payload = Payloads.identify(state.guild_id, state.user_id, state.session, state.token)
     {:reply, {:text, payload}, state}
   end
 
@@ -127,10 +160,16 @@ defmodule Alchemy.Voice.Gateway do
   def websocket_info({:start_controller, me}, _, state) do
     {:ok, pid} =
       Controller.start_link(
-       state.udp, state.key, state.ssrc,
-       state.discord_ip, state.discord_port,
-       state.guild_id, me)
-      Server.send_to(state.guild_id, pid)
+        state.udp,
+        state.key,
+        state.ssrc,
+        state.discord_ip,
+        state.discord_port,
+        state.guild_id,
+        me
+      )
+
+    Server.send_to(state.guild_id, pid)
     {:ok, state}
   end
 
@@ -139,8 +178,10 @@ defmodule Alchemy.Voice.Gateway do
   end
 
   def websocket_terminate(why, _conn_state, state) do
-    Logger.debug("Voice Gateway for #{state.guild_id} terminated, "
-                 <> "reason: #{inspect why}")
+    Logger.debug(
+      "Voice Gateway for #{state.guild_id} terminated, " <>
+        "reason: #{inspect(why)}"
+    )
 
     :ok
   end
