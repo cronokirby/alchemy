@@ -1,6 +1,6 @@
 # Alchemy
 
-A discord library / framework for elixir.
+A Discord library / framework for Elixir.
 
 This library aims to provide a solid foundation, upon which to build
 a simple, yet powerful interface. Unlike other libraries, this one comes
@@ -72,10 +72,10 @@ Starting the application in the repl is very advantageous, as it allows
  you to interact with the bot live.
 
 ### Using Voice
-Alchemy also supports using discord's voice API to play audio.
+Alchemy also supports using Discord's Voice API to play audio.
 We rely on [ffmpeg](https://ffmpeg.org/) for audio encoding,
 as well as [youtube-dl](https://rg3.github.io/youtube-dl/) for streaming
-audio from sites. Before the voice api can be used, you'll need to acquire
+audio from sites. Before the Voice API can be used, you'll need to acquire
 the latest versions of those from their sites (make sure you get ffmpeg
 with opus support), and then configure the path to those executables in
 alchemy like so:
@@ -94,21 +94,21 @@ or `Alchemy.Voice.play_url/2`. Here's an example command to show off these
 features:
 ```elixir
 Cogs.def play(url) do
-    {:ok, guild} = Cogs.guild()
-    default_voice_channel = Enum.find(guild.channels, &match?(%{type: 2}, &1))
-    # joins the default channel for this guild
-    # this will check if a connection already exists for you
-    Alchemy.Voice.join(guild.id, default_voice_channel.id)
-    Alchemy.Voice.play_url(guild.id, url)
-    Cogs.say "Now playing #{url}"
-  end
+  {:ok, guild} = Cogs.guild()
+  default_voice_channel = Enum.find(guild.channels, &match?(%{type: 2}, &1))
+  # joins the default channel for this guild
+  # this will check if a connection already exists for you
+  Alchemy.Voice.join(guild.id, default_voice_channel.id)
+  Alchemy.Voice.play_url(guild.id, url)
+  Cogs.say "Now playing #{url}"
+end
 ```
 
 ### Porcelain
 Alchemy uses [`Porcelain`](https://github.com/alco/porcelain), to
 help with managing external processes, to help save on memory usage,
 you may want to use the `goon` driver, as suggested by `Porcelain`.
-For more information, check out their github.
+For more information, check out their GitHub.
 
 # Other Examples
 If you'd like to see a larger example of a bot using `Alchemy`,
