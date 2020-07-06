@@ -9,28 +9,38 @@ defmodule Alchemy.Discord.Events do
   import Alchemy.Structs
 
   # A direct message was started with the bot
-  def handle("CHANNEL_CREATE", %{"is_private" => true} = dm_channel) do
+  # type 1 == DM
+  # https://discord.com/developers/docs/resources/channel#channel-object-channel-types
+  def handle("CHANNEL_CREATE", %{"type" => 1} = dm_channel) do
     PrivChannels.add_channel(dm_channel)
     struct = to_struct(dm_channel, DMChannel)
     {:dm_channel_create, [struct]}
   end
 
-  def handle("CHANNEL_CREATE", channel) do
+  def handle("CHANNEL_CREATE", %{"guild_id" => guild_id} = channel) do
     struct = Channel.from_map(channel)
+    Guilds.add_channel(guild_id, channel)
+
     {:channel_create, [struct]}
   end
 
-  def handle("CHANNEL_UPDATE", channel) do
+  def handle("CHANNEL_UPDATE", %{"id" => channel_id} = channel) do
+    with {:ok, guild_id} <- Channels.lookup(channel_id) do
+      Guilds.update_channel(guild_id, channel)
+    end
     {:channel_update, [Channel.from_map(channel)]}
   end
 
-  def handle("CHANNEL_DELETE", %{"is_private" => true} = dm_channel) do
+  def handle("CHANNEL_DELETE", %{"type" => 1} = dm_channel) do
     PrivChannels.remove_channel(dm_channel["id"])
     {:dm_channel_delete, [to_struct(dm_channel, DMChannel)]}
   end
 
-  def handle("CHANNEL_DELETE", channel) do
-    Channels.remove_channel(channel["id"])
+  def handle("CHANNEL_DELETE", %{"id" => channel_id} = channel) do
+    with {:ok, guild_id} <- Channels.lookup(channel_id) do
+      Guilds.remove_channel(guild_id, channel_id)
+    end
+    Channels.remove_channel(channel_id)
     {:channel_delete, [Channel.from_map(channel)]}
   end
 

@@ -8,7 +8,7 @@ defmodule Alchemy.Cache do
   functions that will correctly balance the cache and the api, as well as use macros
   to get information from the context of commands.
   """
-  alias Alchemy.Cache.{Guilds, Guilds.GuildSupervisor}
+  alias Alchemy.Cache.{Guilds, Guilds.GuildSupervisor, Channels}
   alias Alchemy.{Channel.DMChannel, Channel, Guild, User, VoiceState, Voice}
   alias Alchemy.Guild.{Emoji, GuildMember, Presence, Role}
   alias Alchemy.Discord.Gateway.RateLimiter, as: Gateway
@@ -26,10 +26,7 @@ defmodule Alchemy.Cache do
   """
   @spec guild_id(snowflake) :: {:ok, snowflake} | {:error, String.t()}
   def guild_id(channel_id) do
-    case :ets.lookup(:channels, channel_id) do
-      [{_, id}] -> {:ok, id}
-      [] -> {:error, "Failed to find a channel entry for #{channel_id}."}
-    end
+    Channels.lookup(channel_id)
   end
 
   @doc """

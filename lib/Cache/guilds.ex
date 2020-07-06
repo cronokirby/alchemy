@@ -140,6 +140,20 @@ defmodule Alchemy.Cache.Guilds do
     call(guild_id, {:pop, "roles", role_id})
   end
 
+  def add_channel(guild_id, %{"id" => id} = channel) do
+    Channels.add_channels([channel], channel["guild_id"]) # assume has guild_id, otherwise we have no idea where it belongs
+    call(guild_id, {:put, "channels", id, channel})
+  end
+
+  def update_channel(guild_id, channel) do
+    add_channel(guild_id, channel)
+  end
+
+  def remove_channel(guild_id, channel_id) do
+    Channels.remove_channel(channel_id)
+    call(guild_id, {:pop, "channels", channel_id})
+  end
+
   def update_presence(presence) do
     guild_id = presence["guild_id"]
     pres_id = presence["user"]["id"]
