@@ -85,15 +85,12 @@ defmodule Alchemy.Discord.RateManager do
   end
 
   def throttle(rates) do
-    now = DateTime.utc_now() |> DateTime.to_unix()
+    now = :os.system_time(:millisecond) / 1000
     wait_time = rates.reset_time - now
 
     cond do
       wait_time > 0 ->
-        {:wait, wait_time * 1000}
-
-      wait_time == 0 ->
-        {:wait, 1000}
+        {:wait, Kernel.ceil(wait_time * 1000)}
 
       # this means the reset_time has passed
       true ->

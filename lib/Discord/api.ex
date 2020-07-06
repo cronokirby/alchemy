@@ -85,7 +85,9 @@ defmodule Alchemy.Discord.Api do
   end
 
   def request(type, url, data, token) do
-    headers = [{"Content-Type", "application/json"} | auth_headers(token)]
+    headers = auth_headers(token)
+    headers = [{"Content-Type", "application/json"} | headers]
+    headers = [{"X-RateLimit-Precision", "millisecond"} | headers]
     apply(HTTPoison, type, [url, data, headers])
   end
 
