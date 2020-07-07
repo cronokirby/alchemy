@@ -3,6 +3,8 @@ defmodule Alchemy.Cache.Channels do
   @moduledoc false
   use GenServer
 
+  @type snowflake :: String.t()
+
   def start_link do
     GenServer.start_link(__MODULE__, :ok, name: __MODULE__)
   end
@@ -24,6 +26,11 @@ defmodule Alchemy.Cache.Channels do
     GenServer.call(__MODULE__, {:remove, id})
   end
 
+  @spec lookup(snowflake) :: {:ok, snowflake} | {:error, String.t()}
+  def lookup(id) do
+    GenServer.call(__MODULE__, {:lookup, id})
+  end
+
   def handle_call({:add, channels, guild_id}, _, table) do
     for channel <- channels do
       :ets.insert(table, {channel["id"], guild_id})
@@ -35,5 +42,12 @@ defmodule Alchemy.Cache.Channels do
   def handle_call({:remove, id}, _, table) do
     :ets.delete(table, id)
     {:reply, :ok, table}
+  end
+
+  def handle_call({:lookup, channel_id}, _, table) do
+    case :ets.lookup(table, channel_id) do
+      [{_, guild_id}] -> {:reply, {:ok, guild_id}, table}
+      []              -> {:reply, {:error, "Failed to find a channel entry for #{channel_id}."}, table}
+    end
   end
 end
