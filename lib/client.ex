@@ -1005,7 +1005,7 @@ defmodule Alchemy.Client do
           deaf: Boolean,
           channel_id: snowflake
         ) :: {:ok, nil} | {:error, term}
-  def add_member(guild_id, user_id, access_token, options) do
+  def add_member(guild_id, user_id, access_token, options \\ []) do
     options = Keyword.put_new(options, :access_token, access_token)
 
     {Guilds, :add_member, [guild_id, user_id, options]}
