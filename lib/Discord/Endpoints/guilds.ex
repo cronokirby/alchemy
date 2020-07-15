@@ -77,6 +77,11 @@ defmodule Alchemy.Discord.Guilds do
     |> Api.patch(token, Api.encode(options))
   end
 
+  def add_member(token, guild_id, user_id, options) do
+    (@root <> guild_id <> "/members/" <> user_id)
+    |> Api.put(token, Api.encode(options))
+  end
+
   def modify_nick(token, guild_id, nick) do
     json = ~s/{"nick": #{nick}}/
 

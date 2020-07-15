@@ -975,6 +975,18 @@ defmodule Alchemy.Client do
     |> send_req("/guilds/#{guild_id}/members")
   end
 
+  @spec add_member(snowflake, snowflake,
+          nick: String.t(),
+          roles: [snowflake],
+          mute: Boolean,
+          deaf: Boolean,
+          channel_id: snowflake
+        ) :: {:ok, nil} | {:error, term}
+  def add_member(guild_id, user_id, options) do
+    {Guilds, :add_member, [guild_id, user_id, options]}
+    |> send_req("/guilds/#{guild_id}/members")
+  end
+
   @doc """
   Modifies the nickname of the current user.
 
