@@ -3,7 +3,7 @@ defmodule Alchemy.Discord.Users do
   alias Alchemy.Discord.Api
   alias Alchemy.{Channel.DMChannel, User, UserGuild}
 
-  @root "https://discordapp.com/api/v6/users/"
+  @root "https://discord.com/api/v6/users/"
 
   # Returns a User struct, passing "@me" gets info for the current Client instead
   # Token is the first arg so that it can be prepended generically

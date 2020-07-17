@@ -189,7 +189,7 @@ defmodule Alchemy.AuditLog do
     The type of change that occurred. This also dictates the type of
     `new_value` and `old_value`
 
-  [more information on this relation](https://discordapp.com/developers/docs/resources/audit-log#audit-log-change-object-audit-log-change-key)
+  [more information on this relation](https://discord.com/developers/docs/resources/audit-log#audit-log-change-object-audit-log-change-key)
   """
   @type change :: %__MODULE__.Change{
           new_value: any,

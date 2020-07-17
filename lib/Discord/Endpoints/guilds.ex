@@ -5,7 +5,7 @@ defmodule Alchemy.Discord.Guilds do
   alias Alchemy.Guild.{GuildMember, Integration, Role}
   alias Alchemy.AuditLog
 
-  @root "https://discordapp.com/api/v6/guilds/"
+  @root "https://discord.com/api/v6/guilds/"
 
   # returns information for a current guild; cache should be preferred over this
   def get_guild(token, guild_id) do
@@ -170,7 +170,7 @@ defmodule Alchemy.Discord.Guilds do
   end
 
   def get_all_regions(token) do
-    "https://discordapp.com/api/v6/voice/regions"
+    "https://discord.com/api/v6/voice/regions"
     |> Api.get(token, [%VoiceRegion{}])
   end
 

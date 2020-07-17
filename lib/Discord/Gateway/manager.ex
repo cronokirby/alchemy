@@ -24,14 +24,14 @@ defmodule Alchemy.Discord.Gateway.Manager do
 
   defp get_url(_token, selfbot: _) do
     json =
-      Api.get!("https://discordapp.com/api/v6/gateway").body
+      Api.get!("https://discord.com/api/v6/gateway").body
       |> (fn x -> Poison.Parser.parse!(x, %{}) end).()
 
     {json["url"] <> "?v=6&encoding=json", 1}
   end
 
   defp get_url(token, []) do
-    url = "https://discordapp.com/api/v6/gateway/bot"
+    url = "https://discord.com/api/v6/gateway/bot"
 
     json =
       Api.get!(url, token).body
