@@ -4,7 +4,7 @@ defmodule Alchemy.Discord.Channels do
   alias Alchemy.Discord.Api
   alias Alchemy.{Channel, Channel.Invite, Channel.DMChannel, Message, User, Reaction.Emoji}
 
-  @root "https://discordapp.com/api/v6/channels/"
+  @root "https://discord.com/api/v6/channels/"
 
   def parse_channel(json) do
     parsed = Parser.parse!(json, %{})
