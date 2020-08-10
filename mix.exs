@@ -4,7 +4,7 @@ defmodule Alchemy.Mixfile do
   def project do
     [
       app: :alchemy,
-      version: "0.6.5",
+      version: "0.6.6",
       elixir: "~> 1.8",
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
