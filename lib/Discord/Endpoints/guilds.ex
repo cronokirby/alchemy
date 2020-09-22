@@ -131,7 +131,7 @@ defmodule Alchemy.Discord.Guilds do
       Stream.map(tuples, fn {id, pos} ->
         %{id: id, position: pos}
       end)
-      |> Api.encode()
+      |> Poison.encode!()
 
     (@root <> guild_id <> "/roles")
     |> Api.patch(token, roles, [%Role{}])
