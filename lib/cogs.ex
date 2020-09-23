@@ -3,7 +3,6 @@ defmodule Alchemy.Cogs do
   alias Alchemy.Cogs.CommandHandler
   alias Alchemy.Cogs.EventRegistry
   alias Alchemy.Events
-  alias Alchemy.Guild
   require Logger
 
   @moduledoc """
@@ -604,7 +603,7 @@ defmodule Alchemy.Cogs do
   @doc """
   Returns a map from command name (string) to the command information.
 
-  Each command is either `{module, arity, function_name}`, or 
+  Each command is either `{module, arity, function_name}`, or
   `{module, arity, function_name, parser}`.
 
   This can be useful for providing some kind of help command, or telling
@@ -643,7 +642,7 @@ defmodule Alchemy.Cogs do
   Returns the permission bitset of the current member in the channel the command
   was called from.
 
-  If you just want the base permissions of the member in the guild, 
+  If you just want the base permissions of the member in the guild,
   see `guild_permissions`.
   Returns `{:ok, perms}`, or `{:error, why}`. Fails if not called from
   a guild, or the guild or the member couldn't be fetched from the cache.
