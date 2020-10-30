@@ -9,7 +9,9 @@ defmodule Alchemy.Channel do
     ChannelCategory,
     VoiceChannel,
     DMChannel,
-    GroupDMChannel
+    GroupDMChannel,
+    NewsChannel,
+    StoreChannel
   }
 
   alias Alchemy.User
@@ -159,7 +161,7 @@ defmodule Alchemy.Channel do
 
     Whether or not the channel is considered nsfw
   - `last_message_id`
-    
+
     The id of the last message sent in the channel, if any
   - `parent_id`
 
@@ -222,7 +224,7 @@ defmodule Alchemy.Channel do
 
     The id of the guild this channel belongs to
   - `position`
-    
+
     The sorting position of this channel in the guild
   - `permission_overwrites`
 
@@ -324,6 +326,8 @@ defmodule Alchemy.Channel do
       2 -> VoiceChannel.from_map(map)
       3 -> GroupDMChannel.from_map(map)
       4 -> ChannelCategory.from_map(map)
+      5 -> NewsChannel.from_map(map)
+      6 -> StoreChannel.from_map(map)
     end
   end
 end
