@@ -7,13 +7,23 @@ defmodule Alchemy.Voice.Controller do
 
   defmodule State do
     @moduledoc false
-    defstruct [:udp, :key, :ssrc, :ip, :port, :guild_id, :player, :ws,
-               :kill_timer, listeners: MapSet.new()]
+    defstruct [
+      :udp, 
+      :key, 
+      :ssrc, 
+      :ip, 
+      :port, 
+      :guild_id, 
+      :player, 
+      :ws,      
+      :kill_timer, 
+      :time, 
+      listeners: MapSet.new()]
   end
 
   def start_link(udp, key, ssrc, ip, port, guild_id, me) do
     state = %State{udp: udp, key: key, ssrc: ssrc,
-                   ip: ip, port: port, guild_id: guild_id, ws: me}
+                   ip: ip, port: port, guild_id: guild_id, ws: me, time: 0}
     GenServer.start_link(__MODULE__, state,
                          name: VoiceRegistry.via({guild_id, :controller}))
   end
@@ -33,6 +43,10 @@ defmodule Alchemy.Voice.Controller do
     :gen_udp.send(state.udp, state.ip, state.port, data)
     {:noreply, %{state | kill_timer: timer}}
   end
+  
+  def handle_cast({:update_time, new_time}, state) do
+    {:noreply, %{state | time: new_time}}
+  end
 
   def handle_call({:play, path, type, options}, _, state) do
     self = self()
@@ -40,8 +54,10 @@ defmodule Alchemy.Voice.Controller do
       {:reply, {:error, "Already playing audio"}, state}
     else
       player = Task.async(fn ->
-        run_player(path, type, options, self,
-          %{ssrc: state.ssrc, key: state.key, ws: state.ws})
+        new_time = run_player(path, type, options, self,
+          %{ssrc: state.ssrc, key: state.key, ws: state.ws, time: state.time})
+        
+        GenServer.cast(self, {:update_time, new_time})
       end)
       {:reply, :ok, %{state | player: player}}
     end
@@ -120,7 +136,7 @@ defmodule Alchemy.Voice.Controller do
     end
     {seq, time, _} =
       stream
-      |> Enum.reduce({0, 0, nil}, fn packet, {seq, time, elapsed} ->
+      |> Enum.reduce({0, state.time, nil}, fn packet, {seq, time, elapsed} ->
         packet = mk_audio(packet, seq, time, state)
         GenServer.cast(parent, {:send_audio, packet})
         # putting the elapsed time directly in the accumulator makes it incorrect
@@ -129,12 +145,14 @@ defmodule Alchemy.Voice.Controller do
         {seq + 1, time + 960, elapsed + 20}
       end)
     # We must send 5 frames of silence to end opus interpolation
-    Enum.reduce(1..5, {seq, time}, fn _, {seq, time} ->
+    {_seq, new_time} = Enum.reduce(1..5, {seq, time}, fn _, {seq, time} ->
       GenServer.cast(parent, {:send_audio, <<0xF8, 0xFF, 0xFE>>})
       Process.sleep(20)
       {seq + 1, time + 960}
     end)
+    
     send(state.ws, {:speaking, false})
+    new_time
   end
 
   defp mk_audio(packet, seq, time, state) do
