@@ -347,7 +347,7 @@ defmodule Alchemy.Embed do
   Cogs.def embed do
     %Embed{}
     |> author(name: "John",
-              url: "https://discordapp.com/developers"
+              url: "https://discord.com/developers"
               icon_url: "http://i.imgur.com/3nuwWCB.jpg")
     |> Embed.send
   end

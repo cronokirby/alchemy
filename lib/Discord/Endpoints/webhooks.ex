@@ -3,7 +3,7 @@ defmodule Alchemy.Discord.Webhooks do
   alias Alchemy.Discord.Api
   alias Alchemy.Webhook
 
-  @root "https://discordapp.com/api/v6/"
+  @root "https://discord.com/api/v6/"
 
   def create_webhook(token, channel_id, name, options) do
     options =

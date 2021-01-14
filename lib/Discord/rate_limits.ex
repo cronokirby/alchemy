@@ -25,12 +25,7 @@ defmodule Alchemy.Discord.RateLimits do
     nil
   end
 
-  # Created response
-  def rate_info(%{status_code: 201, headers: h}) do
-    h |> Enum.into(%{}) |> parse_headers
-  end
-
-  def rate_info(%{status_code: 200, headers: h}) do
+  def rate_info(%{status_code: status_code, headers: h}) when status_code in [200, 201] do
     h |> Enum.into(%{}) |> parse_headers
   end
 
