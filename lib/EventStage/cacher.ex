@@ -35,7 +35,6 @@ defmodule Alchemy.EventStage.Cacher do
   end
 
   defp handle_event(type, %{"guild_id" => guild_id} = payload) when is_binary(guild_id) do
-    
     # This is to handle possible calls for a guild
     # which has not been registered yet.
     #
@@ -47,10 +46,15 @@ defmodule Alchemy.EventStage.Cacher do
     # If the GUILD_MEMBER_UPDATE signal gets processed before the GUILD_CREATE
     # the Cache will crash as no genserver with the given guild id exists in the 
     # Registry yet. 
-    if Registry.lookup(:guilds, guild_id) != [] do  
-        Events.handle(type, payload)
+    if Registry.lookup(:guilds, guild_id) != [] do
+      Events.handle(type, payload)
     else
-        Logger.debug("Not handling #{inspect(type)} for #{guild_id} as the guild has not been started yet. Payload was #{inspect(payload)}")
+      Logger.debug(
+        "Not handling #{inspect(type)} for #{guild_id} as the guild has not been started yet. Payload was #{
+          inspect(payload)
+        }"
+      )
+
       {:unkown, []}
     end
   end
@@ -58,5 +62,4 @@ defmodule Alchemy.EventStage.Cacher do
   defp handle_event(type, payload) do
     Events.handle(type, payload)
   end
-
 end
