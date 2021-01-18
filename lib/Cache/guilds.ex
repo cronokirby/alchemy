@@ -39,9 +39,8 @@ defmodule Alchemy.Cache.Guilds do
     end
   end
 
-  def call(id, msg, retries \\ 10) do
-    {:via, registry, {key, id}} = via_guilds(id)
-    GenServer.call({:via, registry, {key, id}}, msg)
+  def call(id, msg) do
+    GenServer.call(via_guilds(id), msg)
   end
 
   def start_link(%{"id" => id} = guild) do
