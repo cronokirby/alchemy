@@ -47,7 +47,7 @@ defmodule Alchemy.Cache.Channels do
   def handle_call({:lookup, channel_id}, _, table) do
     case :ets.lookup(table, channel_id) do
       [{_, guild_id}] -> {:reply, {:ok, guild_id}, table}
-      []              -> {:reply, {:error, "Failed to find a channel entry for #{channel_id}."}, table}
+      [] -> {:reply, {:error, "Failed to find a channel entry for #{channel_id}."}, table}
     end
   end
 end

@@ -141,7 +141,8 @@ defmodule Alchemy.Cache.Guilds do
   end
 
   def add_channel(guild_id, %{"id" => id} = channel) do
-    Channels.add_channels([channel], channel["guild_id"]) # assume has guild_id, otherwise we have no idea where it belongs
+    # assume has guild_id, otherwise we have no idea where it belongs
+    Channels.add_channels([channel], channel["guild_id"])
     call(guild_id, {:put, "channels", id, channel})
   end
 
