@@ -1,3 +1,7 @@
+# 0.6.7 - 2020-09-21
+### Fixed
+- Endpoint Guilds.move_roles() failing to encode payload.
+
 # 0.6.5
 - [#77](https://github.com/cronokirby/alchemy/pull/77)
   Add event handler for role updates.
