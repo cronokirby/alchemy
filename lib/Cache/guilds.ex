@@ -3,6 +3,7 @@ defmodule Alchemy.Cache.Guilds do
   @moduledoc false
   # by the supervisor in the submodule below
   use GenServer
+  require Logger
   alias Alchemy.Cache.Guilds.GuildSupervisor
   alias Alchemy.Cache.Channels
   alias Alchemy.Guild
@@ -39,8 +40,44 @@ defmodule Alchemy.Cache.Guilds do
     end
   end
 
-  def call(id, msg) do
-    GenServer.call(via_guilds(id), msg)
+  def call(id, msg, retries \\ 10) do
+    {:via, registry, {key, id}} = via_guilds(id)
+
+    # This is to handle possible calls for a guild
+    # which has not been registered yet.
+    #
+    # This can happen when a bot joins a guild
+    # and at the same time any member gets updated - new username, new role assigned etc.
+    #
+    # We will receive the signals GUILD_MEMBER_UPDATE & GUILD_CREATE simultaneously.
+    #
+    # If the GUILD_MEMBER_UPDATE signal gets processed before the GUILD_CREATE
+    # the Cache will crash as no genserver with the given guild id exists in the 
+    # Registry yet. 
+    #
+    # To prevent that we check if the guild exists
+    # and if not we will check again after 500ms.
+    # We do this 10 times, which equals 5s. 
+    # If the guild has not been found afterwards, the msg will be discarded.
+    case registry.lookup(key, id) do
+
+      [] ->
+        if retries > 0 do
+          Task.start(fn ->
+            :timer.sleep(500)
+            call(id, msg, retries - 1)
+          end)
+        else
+          Logger.error(
+            "Guild with id #{id} is not present in registry. Max retries reached, not delivering message: #{
+              inspect(msg)
+            }"
+          )
+        end
+
+      _ ->
+        GenServer.call({:via, registry, {key, id}}, msg)
+    end
   end
 
   def start_link(%{"id" => id} = guild) do
@@ -141,7 +178,8 @@ defmodule Alchemy.Cache.Guilds do
   end
 
   def add_channel(guild_id, %{"id" => id} = channel) do
-    Channels.add_channels([channel], channel["guild_id"]) # assume has guild_id, otherwise we have no idea where it belongs
+    # assume has guild_id, otherwise we have no idea where it belongs
+    Channels.add_channels([channel], channel["guild_id"])
     call(guild_id, {:put, "channels", id, channel})
   end
 
