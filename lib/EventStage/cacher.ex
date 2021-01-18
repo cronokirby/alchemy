@@ -6,6 +6,7 @@ defmodule Alchemy.EventStage.Cacher do
   # is intended to be duplicated for each scheduler.
   # After that, it broadcasts split over the command and event dispatcher
   use GenStage
+  require Logger
   alias Alchemy.EventStage.EventBuffer
   alias Alchemy.Discord.Events
 
@@ -27,9 +28,35 @@ defmodule Alchemy.EventStage.Cacher do
     # testing, and would be an easy change to implement
     cached =
       Enum.map(events, fn {type, payload} ->
-        Events.handle(type, payload)
+        handle_event(type, payload)
       end)
 
     {:noreply, cached, state}
   end
+
+  defp handle_event(type, %{"guild_id" => guild_id} = payload) when is_binary(guild_id) do
+    
+    # This is to handle possible calls for a guild
+    # which has not been registered yet.
+    #
+    # This can happen when a bot joins a guild
+    # and at the same time any member gets updated - new username, new role assigned etc.
+    #
+    # We will receive the signals GUILD_MEMBER_UPDATE & GUILD_CREATE simultaneously.
+    #
+    # If the GUILD_MEMBER_UPDATE signal gets processed before the GUILD_CREATE
+    # the Cache will crash as no genserver with the given guild id exists in the 
+    # Registry yet. 
+    if Registry.lookup(:guilds, guild_id) != [] do  
+        Events.handle(type, payload)
+    else
+        Logger.debug("Not handling #{inspect(type)} for #{guild_id} as the guild has not been started yet. Payload was #{inspect(payload)}")
+      {:unkown, []}
+    end
+  end
+
+  defp handle_event(type, payload) do
+    Events.handle(type, payload)
+  end
+
 end
