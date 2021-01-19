@@ -20,7 +20,9 @@ defmodule AlchemyTest.Structs.Guild.GuildTest do
       "features" => [],
       "mfa_level" => 0
     }
+
     with_icon = Map.put(without_icon, "icon", "ababababa")
+
     %{
       guild_without_icon: Guild.from_map(without_icon),
       guild_with_icon: Guild.from_map(with_icon)

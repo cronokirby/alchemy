@@ -63,6 +63,7 @@ defmodule Alchemy.Voice.Supervisor do
       case Map.get(state, guild) do
         nil ->
           {:reply, :ok, Map.put(state, guild, pid)}
+
         _ ->
           {:reply, {:error, "Already joining this guild"}, state}
       end
@@ -77,15 +78,17 @@ defmodule Alchemy.Voice.Supervisor do
         nil -> nil
         pid -> send(pid, data)
       end
+
       {:noreply, state}
     end
   end
 
   def start_client(guild, channel, timeout) do
-    r = with :ok <- GenServer.call(Server, {:start_client, guild}),
-             [] <- Registry.lookup(Registry.Voice, {guild, :gateway})
-      do
+    r =
+      with :ok <- GenServer.call(Server, {:start_client, guild}),
+           [] <- Registry.lookup(Registry.Voice, {guild, :gateway}) do
         RateLimiter.change_voice_state(guild, channel)
+
         recv = fn ->
           receive do
             x -> {:ok, x}
@@ -93,19 +96,23 @@ defmodule Alchemy.Voice.Supervisor do
             div(timeout, 2) -> {:error, "Timed out"}
           end
         end
+
         with {:ok, {user_id, session}} <- recv.(),
              {:ok, {token, url}} <- recv.(),
-             {:ok, _pid1} <- Supervisor.start_child(Gateway,
-               [url, token, session, user_id, guild, channel]),
-             {:ok, _pid2} <- recv.()
-        do
+             {:ok, _pid1} <-
+               Supervisor.start_child(
+                 Gateway,
+                 [url, token, session, user_id, guild, channel]
+               ),
+             {:ok, _pid2} <- recv.() do
           :ok
         end
-    else
-      [{_pid, _}|_] ->
-        RateLimiter.change_voice_state(guild, channel)
-        :ok
-    end
+      else
+        [{_pid, _} | _] ->
+          RateLimiter.change_voice_state(guild, channel)
+          :ok
+      end
+
     GenServer.call(Server, {:client_done, guild})
     r
   end

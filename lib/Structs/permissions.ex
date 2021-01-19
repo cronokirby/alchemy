@@ -146,10 +146,12 @@ defmodule Alchemy.Permissions do
   @spec to_bitset([permission]) :: Integer
   def to_bitset(list) do
     @perm_map
-    |> Enum.reduce(0,
+    |> Enum.reduce(
+      0,
       fn {k, v}, acc ->
         if Enum.member?(list, k), do: acc ||| v, else: acc
-      end)
+      end
+    )
   end
 
   @doc """

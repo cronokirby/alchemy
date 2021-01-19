@@ -17,7 +17,7 @@ defmodule Alchemy.Voice do
   alias Alchemy.Voice.Supervisor, as: VoiceSuper
   alias Alchemy.Discord.Gateway.RateLimiter
 
-  @type snowflake :: String.t
+  @type snowflake :: String.t()
 
   @typedoc """
   Represents a voice region.
@@ -40,15 +40,15 @@ defmodule Alchemy.Voice do
     Whether this is a custom voice region.
   """
   @type region :: %VoiceRegion{
-    id: snowflake,
-    name: String.t,
-    sample_hostname: String.t,
-    sample_port: Integer,
-    vip: Boolean,
-    optimal: Boolean,
-    deprecated: Boolean,
-    custom: Boolean
-  }
+          id: snowflake,
+          name: String.t(),
+          sample_hostname: String.t(),
+          sample_port: Integer,
+          vip: Boolean,
+          optimal: Boolean,
+          deprecated: Boolean,
+          custom: Boolean
+        }
   @typedoc """
   Represents the state of a user's voice connection.
 
@@ -72,16 +72,16 @@ defmodule Alchemy.Voice do
     Whether this user is muted by the current user.
   """
   @type state :: %VoiceState{
-    guild_id: snowflake | nil,
-    channel_id: snowflake,
-    user_id: snowflake,
-    session_id: String.t,
-    deaf: Boolean,
-    mute: Boolean,
-    self_deaf: Boolean,
-    self_mute: Boolean,
-    suppress: Boolean
-  }
+          guild_id: snowflake | nil,
+          channel_id: snowflake,
+          user_id: snowflake,
+          session_id: String.t(),
+          deaf: Boolean,
+          mute: Boolean,
+          self_deaf: Boolean,
+          self_mute: Boolean,
+          suppress: Boolean
+        }
   @typedoc """
   Represents the audio options that can be passed to different play methods.  
 
@@ -103,28 +103,31 @@ defmodule Alchemy.Voice do
   The timeout will be spread across 2 different message receptions,
   i.e. a timeout of `6000` will only wait 3s at every reception.
   """
-  @spec join(snowflake, snowflake, integer) :: :ok | {:error, String.t}
+  @spec join(snowflake, snowflake, integer) :: :ok | {:error, String.t()}
   def join(guild, channel, timeout \\ 6000) do
     case Registry.lookup(Registry.Voice, {guild, :gateway}) do
-      [{_, ^channel}|_] -> :ok
+      [{_, ^channel} | _] -> :ok
       _ -> VoiceSuper.start_client(guild, channel, timeout)
     end
   end
+
   @doc """
   Disconnects from voice in a guild.
 
   Returns an error if the connection hadn’t been established.
   """
-  @spec leave(snowflake) :: :ok | {:error, String.t}
+  @spec leave(snowflake) :: :ok | {:error, String.t()}
   def leave(guild) do
     case Registry.lookup(Registry.Voice, {guild, :gateway}) do
       [] ->
         {:error, "You're not joined to voice in this guild"}
-      [{pid, _}|_] ->
+
+      [{pid, _} | _] ->
         Supervisor.terminate_child(VoiceSuper.Gateway, pid)
         RateLimiter.change_voice_state(guild, nil)
     end
   end
+
   @doc """
   Starts playing a music file on a guild's voice connection.
 
@@ -137,11 +140,10 @@ defmodule Alchemy.Voice do
   Voice.play_file("666", "cool_song.mp3")
   ```
   """
-  @spec play_file(snowflake, Path.t, audio_options) :: :ok | {:error, String.t}
+  @spec play_file(snowflake, Path.t(), audio_options) :: :ok | {:error, String.t()}
   def play_file(guild, file_path, options \\ []) do
-    with [{pid, _}|_] <- Registry.lookup(Registry.Voice, {guild, :controller}),
-         true <- File.exists?(file_path)
-    do
+    with [{pid, _} | _] <- Registry.lookup(Registry.Voice, {guild, :controller}),
+         true <- File.exists?(file_path) do
       GenServer.call(pid, {:play, file_path, :file, options})
     else
       [] -> {:error, "You're not joined to voice in this guild"}
@@ -152,9 +154,10 @@ defmodule Alchemy.Voice do
   defp play_type(guild, type, data, options) do
     case Registry.lookup(Registry.Voice, {guild, :controller}) do
       [] -> {:error, "You're not joined to voice in this guild"}
-      [{pid, _}|_] -> GenServer.call(pid, {:play, data, type, options})
+      [{pid, _} | _] -> GenServer.call(pid, {:play, data, type, options})
     end
   end
+
   @doc """
   Starts playing audio from a url.
 
@@ -163,32 +166,36 @@ defmodule Alchemy.Voice do
   This function does not check the validity of this url, so if it's invalid,
   an error will get logged, and no audio will be played.
   """
-  @spec play_url(snowflake, String.t, audio_options) :: :ok | {:error, String.t}
+  @spec play_url(snowflake, String.t(), audio_options) :: :ok | {:error, String.t()}
   def play_url(guild, url, options \\ []) do
     play_type(guild, :url, url, options)
   end
+
   @doc """
   Starts playing audio from an `iodata`, or a stream of `iodata`.
 
   Similar to `play_url/2` except it doesn't create a stream from
   `youtube-dl` for you.
   """
-  @spec play_iodata(snowflake, iodata | Enumerable.t, audio_options) :: :ok | {:error, String.t}
+  @spec play_iodata(snowflake, iodata | Enumerable.t(), audio_options) ::
+          :ok | {:error, String.t()}
   def play_iodata(guild, data, options \\ []) do
     play_type(guild, :iodata, data, options)
   end
+
   @doc """
   Stops playing audio on a guild's voice connection.
 
   Returns an error if the connection hadn't been established.
   """
-  @spec stop_audio(snowflake) :: :ok | {:error, String.t}
+  @spec stop_audio(snowflake) :: :ok | {:error, String.t()}
   def stop_audio(guild) do
     case Registry.lookup(Registry.Voice, {guild, :controller}) do
       [] -> {:error, "You're not joined to voice in this guild"}
-      [{pid, _}|_] -> GenServer.call(pid, :stop_playing)
+      [{pid, _} | _] -> GenServer.call(pid, :stop_playing)
     end
   end
+
   @doc """
   Lets this process listen for the end of an audio track in a guild.
 
@@ -214,13 +221,14 @@ defmodule Alchemy.Voice do
   end
   ```
   """
-  @spec listen_for_end(snowflake) :: :ok | {:error, String.t}
+  @spec listen_for_end(snowflake) :: :ok | {:error, String.t()}
   def listen_for_end(guild) do
     case Registry.lookup(Registry.Voice, {guild, :controller}) do
       [] -> {:error, "You're not joined to voice in this guild"}
-      [{pid, _}|_] -> GenServer.call(pid, :add_listener)
+      [{pid, _} | _] -> GenServer.call(pid, :add_listener)
     end
   end
+
   @doc """
   Blocks the current process until audio has stopped playing in a guild.
 
@@ -236,15 +244,17 @@ defmodule Alchemy.Voice do
   end
   ```
   """
-  @spec wait_for_end(snowflake, integer | :infinity) :: :ok | {:error, String.t}
+  @spec wait_for_end(snowflake, integer | :infinity) :: :ok | {:error, String.t()}
   def wait_for_end(guild, timeout \\ :infinity) do
     listen_for_end(guild)
+
     receive do
       {:audio_stopped, ^guild} -> :ok
     after
       timeout -> {:error, "Timed out waiting for audio"}
     end
   end
+
   @doc """
   Returns which channel the client is connected to in a guild.
 
@@ -253,7 +263,7 @@ defmodule Alchemy.Voice do
   @spec which_channel(snowflake) :: snowflake | nil
   def which_channel(guild) do
     case Registry.lookup(Registry.Voice, {guild, :gateway}) do
-      [{_, channel}|_] -> channel
+      [{_, channel} | _] -> channel
       _ -> nil
     end
   end
