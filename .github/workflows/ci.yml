@@ -1,0 +1,29 @@
+name: CI
+on: [pull_request, push]
+jobs:
+  mix_test:
+    name: mix test (Elixir ${{ matrix.elixir }} OTP ${{ matrix.otp }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - elixir: 1.10.4
+            otp: 21.3.8.16
+          - elixir: 1.10.4
+            otp: 23.0.3
+    steps:
+      - uses: actions/checkout@v2.3.2
+      - uses: actions/setup-elixir@v1.5.0
+        with:
+          otp-version: ${{ matrix.otp }}
+          elixir-version: ${{ matrix.elixir }}
+      - name: Install Dependencies
+        run: |
+          mix local.hex --force
+          mix local.rebar --force
+          mix deps.get --only test
+      - name: Check formatting
+        run: mix format --check-formatted
+      - name: Run tests
+        run: mix test

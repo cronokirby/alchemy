@@ -2,9 +2,7 @@ defmodule Alchemy.Reaction.Emoji do
   @moduledoc false
 
   @derive Poison.Encoder
-  defstruct [:id,
-             :name]
-
+  defstruct [:id, :name]
 
   @doc false
   def resolve(emoji) do

@@ -28,6 +28,7 @@ defmodule Alchemy.Discord.Events do
     with {:ok, guild_id} <- Channels.lookup(channel_id) do
       Guilds.update_channel(guild_id, channel)
     end
+
     {:channel_update, [Channel.from_map(channel)]}
   end
 
@@ -40,6 +41,7 @@ defmodule Alchemy.Discord.Events do
     with {:ok, guild_id} <- Channels.lookup(channel_id) do
       Guilds.remove_channel(guild_id, channel_id)
     end
+
     Channels.remove_channel(channel_id)
     {:channel_delete, [Channel.from_map(channel)]}
   end
@@ -108,10 +110,10 @@ defmodule Alchemy.Discord.Events do
 
   def handle("GUILD_ROLE_UPDATE", %{"guild_id" => id, "role" => new_role = %{"id" => role_id}}) do
     guild_result = Guilds.safe_call(id, {:section, "roles"})
+
     old_role =
       with {:ok, guild} <- guild_result,
-           role when not is_nil(role) <- guild[role_id]
-      do
+           role when not is_nil(role) <- guild[role_id] do
         to_struct(role, Role)
       else
         _ -> nil

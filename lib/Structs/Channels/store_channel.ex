@@ -5,7 +5,7 @@ defmodule Alchemy.Channel.StoreChannel do
 
   # Note: should never encounter a store channel, as they're not something
   # bots can send/read to.  It's "the store."
-  
+
   defstruct [
     :id,
     :guild_id,
