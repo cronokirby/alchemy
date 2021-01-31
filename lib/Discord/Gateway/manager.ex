@@ -73,19 +73,24 @@ defmodule Alchemy.Discord.Gateway.Manager do
     now = now()
     wait_time = state.url_reset - now
 
-    response =
-      cond do
-        wait_time <= 0 ->
-          fn -> state.url end
+    cond do
+      wait_time <= 0 ->
+        response = fn -> state.url end
 
-        true ->
-          fn ->
-            Process.sleep(wait_time * 1000)
-            request_url()
-          end
-      end
+        # Increase the url_reset time as a process
+        # has successfull requested the url
+        {:reply, response, %{state | url_reset: now + 5}}
 
-    {:reply, response, %{state | url_reset: now + 5}}
+      true ->
+        response = fn ->
+          Process.sleep(wait_time * 1000)
+          request_url()
+        end
+
+        # Don't increate the url_reset as the process
+        # has not been successfull in requesting the url.
+        {:reply, response, state}
+    end
   end
 
   def handle_cast({:start_shard, num}, %{shards: shards} = state)

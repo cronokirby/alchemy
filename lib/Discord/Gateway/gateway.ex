@@ -15,11 +15,18 @@ defmodule Alchemy.Discord.Gateway do
   def start_link(token, shard) do
     :crypto.start()
     :ssl.start()
+
     # request_url will return a protocol to execute
-    url = Manager.request_url().()
+    # which either returns the url or another protocol
+    # to execute.
+    url = Manager.request_url().() |> get_url
     Logger.info("Shard #{inspect(shard)} connecting to the gateway")
+
     :websocket_client.start_link(url, __MODULE__, %State{token: token, shard: shard})
   end
+
+  def get_url(s) when is_binary(s), do: s
+  def get_url(f), do: get_url(f.())
 
   def init(state) do
     {:once, state}
