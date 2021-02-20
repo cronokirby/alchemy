@@ -18,6 +18,11 @@ jobs:
         with:
           otp-version: ${{ matrix.otp }}
           elixir-version: ${{ matrix.elixir }}
+      - name: update libt
+        run: |
+          sudo apt-get update -y
+          sudo apt-get remove -y libtinfo5
+          sudo apt-get install -y libtinfo6
       - name: Install Dependencies
         run: |
           mix local.hex --force
