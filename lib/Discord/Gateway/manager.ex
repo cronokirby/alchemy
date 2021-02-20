@@ -36,13 +36,14 @@ defmodule Alchemy.Discord.Gateway.Manager do
     json =
       Api.get!(url, token).body
       |> (fn x -> Poison.Parser.parse!(x, %{}) end).()
-    
+
     case json do
       %{"retry_after" => ms} ->
         :timer.sleep(ms)
         get_url(token, [])
+
       _ ->
-      {json["url"] <> "?v=6&encoding=json", json["shards"]}
+        {json["url"] <> "?v=6&encoding=json", json["shards"]}
     end
   end
 
