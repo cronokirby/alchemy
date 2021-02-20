@@ -14,19 +14,10 @@ jobs:
             otp: 23.0.3
     steps:
       - uses: actions/checkout@v2.3.2
-      - uses: actions/setup-elixir@v1.5.0
+      - uses: erlef/setup-elixir@v1
         with:
           otp-version: ${{ matrix.otp }}
           elixir-version: ${{ matrix.elixir }}
-      - name: Install Elixir
-        run: wget https://packages.erlang-solutions.com/erlang/debian/pool/elixir_1.10.4-1~ubuntu~focal_all.deb && sudo dpkg -i 'elixir_1.10.4-1~ubuntu~focal_all.deb'
-      
-      - name: Install hex
-        run: mix local.hex --force
-            
-      - name: Install hex
-        run: mix local.rebar --force
-
       - name: Install Dependencies
         run: |
           mix local.hex --force
