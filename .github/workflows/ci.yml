@@ -18,11 +18,15 @@ jobs:
         with:
           otp-version: ${{ matrix.otp }}
           elixir-version: ${{ matrix.elixir }}
-      - name: update libt
-        run: |
-          sudo apt-get update -y
-          sudo apt-get remove -y libtinfo5
-          sudo apt-get install -y libtinfo6
+      - name: Install Elixir
+        run: wget https://packages.erlang-solutions.com/erlang/debian/pool/elixir_1.10.4-1~ubuntu~focal_all.deb && sudo dpkg -i 'elixir_1.10.4-1~ubuntu~focal_all.deb'
+      
+      - name: Install hex
+        run: mix local.hex --force
+            
+      - name: Install hex
+        run: mix local.rebar --force
+
       - name: Install Dependencies
         run: |
           mix local.hex --force
