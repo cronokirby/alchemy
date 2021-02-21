@@ -1,3 +1,6 @@
+# 0.6.8
+- [#120](https://github.com/cronokirby/alchemy/pull/120) Switch to using Hackney, prevent crashes on startup
+
 # 0.6.5
 - [#77](https://github.com/cronokirby/alchemy/pull/77)
   Add event handler for role updates.
