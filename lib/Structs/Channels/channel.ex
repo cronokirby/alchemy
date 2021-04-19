@@ -11,7 +11,8 @@ defmodule Alchemy.Channel do
     DMChannel,
     GroupDMChannel,
     NewsChannel,
-    StoreChannel
+    StoreChannel,
+    StageVoiceChannel
   }
 
   alias Alchemy.User
@@ -328,6 +329,8 @@ defmodule Alchemy.Channel do
       4 -> ChannelCategory.from_map(map)
       5 -> NewsChannel.from_map(map)
       6 -> StoreChannel.from_map(map)
+      13 -> StageVoiceChannel.from_map(map)
+      _ -> nil
     end
   end
 end
