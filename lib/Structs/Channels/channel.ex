@@ -1,4 +1,6 @@
 defmodule Alchemy.Channel do
+  require Logger
+
   alias Alchemy.OverWrite
 
   alias Alchemy.Channel.{
@@ -11,7 +13,8 @@ defmodule Alchemy.Channel do
     DMChannel,
     GroupDMChannel,
     NewsChannel,
-    StoreChannel
+    StoreChannel,
+    StageVoiceChannel
   }
 
   alias Alchemy.User
@@ -321,13 +324,33 @@ defmodule Alchemy.Channel do
   @doc false
   def from_map(map) do
     case map["type"] do
-      0 -> TextChannel.from_map(map)
-      1 -> DMChannel.from_map(map)
-      2 -> VoiceChannel.from_map(map)
-      3 -> GroupDMChannel.from_map(map)
-      4 -> ChannelCategory.from_map(map)
-      5 -> NewsChannel.from_map(map)
-      6 -> StoreChannel.from_map(map)
+      0 ->
+        TextChannel.from_map(map)
+
+      1 ->
+        DMChannel.from_map(map)
+
+      2 ->
+        VoiceChannel.from_map(map)
+
+      3 ->
+        GroupDMChannel.from_map(map)
+
+      4 ->
+        ChannelCategory.from_map(map)
+
+      5 ->
+        NewsChannel.from_map(map)
+
+      6 ->
+        StoreChannel.from_map(map)
+
+      13 ->
+        StageVoiceChannel.from_map(map)
+
+      _ ->
+        Logger.error("Unkown channel type: #{inspect(map)}")
+        nil
     end
   end
 end
