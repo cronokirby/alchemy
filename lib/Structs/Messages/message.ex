@@ -118,7 +118,7 @@ defmodule Alchemy.Message do
     |> field?("author", User)
     |> field_map?("mentions", &map_struct(&1, User))
     |> field_map?("attachments", &map_struct(&1, Attachment))
-    |> field_map("embeds", &Enum.map(&1, fn x -> Embed.from_map(x) end))
+    |> field_map?("embeds", &Enum.map(&1, fn x -> Embed.from_map(x) end))
     |> field_map?("reactions", &map_struct(&1, Reaction))
     |> to_struct(__MODULE__)
   end
