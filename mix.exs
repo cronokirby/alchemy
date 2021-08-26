@@ -27,7 +27,7 @@ defmodule Alchemy.Mixfile do
       {:websocket_client, "~> 1.3"},
       {:ex_doc, "~> 0.20", only: :dev},
       {:poison, "~> 4.0"},
-      {:gen_stage, "~> 0.14"},
+      {:gen_stage, "~> 1.1"},
       {:porcelain, "~> 2.0"},
       {:kcl, "~> 1.1"}
     ]
