@@ -262,6 +262,76 @@ defmodule Alchemy.Embed do
     |> to_struct(__MODULE__)
   end
 
+  @doc """
+  Create an embed from assets in a folder.
+  The argument is the name of the subfolder containing assets relative to your embed
+  Default working structure look like :
+  ```
+  lib/
+  test/
+  ...
+  assets/
+  |-embed/
+    |-sardine/
+      |-image_link.txt
+      |-description.txt
+  ```
+
+  Compatibles assets are description and image.
+  ## Options
+  - `:path`
+
+    The path toward embed assets folder
+    default is "assets/embed"
+
+  - `:color`
+
+    The color for the embed.
+    Default is orange 0xFF9300
+
+  - `:desc`
+
+    The description filename for the embed.
+    Default is "description.txt"
+
+  - `:image`
+
+    The file containing the link image for the embed.
+    Careful, it can't be a local asset
+    Default is "image_link.txt"
+
+  - `:title`
+
+    The title for the embed.
+    Default is the same as name
+
+  ## Examples
+  ```elixir
+  Cogs.def embed do
+    Embed.from_assets("sardine")
+    |> Embed.send
+  end
+  ```
+  """
+  @spec from_assets(String.t(), [atom]) :: Embed.t()
+  def from_assets(name, opts \\ []) do
+    color = Keyword.get(opts, :path, 0xFF9300)
+    desc = Keyword.get(opts, :desc, "description.txt")
+    title = Keyword.get(opts, :title, name)
+    image  = Keyword.get(opts, :image, "image_link.txt")
+    folder = Keyword.get(opts, :path, "assets/embed")
+            |> Path.join(name)
+
+    desc = File.read!(Path.join(folder, desc))
+    image = File.read!(Path.join(folder, image))
+
+    %Embed{}
+    |> title(title)
+    |> color(color)
+    |> description(desc)
+    |> image(image)
+  end
+
   # removes all the null keys from the map
   @doc false
   # This will also convert datetime objects into iso_8601
