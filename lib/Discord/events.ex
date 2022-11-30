@@ -205,6 +205,6 @@ defmodule Alchemy.Discord.Events do
   end
 
   def handle(_, _) do
-    {:unkown, []}
+    {:unknown, []}
   end
 end

@@ -44,8 +44,8 @@ defmodule Alchemy.EventStage.Cacher do
     # We will receive the signals GUILD_MEMBER_UPDATE & GUILD_CREATE simultaneously.
     #
     # If the GUILD_MEMBER_UPDATE signal gets processed before the GUILD_CREATE
-    # the Cache will crash as no genserver with the given guild id exists in the 
-    # Registry yet. 
+    # the Cache will crash as no genserver with the given guild id exists in the
+    # Registry yet.
     if Registry.lookup(:guilds, guild_id) != [] do
       Events.handle(type, payload)
     else
@@ -55,7 +55,7 @@ defmodule Alchemy.EventStage.Cacher do
         }"
       )
 
-      {:unkown, []}
+      {:unknown, []}
     end
   end
 

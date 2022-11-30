@@ -14,7 +14,8 @@ defmodule Alchemy.Channel do
     GroupDMChannel,
     NewsChannel,
     StoreChannel,
-    StageVoiceChannel
+    StageVoiceChannel,
+    ForumChannel
   }
 
   alias Alchemy.User
@@ -164,7 +165,7 @@ defmodule Alchemy.Channel do
 
     Whether or not the channel is considered nsfw
   - `last_message_id`
-    
+
     The id of the last message sent in the channel, if any
   - `parent_id`
 
@@ -227,7 +228,7 @@ defmodule Alchemy.Channel do
 
     The id of the guild this channel belongs to
   - `position`
-    
+
     The sorting position of this channel in the guild
   - `permission_overwrites`
 
@@ -348,8 +349,11 @@ defmodule Alchemy.Channel do
       13 ->
         StageVoiceChannel.from_map(map)
 
+      15 ->
+        ForumChannel.from_map(map)
+
       _ ->
-        Logger.error("Unkown channel type: #{inspect(map)}")
+        Logger.error("[Alchemy] Unknown channel type: #{inspect map["type"]}, inspect: #{inspect(map)}")
         nil
     end
   end
