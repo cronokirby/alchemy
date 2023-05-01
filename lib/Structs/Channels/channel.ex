@@ -18,7 +18,6 @@ defmodule Alchemy.Channel do
   }
 
   alias Alchemy.User
-  import Alchemy.Structs
 
   @moduledoc """
   This module contains useful functions for operating on `Channels`.
