@@ -8,6 +8,10 @@ defmodule Alchemy.Cache.Guilds do
   alias Alchemy.Guild
   import Alchemy.Cache.Utility
 
+  def init(init_arg) do
+    {:ok, init_arg}
+  end
+
   defmodule GuildSupervisor do
     @moduledoc false
     # acts as a dynamic supervisor for the surrounding GenServer

@@ -3,7 +3,6 @@ defmodule Alchemy.Cogs do
   alias Alchemy.Cogs.CommandHandler
   alias Alchemy.Cogs.EventRegistry
   alias Alchemy.Events
-  alias Alchemy.Guild
   require Logger
 
   @moduledoc """

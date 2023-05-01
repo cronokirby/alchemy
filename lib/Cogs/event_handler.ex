@@ -5,6 +5,10 @@ defmodule Alchemy.Cogs.EventHandler do
   # this server to figure out how to dispatch commands
   use GenServer
 
+  def init(init_arg) do
+    {:ok, init_arg}
+  end
+
   def disable(module, function) do
     GenServer.call(__MODULE__, {:disable, module, function})
   end

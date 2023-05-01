@@ -3,6 +3,10 @@ defmodule Alchemy.Cogs.CommandHandler do
   require Logger
   use GenServer
 
+  def init(init_arg) do
+    {:ok, init_arg}
+  end
+
   def add_commands(module, commands) do
     GenServer.call(__MODULE__, {:add_commands, module, commands})
   end

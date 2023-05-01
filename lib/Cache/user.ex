@@ -3,6 +3,10 @@ defmodule Alchemy.Cache.User do
   @moduledoc false
   use GenServer
 
+  def init(init_arg) do
+    {:ok, init_arg}
+  end
+
   def start_link do
     GenServer.start_link(__MODULE__, :ok, name: __MODULE__)
   end
