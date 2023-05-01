@@ -22,7 +22,7 @@ defmodule Alchemy.Mixfile do
 
   defp deps do
     [
-      {:httpoison, "~> 1.8"},
+      {:httpoison, "~> 2.1"},
       {:earmark, "~> 1.3", only: :dev},
       {:websocket_client, "~> 1.3"},
       {:ex_doc, "~> 0.20", only: :dev},
