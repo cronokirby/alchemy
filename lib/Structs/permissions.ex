@@ -76,7 +76,7 @@ defmodule Alchemy.Permissions do
     Allows for management and editing of emojis.
   """
   alias Alchemy.Guild
-  use Bitwise
+  import Bitwise
 
   @perms [
     :create_instant_invite,

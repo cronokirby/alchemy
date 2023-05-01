@@ -1,7 +1,7 @@
 defmodule Alchemy.Discord.Gateway.RateLimiter do
   @moduledoc false
   # This servers as a limiter to outside requests to the individual gateways
-  use Bitwise
+  import Bitwise
   alias Alchemy.Discord.Payloads
 
   defmodule RateSupervisor do
